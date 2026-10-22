@@ -123,7 +123,8 @@ ${select({ ctx, name: 'redirect_code', label: t('links.redirect_code'), value: v
   }
   if (kind === 'file') {
     return html`${v.file_name ? html`<p>${t('links.current_file')}: <strong>${v.file_name}</strong></p>` : ''}
-${input({ ctx, name: 'file', type: 'file', label: isNew ? t('links.file') : t('links.replace_file'), error: e.file, required: isNew, hint: t('links.file_hint') })}`
+${input({ ctx, name: 'file', type: 'file', label: isNew ? t('links.file') : t('links.replace_file'), error: e.file, required: isNew, hint: t('links.file_hint') })}
+${checkbox({ name: 'as_site', label: t('site.as_site'), checked: v.as_site === '1', hint: t('site.as_site_hint') })}${e.as_site ? html`<p class="error" role="alert">${t(e.as_site)}</p>` : ''}`
   }
   if (kind === 'vcard') {
     const vc = (k: string, label: string, extra: Partial<Parameters<typeof input>[0]> = {}) =>

@@ -132,6 +132,7 @@ export function findFileByKey(deps: AppDeps, key: string): StoredFile | undefine
 export function deleteStoredFile(deps: AppDeps, file: StoredFile): void {
   deps.db.prepare('DELETE FROM files WHERE id = ?').run(file.id)
   rmSync(uploadPath(deps, file.key), { force: true })
+  rmSync(join(deps.config.dataDir, 'sites', file.key), { recursive: true, force: true }) // sitio estático extraído, si lo hay
 }
 
 /** Borra del disco todos los archivos del usuario (la BD los borra en cascada) */

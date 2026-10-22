@@ -21,8 +21,8 @@ function asKind(v: unknown): LinkKind | undefined {
   return typeof v === 'string' && (LINK_KINDS as readonly string[]).includes(v) ? (v as LinkKind) : undefined
 }
 
-/** Borra el archivo que ya no usa un enlace tipo Archivo */
-function dropOldFile(deps: AppDeps, before: Link, afterData: Record<string, unknown>): void {
+/** Borra el archivo que ya no usa un enlace tipo Archivo (y su sitio extraído) */
+export function dropOldFile(deps: AppDeps, before: Link, afterData: Record<string, unknown>): void {
   const oldId = Number(before.data.file_id)
   if (before.kind === 'file' && oldId && oldId !== Number(afterData.file_id)) {
     const f = findFile(deps, oldId)

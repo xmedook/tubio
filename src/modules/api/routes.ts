@@ -14,6 +14,7 @@ import { BLOCK_BY_TYPE, MAX_BLOCKS_PER_PAGE } from '../bio/blocks.ts'
 import { createBlock, deleteBlock, getOwnBlock, listBlocks } from '../bio/repo.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { parseLinkForm } from '../links/form.ts'
+import { dropOldFile } from '../links/routes.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, linkUrl, listLinks, updateLink, type Link, type LinkKind } from '../links/repo.ts'
 import { blockAddDenied, dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { buildPayload, payloadText, QR_KINDS, type QrKind } from '../qr/payload.ts'
@@ -211,6 +212,7 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
   app.delete('/api/v1/links/:id', opts, async (req, reply) => {
     const l = ownLink(req)
     if (!l) return err(reply, 404, 'not_found')
+    dropOldFile(deps, l, {})
     deleteLink(db, l.id)
     return reply.code(204).send()
   })

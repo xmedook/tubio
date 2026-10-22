@@ -1292,5 +1292,12 @@
   "ref.mark_paid": "Mark paid",
   "ref.void": "Void",
   "err.verify_first": "Confirm your email first: we sent you a link when you signed up (you can request another from Account).",
-  "err.plan_downgrade": "Your {plan} plan is still active: you can switch to a lower one when it ends. Write to us if you need it sooner."
+  "err.plan_downgrade": "Your {plan} plan is still active: you can switch to a lower one when it ends. Write to us if you need it sooner.",
+  "site.as_site": "Publish as a website",
+  "site.as_site_hint": "Upload a .zip with your index.html (or a single .html) and it will show at this address. Up to 500 files and 40 MB. Business plan.",
+  "err.site_plan": "Websites come with the Business plan and need a verified email.",
+  "err.site_format": "We could not read the ZIP. Make sure it is a regular .zip or an .html.",
+  "err.site_too_many": "The ZIP has too many files (max 500).",
+  "err.site_too_big": "The site is too big uncompressed (max 40 MB).",
+  "err.site_empty": "The ZIP is empty."
 }

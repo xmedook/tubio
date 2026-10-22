@@ -2,7 +2,10 @@ import type { AppDeps } from '../../app.ts'
 import { aliasError, normalizeAlias, randomAlias } from '../../lib/alias.ts'
 import { hashPassword } from '../../lib/crypto.ts'
 import { eventSchema } from '../../lib/ical.ts'
-import { storeFile, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { readFileSync } from 'node:fs'
+import { deleteStoredFile, findFile, storeFile, UploadError, uploadPath, type MultipartData } from '../../lib/uploads.ts'
+import { limitsOf } from '../plans/limits.ts'
+import { extractSite, removeSiteDir } from '../sites/site.ts'
 import { checkTarget, UTM_KEYS, type Utm } from '../../lib/urls.ts'
 import { vcardSchema } from '../../lib/vcard.ts'
 import type { Errors } from '../../views/ui.ts'
@@ -61,7 +64,10 @@ export function valuesFromLink(link: Link, tz: string): FormValues {
     v.ev_starts_at = toLocalInput(Number(d.starts_at) || null, etz)
     v.ev_ends_at = toLocalInput(Number(d.ends_at) || null, etz)
   }
-  if (link.kind === 'file') v.file_name = String(d.file_name ?? '')
+  if (link.kind === 'file') {
+    v.file_name = String(d.file_name ?? '')
+    v.as_site = d.site ? '1' : ''
+  }
   return v
 }
 
@@ -247,13 +253,39 @@ export async function parseLinkForm(
   // archivo al final: sólo se guarda si todo lo demás está bien
   if (kind === 'file') {
     const up = mp.files.find((x) => x.field === 'file')
+    const asSite = checked(body, 'as_site')
     if (!up && !existing) errors.file = 'err.file_required'
+    // sitio web: HTML propio bajo tubio.link → mismo requisito que los bloques de código
+    if (asSite && !(limitsOf(deps.db, user, deps.now()).custom_code && (user.email_verified_at || user.role === 'admin'))) errors.as_site = 'err.site_plan'
     if (up && Object.keys(errors).length === 0) {
       try {
         const stored = await storeFile(deps, user.id, up.buffer, up.filename)
         data = { file_id: stored.id, file_name: stored.original_name, mime: stored.mime, size: stored.size }
+        if (asSite) {
+          try {
+            data.site = extractSite(deps, stored.key, up.buffer, stored.original_name)
+          } catch (e) {
+            deleteStoredFile(deps, stored)
+            throw e
+          }
+        }
       } catch (e) {
         errors.file = e instanceof UploadError ? e.key : 'err.invalid'
+      }
+    } else if (existing && Object.keys(errors).length === 0 && asSite !== !!existing.data.site) {
+      // sólo cambió la casilla: se extrae o se quita la carpeta del archivo ya subido
+      const f = findFile(deps, Number(existing.data.file_id))
+      data = { ...existing.data }
+      if (!f) errors.file = 'err.file_required'
+      else if (asSite) {
+        try {
+          data.site = extractSite(deps, f.key, readFileSync(uploadPath(deps, f.key)), f.original_name)
+        } catch (e) {
+          errors.as_site = e instanceof UploadError ? e.key : 'err.invalid'
+        }
+      } else {
+        removeSiteDir(deps, f.key)
+        delete data.site
       }
     }
   }

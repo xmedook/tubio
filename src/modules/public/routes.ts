@@ -13,7 +13,8 @@ import { cookieOpts, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { renderBioPage } from '../bio/render.ts'
 import { chooseDestination, respondShort } from '../marketing/resolve.ts'
-import { limitsOf } from '../plans/limits.ts'
+import { limitsOf, ownerLimits } from '../plans/limits.ts'
+import { resolveSiteFile, SITE_CSP, SITE_MIME } from '../sites/site.ts'
 import { findUserById } from '../users/repo.ts'
 import { findByAlias, incrementClicks, type Link } from '../links/repo.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
@@ -150,6 +151,11 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
         return reply.type('text/calendar; charset=utf-8').send(buildIcs(r.data, `link-${link.id}@tubio`, deps.now()))
       }
       case 'file': {
+        // sitio web: la raíz es /alias/ (con diagonal) para que las rutas relativas funcionen
+        if (link.data.site) {
+          const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
+          return reply.redirect(`/${link.alias}/${qs}`, 302)
+        }
         const f = findFile(deps, Number(link.data.file_id))
         const p = f ? uploadPath(deps, f.key) : ''
         if (!f || !existsSync(p)) return reply.callNotFound()
@@ -162,6 +168,37 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
         return reply.type(mime).send(createReadStream(p))
       }
     }
+  })
+
+  // archivos de un sitio estático
+  app.get('/:alias/*', async (req, reply) => {
+    const { alias, '*': rest } = req.params as { alias: string; '*': string }
+    const link = findByAlias(db, alias, req.ctx.domainId)
+    if (!link || link.kind !== 'file' || !link.data.site) return reply.callNotFound()
+    if (!(await gate(req, reply, link))) return reply
+    const file = findFile(deps, Number(link.data.file_id))
+    // el plan pudo vencer: sin código propio el sitio deja de servirse
+    if (!file || !(ownerLimits(db, link.user_id, deps.now())?.custom_code)) return unavailable(req.ctx, reply, 'missing')
+    let hit = resolveSiteFile(deps, file.key, rest ?? '')
+    let status = 200
+    if (!hit) {
+      hit = resolveSiteFile(deps, file.key, '404.html')
+      status = 404
+      if (!hit) return reply.callNotFound()
+    }
+    const mime = SITE_MIME[hit.ext]
+    if (hit.ext === 'html' || hit.ext === 'htm') {
+      if (status === 200) count(req, link)
+    }
+    reply.header('Content-Security-Policy', SITE_CSP)
+    reply.header('X-Content-Type-Options', 'nosniff')
+    reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+    reply.header('Cache-Control', link.password_hash ? 'private, no-store' : 'public, max-age=300')
+    // el documento tiene origen opaco: los módulos y fuentes que carga piden CORS
+    reply.header('Access-Control-Allow-Origin', '*')
+    reply.header('X-Robots-Tag', readNoindex(link) ? 'noindex' : 'all')
+    if (!mime) reply.header('Content-Disposition', 'attachment')
+    return reply.code(status).type(mime ?? 'application/octet-stream').send(createReadStream(hit.file))
   })
 
   app.post('/:alias', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
