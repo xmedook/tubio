@@ -22,6 +22,14 @@ Lo que hace falta para que la gente pueda usar tubio sin riesgo, sin funciones n
 
 **Criterio de salida:** respaldo restaurado con éxito en un entorno aparte, Kuma en verde 7 días, registro con captcha y legales visibles.
 
+**Estado (2026-10-22):**
+- ✅ Respaldo diario a R2 (aws2 04:05, 30 días) + simulacro de restauración OK; `docs/OPERACION.md`.
+- ✅ Vigilante cada 5 min desde aws2 (caída y 5xx → Telegram) y rotación de logs PM2. ⏳ Monitor en Kuma: falta acceso para dar de alta monitores (sólo hay llave de `/metrics`).
+- ✅ Captcha de prueba de trabajo propio (registro, recuperar, reportes, lista de espera), reportes de abuso con cola en admin, tope diario de enlaces. ⏳ Safe Browsing: opcional, requiere llave de Google.
+- ✅ Términos, aviso de privacidad y uso aceptable es/en con aceptación al registrarse. ⏳ Faltan datos del responsable (razón social, domicilio, correo de privacidad, jurisdicción).
+- ✅ Correos HTML, portada con lista de espera, plurales, 8 fuentes OFL autoalojadas.
+- ✅ Rendimiento: Lighthouse móvil 100/100/100/100, LCP 1.0 s, 31 KB; la app responde en ~1 ms, así que la caché de páginas queda para cuando haga falta.
+
 ---
 
 ## F2 — Contenido, marketing y plataforma (SPEC §10 F2)
