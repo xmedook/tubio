@@ -21,6 +21,8 @@ export type Ctx = {
   flash: Flash | null
   now: number
   baseUrl: string
+  /** hay credenciales de Google configuradas */
+  googleEnabled: boolean
 }
 
 declare module 'fastify' {
@@ -102,6 +104,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       flash,
       now,
       baseUrl: deps.config.baseUrl,
+      googleEnabled: !!(deps.config.googleClientId && deps.config.googleClientSecret),
     }
   })
 

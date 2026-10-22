@@ -664,5 +664,10 @@
   "err.upload_quota": "Llegaste al límite de espacio para archivos. Borra alguno o pide más espacio.",
   "mail.2fa_locked_subject": "Bloqueamos intentos de entrar a tu cuenta de tubio",
   "mail.2fa_locked_body": "Hola:\n\nAlguien escribió tu contraseña correctamente pero falló varias veces el código de verificación en dos pasos. Bloqueamos los intentos por 15 minutos.\n\nSi no fuiste tú, cambia tu contraseña cuanto antes.",
-  "admin.upload_quota": "Espacio de archivos por usuario (MB)"
+  "admin.upload_quota": "Espacio de archivos por usuario (MB)",
+  "auth.google": "Continuar con Google",
+  "auth.or": "o con tu correo",
+  "auth.welcome_google": "¡Listo! Tu cuenta está creada con Google.",
+  "err.google_state": "La sesión con Google venció o no es válida. Inténtalo otra vez.",
+  "err.google_failed": "No pudimos entrar con Google. Inténtalo otra vez o usa tu correo y contraseña."
 }

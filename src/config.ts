@@ -14,6 +14,9 @@ export type Config = {
   secret: string
   /** smtp://usuario:clave@host:587 — vacío = escribir .eml en dataDir/mail */
   smtpUrl: string
+  /** OAuth de Google (vacío = sin botón de Google) */
+  googleClientId: string
+  googleClientSecret: string
   mailFrom: string
   /** Tamaño máximo de subida en bytes */
   maxUploadBytes: number
@@ -39,6 +42,8 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     dbPath: e.TUBIO_DB ?? resolve(dataDir, 'tubio.sqlite'),
     secret: e.TUBIO_SECRET ?? 'dev-secret-change-me-dev-secret-change-me',
     smtpUrl: e.TUBIO_SMTP_URL ?? '',
+    googleClientId: e.TUBIO_GOOGLE_CLIENT_ID ?? '',
+    googleClientSecret: e.TUBIO_GOOGLE_CLIENT_SECRET ?? '',
     mailFrom: e.TUBIO_MAIL_FROM ?? 'tubio <no-reply@tubio.link>',
     maxUploadBytes: num(e.TUBIO_MAX_UPLOAD_BYTES, 10 * 1024 * 1024),
     trustProxy: e.TUBIO_TRUST_PROXY === '1',

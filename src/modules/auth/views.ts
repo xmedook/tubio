@@ -11,6 +11,7 @@ export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}) {
     title: t('auth.register_title'),
     path: '/register',
     body: html`<h1>${t('auth.register_title')}</h1>
+${googleButton(ctx)}
 <form method="post" action="/register" novalidate>
   ${csrfField(ctx)}
   ${errors._form ? html`<p class="error" role="alert">${t(errors._form)}</p>` : ''}
@@ -23,12 +24,19 @@ export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}) {
   })
 }
 
+function googleButton(ctx: Ctx, next = '') {
+  if (!ctx.googleEnabled) return ''
+  return html`<a class="btn btn-block btn-google" href="/login/google${next ? `?next=${encodeURIComponent(next)}` : ''}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3a7.2 7.2 0 0 1-10.8-3.8h-4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1A7.2 7.2 0 0 1 12 4.8z"/></svg>${ctx.t('auth.google')}</a>
+<p class="or" aria-hidden="true"><span>${ctx.t('auth.or')}</span></p>`
+}
+
 export function loginPage(ctx: Ctx, values: V = {}, errors: Errors = {}, next = '') {
   const { t } = ctx
   return authLayout(ctx, {
     title: t('auth.login_title'),
     path: '/login',
     body: html`<h1>${t('auth.login_title')}</h1>
+${googleButton(ctx, next)}
 <form method="post" action="/login" novalidate>
   ${csrfField(ctx)}
   <input type="hidden" name="next" value="${next}">

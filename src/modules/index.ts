@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../app.ts'
 import { registerAccount } from './account/routes.ts'
 import { registerAdmin } from './admin/routes.ts'
+import { registerGoogle } from './auth/google.ts'
 import { registerAuth } from './auth/routes.ts'
 import { registerBio } from './bio/routes.ts'
 import { registerHome } from './home/routes.ts'
@@ -15,6 +16,7 @@ import { registerStats } from './stats/routes.ts'
 export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerHome(app, deps)
   registerAuth(app, deps)
+  registerGoogle(app, deps)
   registerAccount(app, deps)
   registerLinks(app, deps)
   registerProjects(app, deps)

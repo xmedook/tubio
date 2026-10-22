@@ -664,5 +664,10 @@
   "err.upload_quota": "You reached your file storage limit. Delete some files or ask for more space.",
   "mail.2fa_locked_subject": "We blocked attempts to log in to your tubio account",
   "mail.2fa_locked_body": "Hi,\n\nSomeone entered your password correctly but failed the two-step verification code several times. We blocked attempts for 15 minutes.\n\nIf it wasn't you, change your password as soon as possible.",
-  "admin.upload_quota": "File storage per user (MB)"
+  "admin.upload_quota": "File storage per user (MB)",
+  "auth.google": "Continue with Google",
+  "auth.or": "or with your email",
+  "auth.welcome_google": "Done! Your account was created with Google.",
+  "err.google_state": "The Google session expired or is invalid. Try again.",
+  "err.google_failed": "We couldn't log you in with Google. Try again or use your email and password."
 }

@@ -264,3 +264,6 @@ body.auth .auth-card:has(.public-stats) { max-width: 960px; }
 .qr-grid .sub { color: var(--muted); font-size: .88rem; }
 .h3, h2.h3 { font-size: 1rem; margin: 0 0 .5rem; }
 .stat-table h2.h3 { margin-top: 0; }
+.btn-google { gap: .6rem; }
+.or { display: flex; align-items: center; gap: .75rem; color: var(--muted); font-size: .85rem; margin: 1rem 0; }
+.or::before, .or::after { content: ""; flex: 1; border-top: 1px solid var(--border); }

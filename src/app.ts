@@ -21,6 +21,8 @@ export type AppDeps = {
   mailer: Mailer
   geo: Geo
   now: () => number
+  /** HTTP saliente (OAuth); los tests lo reemplazan */
+  fetch?: typeof fetch
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')

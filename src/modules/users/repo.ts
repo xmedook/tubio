@@ -16,6 +16,7 @@ export type User = {
   failed_2fa: number
   locked_until: number | null
   totp_last_counter: number | null
+  google_sub: string | null
   created_at: number
   updated_at: number
 }
@@ -26,6 +27,10 @@ export function normalizeEmail(email: string): string {
 
 export function findUserById(db: DB, id: number): User | undefined {
   return db.prepare('SELECT * FROM users WHERE id = ?').get(id) as User | undefined
+}
+
+export function findUserByGoogleSub(db: DB, sub: string): User | undefined {
+  return db.prepare('SELECT * FROM users WHERE google_sub = ?').get(sub) as User | undefined
 }
 
 export function findUserByEmail(db: DB, email: string): User | undefined {
@@ -61,6 +66,7 @@ const UPDATABLE = [
   'failed_2fa',
   'locked_until',
   'totp_last_counter',
+  'google_sub',
 ] as const
 type Updatable = Partial<Pick<User, (typeof UPDATABLE)[number]>>
 

@@ -165,7 +165,7 @@ correo `no-reply@tubio.link` por el SMTP de Plesk con DKIM/SPF/DMARC, DB-IP City
 Repo público: https://github.com/xmedook/tubio. El clon v63 en aws2 quedó intacto pero sin tráfico (DNS ya apunta a aws1).
 
 Pendiente de F1 / decisiones de Alejandro:
-- **Login con Google** (SPEC §6): falta un cliente OAuth (client id/secret y redirect `https://tubio.link/login/google/callback`).
+- **Login con Google** (SPEC §6): código listo (OIDC + PKCE, enlaza por correo verificado, respeta 2FA); falta el cliente OAuth → `TUBIO_GOOGLE_CLIENT_ID/SECRET` en `.env`, redirect `https://tubio.link/login/google/callback`.
 
 Notas de diseño:
 - Únicos = hash distinto por día (sal diaria borrada a los 2 días): por privacidad no se puede contar un visitante entre días.
