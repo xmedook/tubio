@@ -331,3 +331,4 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
 .dir-t { font-weight: 700; } .dir-d { color: var(--muted); font-size: .88rem; }
 .spark { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
 .spark span { flex: 1; min-height: 2px; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
+.help-list { padding-left: 1.2rem; line-height: 2; font-size: 1.05rem; }

@@ -51,6 +51,7 @@ ${head(ctx, opts.title, opts.head)}
     )}</ul>
   </nav>
   <div class="topbar-end">
+    <a class="btn-link" href="/help">${t('help.title')}</a>
     ${langSwitch(ctx, opts.path)}
     <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
   </div>

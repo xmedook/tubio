@@ -5,7 +5,7 @@ import nodemailer, { type Transporter } from 'nodemailer'
 import { esc } from './html.ts'
 
 /** button: texto del botón para la línea que sea sólo una URL */
-export type Mail = { to: string; subject: string; text: string; button?: string }
+export type Mail = { to: string; subject: string; text: string; button?: string; replyTo?: string }
 
 /**
  * Versión HTML a partir del texto: párrafos escapados y la línea que sea sólo una URL se vuelve botón.
@@ -66,6 +66,6 @@ export class SmtpMailer implements Mailer {
     this.from = from
   }
   async send(mail: Mail): Promise<void> {
-    await this.transport.sendMail({ from: this.from, to: mail.to, subject: mail.subject, text: mail.text, html: mailHtml(mail) })
+    await this.transport.sendMail({ from: this.from, to: mail.to, subject: mail.subject, text: mail.text, html: mailHtml(mail), ...(mail.replyTo ? { replyTo: mail.replyTo } : {}) })
   }
 }

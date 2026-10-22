@@ -1310,5 +1310,20 @@
   "admin.signups_30d": "Sign-ups per day (30 days)",
   "admin.users_by_plan": "People by plan",
   "admin.top_links": "Most viewed (30 days)",
-  "legal.security": "Security"
+  "legal.security": "Security",
+  "help.title": "Help",
+  "help.lead": "Short answers to the most common questions. If yours is not here, write to us.",
+  "help.contact": "Contact support",
+  "help.contact_lead": "Tell us what is going on; we reply by email during business hours (Mexico City).",
+  "help.topic": "Topic",
+  "help.topic_account": "My account",
+  "help.topic_billing": "Payments and plans",
+  "help.topic_bug": "Something is broken",
+  "help.topic_abuse": "Report abuse",
+  "help.topic_other": "Other",
+  "help.message": "Message",
+  "help.send": "Send",
+  "help.sent": "Done, we got your message. We will reply by email.",
+  "help.back": "Back to help",
+  "help.too_short": "Tell us a bit more (at least 10 characters)."
 }

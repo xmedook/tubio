@@ -1310,5 +1310,20 @@
   "admin.signups_30d": "Registros por día (30 días)",
   "admin.users_by_plan": "Personas por plan",
   "admin.top_links": "Más vistos (30 días)",
-  "legal.security": "Seguridad"
+  "legal.security": "Seguridad",
+  "help.title": "Ayuda",
+  "help.lead": "Respuestas cortas a lo más común. Si no encuentras lo tuyo, escríbenos.",
+  "help.contact": "Contactar a soporte",
+  "help.contact_lead": "Cuéntanos qué pasa; te respondemos por correo en horario hábil (CDMX).",
+  "help.topic": "Tema",
+  "help.topic_account": "Mi cuenta",
+  "help.topic_billing": "Pagos y planes",
+  "help.topic_bug": "Algo no funciona",
+  "help.topic_abuse": "Reportar abuso",
+  "help.topic_other": "Otro",
+  "help.message": "Mensaje",
+  "help.send": "Enviar",
+  "help.sent": "Listo, recibimos tu mensaje. Te respondemos por correo.",
+  "help.back": "Volver a la ayuda",
+  "help.too_short": "Cuéntanos un poco más (al menos 10 letras)."
 }
