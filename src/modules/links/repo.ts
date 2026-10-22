@@ -28,6 +28,7 @@ type Row = {
   forward_query: number
   public_stats: number
   clicks: number
+  hits: number
   created_at: number
   updated_at: number
 }
@@ -148,8 +149,9 @@ export function deleteLink(db: DB, id: number): void {
   db.prepare('DELETE FROM links WHERE id = ?').run(id)
 }
 
-export function incrementClicks(db: DB, id: number): void {
-  db.prepare('UPDATE links SET clicks = clicks + 1 WHERE id = ?').run(id)
+/** hits = toda entrega (tope de clics); clicks = sólo visitas humanas */
+export function incrementClicks(db: DB, id: number, human = true): void {
+  db.prepare('UPDATE links SET hits = hits + 1, clicks = clicks + ? WHERE id = ?').run(human ? 1 : 0, id)
 }
 
 export function linkUrl(baseUrl: string, link: Pick<Link, 'alias'>): string {

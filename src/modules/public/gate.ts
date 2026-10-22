@@ -18,7 +18,7 @@ export function availability(deps: AppDeps, link: Link): Availability {
   if (!owner || owner.status !== 'active' || !link.is_enabled) return 'missing'
   if (link.starts_at && now < link.starts_at) return 'missing'
   if (link.ends_at && now >= link.ends_at) return 'expired'
-  if (link.click_limit && link.clicks >= link.click_limit) return 'limit'
+  if (link.click_limit && link.hits >= link.click_limit) return 'limit'
   return 'ok'
 }
 

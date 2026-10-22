@@ -57,6 +57,21 @@ export function isBlockedHost(db: DB, host: string): boolean {
   return !!db.prepare(q).get(...candidates)
 }
 
+/**
+ * Antes de redirigir a una URL guardada: el admin pudo bloquear el dominio después de que se creó.
+ * Devuelve null si ya no se debe seguir.
+ */
+export function redirectAllowed(db: DB, url: string): string | null {
+  try {
+    const u = new URL(url)
+    if (u.protocol === 'mailto:' || u.protocol === 'tel:' || u.protocol === 'sms:') return url
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null
+    return isBlockedHost(db, u.hostname.toLowerCase().replace(/\.$/, '')) ? null : url
+  } catch {
+    return null
+  }
+}
+
 /** checkUrl + lista de bloqueo */
 export function checkTarget(db: DB, input: string, schemes: string[] = WEB_SCHEMES): UrlCheck {
   const r = checkUrl(input, schemes)

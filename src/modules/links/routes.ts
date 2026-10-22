@@ -8,6 +8,7 @@ import type { User } from '../users/repo.ts'
 import { defaultValues, parseLinkForm, valuesFromLink } from './form.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
 import { dashboardPage, linkFormPage } from './views.ts'
+import { actorOf } from '../auth/routes.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
 
@@ -76,7 +77,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     if (kind === 'bio') {
       createBlock(db, link.id, { type: 'heading', is_enabled: true, starts_at: null, ends_at: null, data: { text: r.input.title || user.name || link.alias, level: 'h1' }, style: {} }, deps.now())
     }
-    audit(db, { actorId: user.id, userId: user.id, action: 'link.create', target: `link:${link.id}`, meta: { kind, alias: link.alias } }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'link.create', target: `link:${link.id}`, meta: { kind, alias: link.alias } }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'links.created' })
     return reply.redirect(kind === 'bio' ? `/panel/links/${link.id}/blocks` : `/panel/links/${link.id}`, 303)
   })
@@ -116,7 +117,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const user = req.ctx.user as User
     dropOldFile(deps, link, {})
     deleteLink(db, link.id)
-    audit(db, { actorId: user.id, userId: user.id, action: 'link.delete', target: `link:${link.id}`, meta: { alias: link.alias } }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'link.delete', target: `link:${link.id}`, meta: { alias: link.alias } }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'links.deleted' })
     return reply.redirect('/panel', 303)
   })

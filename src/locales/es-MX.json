@@ -659,5 +659,10 @@
   "admin.branding_forced_hint": "Ignora la opción de cada usuario y la marca propia.",
   "err.2fa_too_many": "Demasiados códigos incorrectos. Vuelve a entrar con tu contraseña.",
   "err.password_wrong_email": "Para cambiar el correo escribe tu contraseña actual.",
-  "account.email_password_hint": "Sólo hace falta si cambias el correo."
+  "account.email_password_hint": "Sólo hace falta si cambias el correo.",
+  "err.2fa_locked": "Demasiados intentos fallidos. La verificación en dos pasos quedó bloqueada 15 minutos.",
+  "err.upload_quota": "Llegaste al límite de espacio para archivos. Borra alguno o pide más espacio.",
+  "mail.2fa_locked_subject": "Bloqueamos intentos de entrar a tu cuenta de tubio",
+  "mail.2fa_locked_body": "Hola:\n\nAlguien escribió tu contraseña correctamente pero falló varias veces el código de verificación en dos pasos. Bloqueamos los intentos por 15 minutos.\n\nSi no fuiste tú, cambia tu contraseña cuanto antes.",
+  "admin.upload_quota": "Espacio de archivos por usuario (MB)"
 }

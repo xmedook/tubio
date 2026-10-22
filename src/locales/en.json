@@ -659,5 +659,10 @@
   "admin.branding_forced_hint": "Overrides each user’s choice and custom branding.",
   "err.2fa_too_many": "Too many wrong codes. Log in again with your password.",
   "err.password_wrong_email": "To change your email, enter your current password.",
-  "account.email_password_hint": "Only needed if you change your email."
+  "account.email_password_hint": "Only needed if you change your email.",
+  "err.2fa_locked": "Too many failed attempts. Two-step verification is locked for 15 minutes.",
+  "err.upload_quota": "You reached your file storage limit. Delete some files or ask for more space.",
+  "mail.2fa_locked_subject": "We blocked attempts to log in to your tubio account",
+  "mail.2fa_locked_body": "Hi,\n\nSomeone entered your password correctly but failed the two-step verification code several times. We blocked attempts for 15 minutes.\n\nIf it wasn't you, change your password as soon as possible.",
+  "admin.upload_quota": "File storage per user (MB)"
 }

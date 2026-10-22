@@ -146,7 +146,8 @@ export function sendHtml(reply: FastifyReply, page: SafeHtml, status = 200): Fas
 
 /** Sólo rutas internas relativas: evita redirecciones abiertas con ?next= */
 export function safeNext(next: unknown, fallback = '/panel'): string {
-  if (typeof next !== 'string' || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return fallback
+  // los navegadores ignoran tabs/saltos y tratan \ como /: "/\t/evil.com" sería //evil.com
+  if (typeof next !== 'string' || !next.startsWith('/') || /[\x00-\x20\x7f\\]/.test(next) || next.startsWith('//')) return fallback
   return next
 }
 

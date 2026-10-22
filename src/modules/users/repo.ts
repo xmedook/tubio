@@ -13,6 +13,9 @@ export type User = {
   totp_secret: string | null
   totp_enabled_at: number | null
   is_verified: number
+  failed_2fa: number
+  locked_until: number | null
+  totp_last_counter: number | null
   created_at: number
   updated_at: number
 }
@@ -55,6 +58,9 @@ const UPDATABLE = [
   'totp_secret',
   'totp_enabled_at',
   'is_verified',
+  'failed_2fa',
+  'locked_until',
+  'totp_last_counter',
 ] as const
 type Updatable = Partial<Pick<User, (typeof UPDATABLE)[number]>>
 

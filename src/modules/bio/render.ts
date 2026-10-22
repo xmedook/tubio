@@ -3,6 +3,7 @@ import type { AppDeps } from '../../app.ts'
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import { isLocale, translator, type Locale } from '../../lib/i18n.ts'
 import { imageUrl } from '../../lib/uploads.ts'
+import { redirectAllowed } from '../../lib/urls.ts'
 import { ASSET_VERSION } from '../../views/layout.ts'
 import { sendHtml } from '../../web/context.ts'
 import { linkUrl, type Link } from '../links/repo.ts'
@@ -88,7 +89,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const d = readDesign(link.data)
   const owner = findUserById(deps.db, link.user_id)
   const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
-  if (web(d.leap_url) && !preview) return reply.redirect(d.leap_url, 302)
+  if (web(d.leap_url) && !preview && redirectAllowed(deps.db, d.leap_url)) return reply.redirect(d.leap_url, 302)
 
   const locale: Locale = owner && isLocale(owner.locale) ? owner.locale : 'es-MX'
   const t = translator(locale)

@@ -5,7 +5,7 @@ import { verifyPassword } from '../../lib/crypto.ts'
 import { html } from '../../lib/html.ts'
 import { buildIcs, eventSchema } from '../../lib/ical.ts'
 import { findFile, findFileByKey, uploadPath } from '../../lib/uploads.ts'
-import { buildDestination } from '../../lib/urls.ts'
+import { buildDestination, redirectAllowed } from '../../lib/urls.ts'
 import { buildVCard, vcardFileName, vcardSchema } from '../../lib/vcard.ts'
 import { authLayout, messagePage } from '../../views/layout.ts'
 import { csrfField, input } from '../../views/ui.ts'
@@ -69,11 +69,11 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
   /** Revisa estado, programación, tope, contraseña y aviso. Devuelve false si ya respondió. */
   async function gate(req: FastifyRequest, reply: FastifyReply, link: Link): Promise<boolean> {
     const av = availability(deps, link)
-    if (av === 'expired' && link.expired_url) {
+    if (av === 'expired' && link.expired_url && redirectAllowed(db, link.expired_url)) {
       reply.redirect(link.expired_url, 302)
       return false
     }
-    if (av === 'limit' && link.limit_url) {
+    if (av === 'limit' && link.limit_url && redirectAllowed(db, link.limit_url)) {
       reply.redirect(link.limit_url, 302)
       return false
     }
@@ -92,10 +92,12 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
     return true
   }
 
+  /** hits cuenta toda entrega (para el tope); clicks y estadísticas sólo humanos */
   function count(req: FastifyRequest, link: Link): void {
     const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
     if (preview) return
-    if (recordEvent(deps, visitFromRequest(req), { linkId: link.id, kind: 'view' })) incrementClicks(db, link.id)
+    const human = recordEvent(deps, visitFromRequest(req), { linkId: link.id, kind: 'view' })
+    incrementClicks(db, link.id, human)
   }
 
   app.get('/:alias', async (req, reply) => {
@@ -110,7 +112,9 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
       case 'short': {
         count(req, link)
         const forward = link.forward_query ? (req.query as Record<string, unknown>) : null
-        return reply.redirect(buildDestination(link.target_url ?? '/', link.utm, forward), link.redirect_code)
+        const dest = redirectAllowed(db, buildDestination(link.target_url ?? '', link.utm, forward))
+        if (!dest) return unavailable(req.ctx, reply, 'missing')
+        return reply.redirect(dest, link.redirect_code)
       }
       case 'bio': {
         count(req, link)

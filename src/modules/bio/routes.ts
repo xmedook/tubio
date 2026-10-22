@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { storeImage, readMultipart, UploadError, type MultipartData } from '../../lib/uploads.ts'
-import { checkTarget } from '../../lib/urls.ts'
+import { checkTarget, redirectAllowed } from '../../lib/urls.ts'
 import { sendHtml, setFlash, userGuard } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
 import type { Errors } from '../../views/ui.ts'
@@ -237,7 +237,8 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!b || !link || availability(deps, link) !== 'ok' || !isUnlocked(deps, req, link) || !isConfirmed(deps, req, link)) return reply.callNotFound()
     if (!visibleBlocks([b], deps.now()).length) return reply.callNotFound()
     const to = (req.query as { to?: string }).to
-    const target = blockTarget(b, typeof to === 'string' ? to : undefined)
+    const raw = blockTarget(b, typeof to === 'string' ? to : undefined)
+    const target = raw ? redirectAllowed(db, raw) : null
     if (!target) return reply.callNotFound()
     const preview = req.ctx.user?.id === link.user_id && String(req.headers.referer ?? '').includes('_preview=1')
     if (!preview && recordEvent(deps, visitFromRequest(req), { linkId: link.id, blockId: b.id, kind: 'click' })) incrementBlockClicks(db, b.id)

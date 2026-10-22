@@ -6,6 +6,7 @@ import { fileTypeFromBuffer } from 'file-type'
 import sharp from 'sharp'
 import type { AppDeps } from '../app.ts'
 import { randomToken } from './crypto.ts'
+import { getSetting } from '../modules/settings/repo.ts'
 
 export type StoredFile = {
   id: number
@@ -37,6 +38,12 @@ function save(deps: AppDeps, key: string, buf: Buffer): void {
   const p = uploadPath(deps, key)
   mkdirSync(dirname(p), { recursive: true })
   writeFileSync(p, buf)
+}
+
+/** Lanza err.upload_quota si el usuario se pasaría de su espacio */
+export function assertQuota(deps: AppDeps, userId: number, extra: number): void {
+  const used = deps.db.prepare('SELECT COALESCE(SUM(size), 0) FROM files WHERE user_id = ?').pluck().get(userId) as number
+  if (used + extra > getSetting(deps.db, 'upload_quota_mb') * 1024 * 1024) throw new UploadError('err.upload_quota')
 }
 
 function insert(deps: AppDeps, f: Omit<StoredFile, 'id'>): StoredFile {
@@ -76,6 +83,7 @@ export async function storeImage(
   } catch {
     throw new UploadError('err.upload_not_image')
   }
+  assertQuota(deps, userId, out.length)
   const key = randomToken(18) + '.webp'
   save(deps, key, out)
   return insert(deps, {
@@ -95,6 +103,7 @@ export async function storeFile(deps: AppDeps, userId: number, buf: Buffer, orig
   if (buf.length === 0) throw new UploadError('err.upload_empty')
   const type = await fileTypeFromBuffer(buf)
   const mime = type?.mime ?? 'application/octet-stream'
+  assertQuota(deps, userId, buf.length)
   const key = randomToken(18)
   save(deps, key, buf)
   return insert(deps, {

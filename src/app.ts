@@ -31,7 +31,16 @@ export const PANEL_CSP =
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({
-    logger: deps.config.env === 'test' ? false : { level: deps.config.env === 'production' ? 'info' : 'debug' },
+    logger:
+      deps.config.env === 'test'
+        ? false
+        : {
+            level: deps.config.env === 'production' ? 'info' : 'debug',
+            // el token CSRF de formularios multipart viaja en la query: no debe quedar en bitácoras
+            serializers: {
+              req: (r: { method: string; url: string; ip?: string }) => ({ method: r.method, url: r.url.replace(/([?&]_csrf=)[^&]*/, '$1…'), ip: r.ip }),
+            },
+          },
     trustProxy: deps.config.trustProxy,
     bodyLimit: 1024 * 1024,
   })

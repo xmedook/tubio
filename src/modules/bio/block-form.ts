@@ -174,8 +174,10 @@ export async function parseBlockForm(
           const v = f(`social_${n.id}`).trim()
           if (!v) continue
           const url = normalizeSocial(n.id, v)
+          const safe = url ? checkTarget(deps.db, url, BUTTON_SCHEMES) : null
           if (!url) errors[`social_${n.id}`] = 'err.social'
-          else links[n.id] = url
+          else if (!safe?.ok) errors[`social_${n.id}`] = safe?.error ?? 'err.social'
+          else links[n.id] = safe.url
         }
         if (!Object.keys(links).length && !Object.keys(errors).some((k) => k.startsWith('social_'))) errors.social_instagram = 'err.socials_empty'
         data[spec.name] = links

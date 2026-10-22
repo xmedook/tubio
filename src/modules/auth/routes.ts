@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { AppDeps } from '../../app.ts'
 import { hashPassword, verifyPassword } from '../../lib/crypto.ts'
 import { translator, type Locale } from '../../lib/i18n.ts'
-import { verifyTotp } from '../../lib/totp.ts'
+import { matchTotp } from '../../lib/totp.ts'
 import { messagePage } from '../../views/layout.ts'
 import { cookieOpts, safeNext, sendHtml, setFlash } from '../../web/context.ts'
 import { field, parseForm } from '../../web/forms.ts'
@@ -28,8 +28,16 @@ let dummyHash: Promise<string> | null = null
 
 /** Códigos 2FA fallidos permitidos por inicio de sesión */
 const MAX_2FA_ATTEMPTS = 5
+/** Fallos seguidos por cuenta antes de bloquear el 2FA 15 minutos */
+const MAX_2FA_ACCOUNT_FAILS = 8
+const LOCK_MS = 15 * 60 * 1000
 
 const AUTH_LIMIT = { rateLimit: { max: 10, timeWindow: '1 minute' } }
+
+/** Quién hizo la acción: el admin si está suplantando */
+export function actorOf(req: FastifyRequest): number | null {
+  return req.ctx.session?.impersonator_id ?? req.ctx.user?.id ?? null
+}
 
 export function startSession(req: FastifyRequest, reply: FastifyReply, deps: AppDeps, userId: number, pending2fa = false, impersonatorId: number | null = null) {
   if (req.ctx.session) destroySession(deps.db, req.ctx.session.id_hash)
@@ -121,8 +129,24 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     if (!session?.pending_2fa) return reply.redirect('/login', 303)
     const next = safeNext(field(req.body, 'next'), '')
     const user = findUserById(db, session.user_id)
-    if (!user?.totp_secret || !verifyTotp(user.totp_secret, field(req.body, 'code'), deps.now())) {
+    const now = deps.now()
+    if (!user) return reply.redirect('/login', 303)
+    if (user.locked_until && user.locked_until > now) {
+      return sendHtml(reply, twoFactorPage(req.ctx, { code: 'err.2fa_locked' }, next), 429)
+    }
+    const counter = user.totp_secret ? matchTotp(user.totp_secret, field(req.body, 'code'), now) : null
+    // un código ya usado no vale otra vez (alguien que lo vio por encima del hombro)
+    const ok = counter !== null && (user.totp_last_counter === null || counter > user.totp_last_counter)
+    if (!ok) {
       db.prepare('UPDATE sessions SET failed_2fa = failed_2fa + 1 WHERE id_hash = ?').run(session.id_hash)
+      // tope por cuenta (no por sesión): volver a poner la contraseña no reinicia el conteo
+      const fails = user.failed_2fa + 1
+      if (fails >= MAX_2FA_ACCOUNT_FAILS) {
+        updateUser(db, user.id, { failed_2fa: 0, locked_until: now + LOCK_MS }, now)
+        audit(db, { userId: user.id, action: 'user.2fa_locked' }, now)
+        const tu = translator(user.locale as Locale)
+        await deps.mailer.send({ to: user.email, subject: tu('mail.2fa_locked_subject'), text: tu('mail.2fa_locked_body') })
+      } else updateUser(db, user.id, { failed_2fa: fails }, now)
       if ((session.failed_2fa ?? 0) + 1 >= MAX_2FA_ATTEMPTS) {
         destroySession(db, session.id_hash)
         reply.clearCookie(SESSION_COOKIE, { path: '/' })
@@ -131,8 +155,9 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       }
       return sendHtml(reply, twoFactorPage(req.ctx, { code: 'err.2fa_invalid' }, next), 401)
     }
+    updateUser(db, user.id, { failed_2fa: 0, locked_until: null, totp_last_counter: counter }, now)
     startSession(req, reply, deps, user.id)
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.login', meta: { twoFactor: true } }, deps.now())
+    audit(db, { actorId: user.id, userId: user.id, action: 'user.login', meta: { twoFactor: true } }, now)
     return reply.redirect(next || '/panel', 303)
   })
 

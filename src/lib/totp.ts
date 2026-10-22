@@ -56,13 +56,17 @@ export function totp(secret: string, now = Date.now(), step = 30): string {
   return hotp(secret, Math.floor(now / 1000 / step))
 }
 
-/** Acepta el código del paso actual y ±1 (reloj desfasado). */
-export function verifyTotp(secret: string, code: string, now = Date.now(), step = 30): boolean {
+/** Paso (contador) que coincide con el código: el actual o ±1 (reloj desfasado); null si ninguno. */
+export function matchTotp(secret: string, code: string, now = Date.now(), step = 30): number | null {
   const c = code.replace(/\s+/g, '')
-  if (!/^\d{6}$/.test(c)) return false
+  if (!/^\d{6}$/.test(c)) return null
   const counter = Math.floor(now / 1000 / step)
-  for (const d of [-1, 0, 1]) if (safeEqual(hotp(secret, counter + d), c)) return true
-  return false
+  for (const d of [-1, 0, 1]) if (safeEqual(hotp(secret, counter + d), c)) return counter + d
+  return null
+}
+
+export function verifyTotp(secret: string, code: string, now = Date.now(), step = 30): boolean {
+  return matchTotp(secret, code, now, step) !== null
 }
 
 export function otpauthUri(secret: string, account: string, issuer = 'tubio'): string {

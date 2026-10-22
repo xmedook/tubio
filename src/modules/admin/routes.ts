@@ -228,6 +228,7 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
 <form class="card" method="post" action="/admin/settings" novalidate>${csrfField(ctx)}
   ${input({ ctx, name: 'site_name', label: t('admin.site_name'), value: s.site_name, maxlength: 60 })}
   ${input({ ctx, name: 'stats_retention_days', type: 'number', label: t('admin.retention'), value: s.stats_retention_days, min: 7, max: 3650, hint: t('admin.retention_hint') })}
+  ${input({ ctx, name: 'upload_quota_mb', type: 'number', label: t('admin.upload_quota'), value: s.upload_quota_mb, min: 1, max: 100000 })}
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
   ${checkbox({ name: 'branding_forced', label: t('admin.branding_forced'), checked: s.branding_forced, hint: t('admin.branding_forced_hint') })}
   <button class="btn btn-primary" type="submit">${t('common.save')}</button>
@@ -240,6 +241,8 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
     if (name) setSetting(db, 'site_name', name)
     const days = Number(field(b, 'stats_retention_days'))
     if (Number.isInteger(days) && days >= 7 && days <= 3650) setSetting(db, 'stats_retention_days', days)
+    const quota = Number(field(b, 'upload_quota_mb'))
+    if (Number.isInteger(quota) && quota >= 1 && quota <= 100000) setSetting(db, 'upload_quota_mb', quota)
     setSetting(db, 'registration_open', checked(b, 'registration_open'))
     setSetting(db, 'branding_forced', checked(b, 'branding_forced'))
     audit(db, { actorId: me(req).id, action: 'admin.settings' }, deps.now())

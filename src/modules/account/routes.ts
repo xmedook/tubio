@@ -5,13 +5,13 @@ import { hashPassword, verifyPassword } from '../../lib/crypto.ts'
 import { html, raw } from '../../lib/html.ts'
 import { LOCALES } from '../../lib/i18n.ts'
 import { parseQrStyle, renderQrSvg } from '../../lib/qr.ts'
-import { generateSecret, otpauthUri, verifyTotp } from '../../lib/totp.ts'
+import { generateSecret, matchTotp, otpauthUri, verifyTotp } from '../../lib/totp.ts'
 import { deleteUserFiles } from '../../lib/uploads.ts'
 import { panelLayout } from '../../views/layout.ts'
 import { csrfField, input, select, type Errors } from '../../views/ui.ts'
 import { sendHtml, setFlash, userGuard, type Ctx } from '../../web/context.ts'
 import { field, parseForm } from '../../web/forms.ts'
-import { passwordSchema, sendVerifyEmail } from '../auth/routes.ts'
+import { actorOf, passwordSchema, sendVerifyEmail } from '../auth/routes.ts'
 import { destroyUserSessions, SESSION_COOKIE } from '../auth/sessions.ts'
 import { audit } from '../settings/repo.ts'
 import { deleteUser, findUserByEmail, findUserById, normalizeEmail, updateUser, type User } from '../users/repo.ts'
@@ -135,7 +135,8 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     if (!r.ok) return sendHtml(reply, accountPage(req.ctx, user, { profile: r.errors }, values), 422)
     const email = normalizeEmail(r.data.email)
     const changedEmail = email !== user.email
-    if (changedEmail && !req.ctx.session?.impersonator_id && !(await verifyPassword(field(req.body, 'current'), user.password_hash))) {
+    if (changedEmail && req.ctx.session?.impersonator_id) return reply.code(403).send('impersonating')
+    if (changedEmail && !(await verifyPassword(field(req.body, 'current'), user.password_hash))) {
       return sendHtml(reply, accountPage(req.ctx, user, { profile: { current: 'err.password_wrong_email' } }, values), 422)
     }
     if (changedEmail && findUserByEmail(db, email)) {
@@ -150,7 +151,7 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     }, deps.now())
     if (changedEmail) {
       await sendVerifyEmail(deps, reload(user.id))
-      audit(db, { actorId: user.id, userId: user.id, action: 'user.email_changed', meta: { from: user.email, to: email } }, deps.now())
+      audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.email_changed', meta: { from: user.email, to: email } }, deps.now())
     }
     setFlash(reply, deps, { type: 'ok', key: changedEmail ? 'account.saved_email' : 'account.saved' })
     return reply.redirect('/panel/account', 303)
@@ -158,6 +159,7 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
 
   app.post('/panel/account/password', { preHandler: userGuard, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const user = me(req)
+    if (req.ctx.session?.impersonator_id) return reply.code(403).send('impersonating')
     if (!(await verifyPassword(field(req.body, 'current'), user.password_hash))) {
       return sendHtml(reply, accountPage(req.ctx, user, { password: { current: 'err.password_wrong' } }), 422)
     }
@@ -165,7 +167,7 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     if (!r.ok) return sendHtml(reply, accountPage(req.ctx, user, { password: r.errors }), 422)
     updateUser(db, user.id, { password_hash: await hashPassword(r.data.password) }, deps.now())
     destroyUserSessions(db, user.id, req.ctx.session?.id_hash)
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.password_changed' }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.password_changed' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.password_changed' })
     return reply.redirect('/panel/account', 303)
   })
@@ -184,24 +186,27 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
 
   app.post('/panel/account/2fa/enable', { preHandler: userGuard, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const user = me(req)
+    if (req.ctx.session?.impersonator_id) return reply.code(403).send('impersonating')
     if (user.totp_enabled_at || !user.totp_secret) return reply.redirect('/panel/account', 303)
-    if (!verifyTotp(user.totp_secret, field(req.body, 'code'), deps.now())) {
+    const counter = matchTotp(user.totp_secret, field(req.body, 'code'), deps.now())
+    if (counter === null) {
       return sendHtml(reply, twoFactorSetupPage(req.ctx, user, user.totp_secret, 'err.2fa_invalid'), 422)
     }
-    updateUser(db, user.id, { totp_enabled_at: deps.now() }, deps.now())
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.2fa_enabled' }, deps.now())
+    updateUser(db, user.id, { totp_enabled_at: deps.now(), totp_last_counter: counter }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.2fa_enabled' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.2fa_enabled' })
     return reply.redirect('/panel/account', 303)
   })
 
   app.post('/panel/account/2fa/disable', { preHandler: userGuard, config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const user = me(req)
+    if (req.ctx.session?.impersonator_id) return reply.code(403).send('impersonating')
     const errors: Errors = {}
     if (!(await verifyPassword(field(req.body, 'current'), user.password_hash))) errors.current = 'err.password_wrong'
     if (!user.totp_secret || !verifyTotp(user.totp_secret, field(req.body, 'code'), deps.now())) errors.code = 'err.2fa_invalid'
     if (Object.keys(errors).length) return sendHtml(reply, accountPage(req.ctx, user, { '2fa': errors }), 422)
     updateUser(db, user.id, { totp_enabled_at: null, totp_secret: null }, deps.now())
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.2fa_disabled' }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.2fa_disabled' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.2fa_disabled' })
     return reply.redirect('/panel/account', 303)
   })
@@ -221,7 +226,7 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     }
     deleteUserFiles(deps, user.id)
     deleteUser(db, user.id)
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.deleted', meta: { email: user.email } }, deps.now())
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.deleted', meta: { email: user.email } }, deps.now())
     reply.clearCookie(SESSION_COOKIE, { path: '/' })
     setFlash(reply, deps, { type: 'info', key: 'account.deleted' })
     return reply.redirect('/login', 303)
