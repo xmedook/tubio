@@ -1168,5 +1168,15 @@
   "qr.o.EUR": "EUR",
   "err.datetime": "Use the YYYY-MM-DD HH:mm format.",
   "err.crypto_address": "That address doesn't look valid for the chosen coin.",
-  "stats.dim_variant": "Variant (targeting / A/B)"
+  "stats.dim_variant": "Variant (targeting / A/B)",
+  "api.locked": "The API comes with the Business plan.",
+  "api.intro": "Create a key to automate links, blocks, QR codes and data from your systems.",
+  "api.docs": "Documentation",
+  "api.new_key": "Copy your key now; we won't show it again:",
+  "api.used": "last used {when}",
+  "api.never": "never used",
+  "api.revoke": "Revoke",
+  "api.revoke_confirm": "Revoke this key? Anything using it will stop working.",
+  "api.key_name": "Key name",
+  "api.create": "Create key"
 }

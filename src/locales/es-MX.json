@@ -1168,5 +1168,15 @@
   "qr.o.EUR": "EUR",
   "err.datetime": "Usa el formato AAAA-MM-DD HH:mm.",
   "err.crypto_address": "Esa dirección no parece válida para la moneda elegida.",
-  "stats.dim_variant": "Variante (segmentación / A/B)"
+  "stats.dim_variant": "Variante (segmentación / A/B)",
+  "api.locked": "La API viene con el plan Negocio.",
+  "api.intro": "Crea una llave para automatizar enlaces, bloques, QR y datos desde tus sistemas.",
+  "api.docs": "Documentación",
+  "api.new_key": "Copia tu llave ahora; no la volveremos a mostrar:",
+  "api.used": "último uso {when}",
+  "api.never": "sin usar",
+  "api.revoke": "Revocar",
+  "api.revoke_confirm": "¿Revocar esta llave? Lo que la use dejará de funcionar.",
+  "api.key_name": "Nombre de la llave",
+  "api.create": "Crear llave"
 }

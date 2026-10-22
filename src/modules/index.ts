@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../app.ts'
 import { registerAbuse } from './abuse/routes.ts'
 import { registerAccount } from './account/routes.ts'
+import { registerApi } from './api/routes.ts'
 import { registerAdmin } from './admin/routes.ts'
 import { registerGoogle } from './auth/google.ts'
 import { registerAuth } from './auth/routes.ts'
@@ -35,6 +36,7 @@ export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerStats(app, deps)
   registerQr(app, deps)
   registerAdmin(app, deps)
+  registerApi(app, deps)
   registerAbuse(app, deps)
   registerPublic(app, deps)
 }
