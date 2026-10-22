@@ -90,13 +90,33 @@ Se divide en tres entregas que se pueden publicar por separado.
 
 ---
 
-## Decisiones que necesito de Alejandro
+## Decisiones de Alejandro (2026-10-22)
 
-1. **Dominios propios (F2c)**: (a) Caddy delante con TLS bajo demanda, sólo para dominios de clientes, con Plesk detrás para tubio.link — lo recomiendo; o (b) cada dominio como alias en Plesk con su certificado (más manual, no escala).
-2. **Facturación (F3)**: ¿CFDI para clientes en México (vía Dolibarr/RESICO que ya usamos) o sólo recibo simple al inicio?
-3. **Precios y límites** de cada plan (F3): propuesta en una tabla antes de programar.
-4. **Marca de plan gratis**: ¿«Hecho con tubio» obligatorio en gratis?
-5. **Registro abierto** desde ya o con lista de espera hasta terminar F1.5.
+1. **Dominios propios (F2c): Caddy** delante con TLS bajo demanda para dominios de clientes; Plesk sigue sirviendo tubio.link.
+2. **Facturación (F3): recibo simple** (PDF descargable, sin CFDI por ahora).
+3. **Planes: tabla simple** (propuesta abajo, por confirmar precios).
+4. **Plan gratis: «Hecho con tubio» obligatorio.**
+5. **Registro cerrado** hasta terminar F1.5 (aplicado en producción el 2026-10-22; sólo entra quien crea el admin).
+
+### Planes — propuesta (MXN, IVA incluido)
+
+| | Gratis | Pro | Negocio |
+|---|---|---|---|
+| Precio | $0 | $79/mes · $790/año | $249/mes · $2,490/año |
+| Páginas bio | 1 | 10 | ilimitadas |
+| Enlaces cortos / archivos / vCard / eventos | 25 | 1,000 | ilimitados |
+| Bloques por página | 30 | 100 | 100 |
+| Códigos QR | 10 | 200 | ilimitados |
+| Estadísticas guardadas | 30 días | 1 año | 3 años |
+| Espacio de archivos | 50 MB | 1 GB | 10 GB |
+| Quitar «Hecho con tubio» / marca propia | — | ✓ | ✓ |
+| Píxeles, splash, segmentación | — | ✓ | ✓ |
+| Dominios propios | — | 1 | 10 |
+| Bloques de captura y notificaciones | correo | todos | todos |
+| CSS/JS propio | — | — | ✓ |
+| Equipos | — | — | 5 personas |
+| API | — | — | ✓ |
+| Prueba gratis | — | 14 días | 14 días |
 
 ## Orden recomendado
 
