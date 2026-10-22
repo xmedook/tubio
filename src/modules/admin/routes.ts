@@ -24,6 +24,7 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['users', '/admin/users', t('admin.users')],
     ['links', '/admin/links', t('nav.links')],
     ['reports', '/admin/reports', t('admin.reports')],
+    ['payments', '/admin/payments', t('admin.payments')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
@@ -56,6 +57,7 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
   ${kpi(n('SELECT COUNT(*) FROM qr_codes'), t('nav.qr'))}
   ${kpi(n("SELECT COUNT(*) FROM abuse_reports WHERE status = 'open'"), t('admin.reports_open'))}
   ${kpi(n('SELECT COUNT(*) FROM waitlist WHERE invited_at IS NULL'), t('admin.waitlist'))}
+  ${kpi(n("SELECT COUNT(*) FROM payments WHERE status = 'pending' AND proof_file_id IS NOT NULL"), t('admin.payments_pending'))}
   ${kpi(n('SELECT COUNT(*) FROM stat_events WHERE ts >= ?', since), t('admin.events_30d'))}
   ${kpi(Math.round(n('SELECT COALESCE(SUM(size), 0) FROM files') / 1048576), t('admin.storage_mb'))}
 </div>

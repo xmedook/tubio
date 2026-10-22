@@ -27,6 +27,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | sortablejs | MIT | ordenar bloques arrastrando (servido localmente) |
 | @fontsource-variable/{inter,montserrat,space-grotesk,playfair-display,lora,caveat,jetbrains-mono}, @fontsource/poppins | fuentes OFL-1.1 (paquete MIT) | fuentes web de páginas bio, servidas desde /_/fonts/ |
 | fast-xml-parser | MIT | leer feeds RSS/Atom (bloques RSS y YouTube) |
+| pdfkit (+ png-js, fontkit…) | MIT | recibos en PDF |
 | simple-icons | CC0-1.0 | logos de redes sociales (path SVG y color de marca) |
 
 ## Desarrollo

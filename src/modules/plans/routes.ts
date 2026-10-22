@@ -42,7 +42,8 @@ export function plansTable(ctx: Ctx, plans: Plan[], current?: string): SafeHtml 
     [t('plan.r_api'), (l) => yes(ctx, l.api)],
   ]
   return html`<div class="table-scroll"><table class="data plans"><thead><tr><th></th>${plans.map((p) => html`<th scope="col"${p.slug === current ? html` class="current"` : ''}>${p.name}<span class="price">${p.price_month === null ? t('plan.free') : html`${money(ctx.locale, p.price_month, p.currency)}<small>/${t('plan.month')}</small>`}</span>${p.price_year ? html`<small class="muted">${t('plan.or_year', { price: money(ctx.locale, p.price_year, p.currency) })}</small>` : ''}</th>`)}</tr></thead>
-<tbody>${rows.map(([label, f]) => html`<tr><th scope="row">${label}</th>${plans.map((p) => html`<td${p.slug === current ? html` class="current"` : ''}>${f(p.limits)}</td>`)}</tr>`)}</tbody></table></div>`
+<tbody>${rows.map(([label, f]) => html`<tr><th scope="row">${label}</th>${plans.map((p) => html`<td${p.slug === current ? html` class="current"` : ''}>${f(p.limits)}</td>`)}</tr>`)}
+${current !== undefined ? html`<tr><th></th>${plans.map((p) => html`<td${p.slug === current ? html` class="current"` : ''}>${p.slug === current ? html`<span class="tag">${t('plan.yours')}</span>` : p.price_month === null ? '' : html`<a class="btn btn-primary btn-sm" href="/panel/checkout?plan=${p.slug}&period=month">${p.trial_days ? t('plan.choose_trial') : t('plan.choose')}</a>`}</td>`)}</tr>` : ''}</tbody></table></div>`
 }
 
 export function registerPlans(app: FastifyInstance, deps: AppDeps): void {
@@ -68,7 +69,7 @@ export function registerPlans(app: FastifyInstance, deps: AppDeps): void {
 </div>
 <h2>${t('plan.compare')}</h2>
 ${plansTable(ctx, listPlans(db, true), plan.slug)}
-<p class="muted">${t('plan.coming')}</p>`,
+<p><a href="/panel/payments">${t('pay.history')}</a></p>`,
     }))
   })
 }

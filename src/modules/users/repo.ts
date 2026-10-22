@@ -19,6 +19,7 @@ export type User = {
   google_sub: string | null
   plan_id: number | null
   plan_expires_at: number | null
+  trial_used_at: number | null
   created_at: number
   updated_at: number
 }
@@ -71,6 +72,7 @@ const UPDATABLE = [
   'google_sub',
   'plan_id',
   'plan_expires_at',
+  'trial_used_at',
 ] as const
 type Updatable = Partial<Pick<User, (typeof UPDATABLE)[number]>>
 
