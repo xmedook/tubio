@@ -24,7 +24,7 @@ Lo que hace falta para que la gente pueda usar tubio sin riesgo, sin funciones n
 
 **Estado (2026-10-22):**
 - ✅ Respaldo diario a R2 (aws2 04:05, 30 días) + simulacro de restauración OK; `docs/OPERACION.md`.
-- ✅ Vigilante cada 5 min desde aws2 (caída y 5xx → Telegram) y rotación de logs PM2. ⏳ Monitor en Kuma: pedido a master (buzón a-master 2026-10-22).
+- ✅ Vigilante cada 5 min desde aws2 (caída y 5xx → Telegram) y rotación de logs PM2. ✅ Kuma (stack): monitores 1143 «tubio.link — healthz» y 1144 «tubio.link — login», cada 60 s, Telegram de Alejandro.
 - ✅ Captcha de prueba de trabajo propio (registro, recuperar, reportes, lista de espera), reportes de abuso con cola en admin, tope diario de enlaces. ⏳ Safe Browsing: opcional, requiere llave de Google.
 - ✅ Términos, aviso de privacidad y uso aceptable es/en con aceptación al registrarse. ✅ Responsable: datos de Dolibarr; contacto hola@tubio.link (reenvía a robot@koode.mx); jurisdicción Zapopan, Jalisco.
 - ✅ Correos HTML, portada con lista de espera, plurales, 8 fuentes OFL autoalojadas.
@@ -42,7 +42,13 @@ Se divide en tres entregas que se pueden publicar por separado.
 - **Bloques de captura**: correo, teléfono, formulario de contacto, suscripción a la página, encuesta con resultados. Antispam (honeypot + prueba de trabajo), consentimiento explícito.
 - **«Datos»** del usuario: bandeja por página/bloque, exportar CSV, borrar; retención configurable.
 - **Notificaciones**: correo, webhook firmado (HMAC), Slack, Discord, Telegram; reintentos con cola en SQLite.
-- Datos nuevos: `collected_data`, `notification_handlers`, `jobs_queue`.
+- Datos nuevos: `collected`, `notify_targets`, `jobs`, `remote_cache`.
+
+**Estado (2026-10-22): ✅ F2a completa y en producción.** 58 tipos de bloque en total: 14 de negocio/contenido,
+RSS, YouTube y clima (validados al guardar, servidos de caché), 18 embeds más por iframe oficial con
+`frame-src` calculada por página, HTML propio aislado, 5 bloques de captura con «Datos» (CSV) y avisos por
+correo/webhook firmado/Slack/Discord/Telegram con cola y reintentos. Todo HTTP saliente por `lib/safe-fetch`
+(anti-SSRF). Pendiente menor: Tumblr (su embed pide el UUID interno del blog).
 
 ### F2b — Herramientas de marketing  · M
 - **Píxeles reutilizables**: Meta, GA4/GTM, TikTok, LinkedIn, Pinterest, X, Snapchat, Quora. Se cargan sólo tras aviso de cookies propio (sin terceros); la CSP de la página se amplía sólo con los orígenes del píxel elegido.
