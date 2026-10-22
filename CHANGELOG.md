@@ -20,7 +20,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones 
 - Pago por transferencia con comprobante y recibo PDF; recordatorio de vencimiento.
 
 ### F2 — negocio
-- Dominios propios (Caddy on-demand TLS), equipos con roles, API v1 con llaves.
+- Dominios propios (lado de la app listo para Caddy on-demand TLS; falta instalar Caddy), equipos con roles, API v1 con llaves.
 - Marketing: píxeles con consentimiento, página de espera, destinos por país/dispositivo, pruebas A/B, ocultar destino.
 - Captura: formularios, encuestas, avisos por correo, webhook (HMAC), Slack, Discord y Telegram.
 - Bloques: negocio (FAQ, horario, reseñas, productos, galería…), feeds (RSS, YouTube, clima) y 18 embeds.
