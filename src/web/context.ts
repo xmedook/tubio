@@ -7,6 +7,7 @@ import type { SafeHtml } from '../lib/html.ts'
 import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '../lib/i18n.ts'
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
 import { domainIdForHost } from '../modules/domains/repo.ts'
+import { findUserById } from '../modules/users/repo.ts'
 import type { User } from '../modules/users/repo.ts'
 
 export type Flash = { type: 'ok' | 'error' | 'info'; key: string; vars?: Record<string, string | number> }
@@ -29,6 +30,9 @@ export type Ctx = {
   pow: () => PowChallenge | null
   /** 0 = dominio principal; >0 = dominio propio de un usuario */
   domainId: number
+  /** trabajando en el espacio de otro: `user` es el dueño y `member` la persona real */
+  member: User | null
+  teamRole: 'viewer' | 'editor' | 'admin' | null
 }
 
 declare module 'fastify' {
@@ -55,6 +59,18 @@ export function cookieOpts(deps: AppDeps, maxAgeSec?: number) {
   }
 }
 
+/** Rutas que siempre son de la persona real (no del espacio de equipo en el que esté) */
+const PERSONAL = /^\/(panel\/(account|plan|payments|checkout|trial|api|team|workspace)|logout|lang|verify|admin)(\/|$|\?)/
+
+/** Qué puede hacer cada rol de equipo en el espacio de otro */
+export function teamAllows(role: Ctx['teamRole'], method: string, url: string): boolean {
+  if (!role || role === 'admin') return true
+  if (method === 'GET' || method === 'HEAD') return true
+  if (role === 'viewer') return false
+  // editor: todo lo del contenido, nada de dominios, avisos, píxeles ni borrar datos capturados
+  return !/^\/panel\/(domains|notifications|pixels|splashes|data\/delete)/.test(url)
+}
+
 export function registerContext(app: FastifyInstance, deps: AppDeps): void {
   app.decorateRequest('ctx', null as unknown as Ctx)
 
@@ -78,9 +94,24 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       }
     }
 
+    // espacio de trabajo de un equipo: el panel opera sobre el dueño, salvo lo personal
+    let member: User | null = null
+    let teamRole: Ctx['teamRole'] = null
+    const wsId = (session as (Session & { workspace_id?: number | null }) | null)?.workspace_id
+    if (user && wsId && wsId !== user.id && !PERSONAL.test(req.url)) {
+      const m = deps.db.prepare('SELECT role FROM team_members WHERE owner_id = ? AND user_id = ? AND accepted_at IS NOT NULL').get(wsId, user.id) as { role: Ctx['teamRole'] } | undefined
+      const owner = m ? findUserById(deps.db, wsId) : undefined
+      if (m && owner && owner.status === 'active') {
+        member = user
+        user = owner
+        teamRole = m.role
+      }
+    }
+
     const cookieLang = req.cookies[LANG_COOKIE]
-    const locale: Locale = user && isLocale(user.locale)
-      ? user.locale
+    const me = member ?? user
+    const locale: Locale = me && isLocale(me.locale)
+      ? me.locale
       : isLocale(cookieLang)
         ? cookieLang
         : fromAcceptLanguage(req.headers['accept-language'])
@@ -118,6 +149,14 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       googleEnabled: !!(deps.config.googleClientId && deps.config.googleClientSecret),
       pow: () => (deps.config.powMax > 0 ? createChallenge(deps.config.secret, now, deps.config.powMax) : null),
       domainId,
+      member,
+      teamRole,
+    }
+  })
+
+  app.addHook('preHandler', async (req, reply) => {
+    if (req.ctx?.teamRole && !teamAllows(req.ctx.teamRole, req.method, req.url)) {
+      return reply.code(403).type('text/plain').send(req.ctx.t('team.forbidden'))
     }
   })
 

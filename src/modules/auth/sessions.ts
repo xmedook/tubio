@@ -15,6 +15,7 @@ export type Session = {
   pending_2fa: number
   failed_2fa?: number
   impersonator_id: number | null
+  workspace_id?: number | null
   created_at: number
   expires_at: number
   last_seen_at: number

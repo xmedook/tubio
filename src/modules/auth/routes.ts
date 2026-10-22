@@ -37,7 +37,7 @@ const AUTH_LIMIT = { rateLimit: { max: 10, timeWindow: '1 minute' } }
 
 /** Quién hizo la acción: el admin si está suplantando */
 export function actorOf(req: FastifyRequest): number | null {
-  return req.ctx.session?.impersonator_id ?? req.ctx.user?.id ?? null
+  return req.ctx.session?.impersonator_id ?? req.ctx.member?.id ?? req.ctx.user?.id ?? null
 }
 
 export function startSession(req: FastifyRequest, reply: FastifyReply, deps: AppDeps, userId: number, pending2fa = false, impersonatorId: number | null = null) {

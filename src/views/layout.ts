@@ -59,7 +59,11 @@ ${ctx.session?.impersonator_id
   ? html`<div class="banner banner-warn">${t('admin.impersonating', { email: user?.email ?? '' })}
       <form method="post" action="/admin/stop-impersonating" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('admin.stop_impersonating')}</button></form></div>`
   : ''}
-${user && !user.email_verified_at
+${ctx.member
+  ? html`<div class="banner banner-warn">${t('team.working_in', { who: user?.name || user?.email || '', role: t(`team.role_${ctx.teamRole}`) })}
+      <form method="post" action="/panel/workspace/personal" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('team.back')}</button></form></div>`
+  : ''}
+${user && !ctx.member && !user.email_verified_at
   ? html`<div class="banner">${t('auth.verify_banner')}
       <form method="post" action="/verify/resend" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('auth.verify_resend')}</button></form></div>`
   : ''}
