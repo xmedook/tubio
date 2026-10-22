@@ -219,4 +219,18 @@ export const EMBED_BLOCKS: BlockDef[] = [
     summary: (b) => s(b.data.title) || String((b.data.file as { name?: string } | null)?.name ?? ''),
   },
   def('iframe', iframeEmbed, 'https://…', 'media'),
+  {
+    // HTML del usuario: se sirve aparte en /_/h/:id con CSP «sandbox allow-scripts» (origen opaco:
+    // no ve cookies ni la página). Nunca se mezcla con el HTML de la página bio.
+    type: 'html',
+    group: 'basic',
+    fields: [
+      { name: 'code', kind: 'textarea', label: 'bio.f.html_code', max: 20000, rows: 10, required: true, hint: 'bio.f.html_hint' },
+      { name: 'height', kind: 'number', label: 'bio.f.height', min: 60, max: 1200, step: 10 },
+    ],
+    frameOrigins: () => ["'self'"],
+    render: (rc, b) =>
+      html`<div class="embed r-fixed html-block" data-h="${Number(b.data.height) || 300}"><iframe src="/_/h/${b.id}" title="${rc.t('bio.type_html')}" loading="lazy" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer"></iframe></div>`,
+    summary: (b) => s(b.data.code).slice(0, 60),
+  },
 ]

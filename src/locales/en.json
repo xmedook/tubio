@@ -953,5 +953,9 @@
   "bio.cap_err_consent": "Check the consent box to send.",
   "bio.cap_err_email": "Enter a valid email.",
   "bio.cap_err_phone": "Enter a valid phone number with area code.",
-  "bio.cap_err_contact": "Fill in name, email and message."
+  "bio.cap_err_contact": "Fill in name, email and message.",
+  "bio.type_html": "Custom HTML",
+  "bio.f.html_code": "HTML code",
+  "bio.f.html_hint": "Shown isolated in a frame: it can use CSS and JavaScript but has no access to the page or your visitors' data.",
+  "bio.f.height": "Height (px)"
 }

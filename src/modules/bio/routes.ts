@@ -292,6 +292,20 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     return reply.type(mime).send(createReadStream(p))
   })
 
+  app.get('/_/h/:id', async (req, reply) => {
+    const r = publicBlock(req, 'html')
+    if (!r) return reply.callNotFound()
+    // sólo dentro de un iframe: abrirlo como página suelta en tubio.link serviría para phishing
+    const dest = req.headers['sec-fetch-dest']
+    if (dest && dest !== 'iframe') return reply.callNotFound()
+    // origen opaco: sin allow-same-origin el documento no puede leer cookies ni tocar al padre
+    reply.header('Content-Security-Policy', "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox; frame-ancestors 'self'; default-src * data: blob: 'unsafe-inline' 'unsafe-eval'")
+    reply.header('X-Frame-Options', 'SAMEORIGIN')
+    reply.header('X-Robots-Tag', 'noindex')
+    reply.header('Cache-Control', 'no-store')
+    return reply.type('text/html; charset=utf-8').send(String(r.b.data.code ?? ''))
+  })
+
   app.get('/_/pdf/:id', async (req, reply) => {
     const r = publicBlock(req, 'pdf')
     const meta = (r?.b.data.file ?? null) as { file_id?: number } | null

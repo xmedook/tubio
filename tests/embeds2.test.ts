@@ -53,3 +53,28 @@ describe('embeds de redes y herramientas', () => {
     expect(file.headers['x-frame-options']).toBe('SAMEORIGIN')
   })
 })
+
+describe('HTML propio', () => {
+  it('se sirve aparte con CSP sandbox (origen opaco) y nunca dentro de la página', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=bio')
+    await a.postMultipart('/panel/links?kind=bio', { alias: 'conhtml', is_enabled: '1' })
+    const id = findByAlias(t.deps.db, 'conhtml')!.id
+    await a.get(`/panel/links/${id}/blocks`)
+    const code = '<script>document.cookie; parent.location="https://evil.com"</script><p>hola</p>'
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=html`, { code, height: '200', is_enabled: '1' })).statusCode).toBe(303)
+    const ua = { 'user-agent': 'Mozilla/5.0 Chrome/130' }
+    const page = await new Agent(t.app).get('/conhtml', ua)
+    expect(page.body).not.toContain('evil.com')
+    expect(page.body).toContain('sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"')
+    expect(page.body).toMatch(/#b\d+ \.embed\{height:200px\}/)
+    const blk = listBlocks(t.deps.db, id).find((b) => b.type === 'html')!
+    expect((await new Agent(t.app).get(`/_/h/${blk.id}`, { ...ua, 'sec-fetch-dest': 'document' })).statusCode).toBe(404)
+    const frame = await new Agent(t.app).get(`/_/h/${blk.id}`, { ...ua, 'sec-fetch-dest': 'iframe' })
+    expect(String(frame.headers['content-security-policy'])).toMatch(/^sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox;/)
+    expect(String(frame.headers['content-security-policy'])).not.toContain('allow-same-origin')
+    expect(frame.body).toBe(code)
+  })
+})

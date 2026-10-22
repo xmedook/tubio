@@ -953,5 +953,9 @@
   "bio.cap_err_consent": "Marca la casilla de aceptación para enviar.",
   "bio.cap_err_email": "Escribe un correo válido.",
   "bio.cap_err_phone": "Escribe un teléfono válido con lada.",
-  "bio.cap_err_contact": "Llena nombre, correo y mensaje."
+  "bio.cap_err_contact": "Llena nombre, correo y mensaje.",
+  "bio.type_html": "HTML propio",
+  "bio.f.html_code": "Código HTML",
+  "bio.f.html_hint": "Se muestra aislado en un marco: puede usar CSS y JavaScript pero no tiene acceso a la página ni a datos de tus visitantes.",
+  "bio.f.height": "Alto (px)"
 }
