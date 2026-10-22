@@ -248,3 +248,17 @@ body.auth { display: grid; place-items: center; min-height: 100vh; padding: 1.25
 .small { font-size: .85rem; }
 .public-stats { max-width: 900px; }
 body.auth .auth-card:has(.public-stats) { max-width: 960px; }
+
+/* QR */
+.kinds { overflow-x: auto; flex-wrap: nowrap; }
+.kinds a { white-space: nowrap; }
+.qr-side { display: flex; flex-direction: column; gap: .75rem; }
+.qr-preview { display: grid; place-items: center; min-height: 300px; background: repeating-conic-gradient(var(--surface-2) 0 25%, var(--surface) 0 50%) 50% / 20px 20px; }
+.qr-preview img, .qr-preview svg { width: 100%; max-width: 320px; height: auto; }
+.center-row { justify-content: center; }
+.qr-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+.qr-grid .card { margin: 0; display: flex; flex-direction: column; gap: .4rem; }
+.qr-thumb { display: block; background: #fff; border-radius: 8px; padding: .5rem; border: 1px solid var(--border); }
+.qr-thumb img { width: 100%; height: auto; display: block; }
+.qr-grid .title { font-weight: 650; }
+.qr-grid .sub { color: var(--muted); font-size: .88rem; }
