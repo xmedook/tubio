@@ -16,7 +16,8 @@
     "check": "npm run typecheck && npm test",
     "migrate": "node src/db/cli.ts",
     "create-admin": "node src/cli/create-admin.ts",
-    "seed-demo": "node src/cli/seed-demo.ts"
+    "seed-demo": "node src/cli/seed-demo.ts",
+    "backup-db": "node src/cli/backup-db.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",

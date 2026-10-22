@@ -159,12 +159,13 @@ Hecho, con tests (`npm run check`: tsc + 93 tests de vitest):
 | 13 Admin mínimo | ✅ |
 | 14 Pulido: axe sin fallas reales, CSP, README, PM2 local en 127.0.0.1:3095 | ✅ |
 
+Publicado el 2026-10-22 (ok de Alejandro): **https://tubio.link** en aws1.nexosrv.one (Plesk, suscripción
+`tubio.link`, usuario `tubio_link`), PM2 del usuario con Node 22 de Plesk, nginx → 127.0.0.1:3095, Let's Encrypt,
+correo `no-reply@tubio.link` por el SMTP de Plesk con DKIM/SPF/DMARC, DB-IP City Lite (cron mensual), respaldo diario.
+Repo público: https://github.com/xmedook/tubio. El clon v63 en aws2 quedó intacto pero sin tráfico (DNS ya apunta a aws1).
+
 Pendiente de F1 / decisiones de Alejandro:
 - **Login con Google** (SPEC §6): falta un cliente OAuth (client id/secret y redirect `https://tubio.link/login/google/callback`).
-- **SMTP** para correos de verificación y recuperación (hoy quedan en `data/mail/`).
-- **Base geo DB-IP Lite** (CC-BY): descargarla a `data/geo/` para ver país/ciudad.
-- **Despliegue** en la suscripción `tubio.link` (hoy ahí está el clon v63): nginx → 127.0.0.1:3095 sólo con ok.
-- **Repo público** `xmedook/tubio` sólo con ok.
 
 Notas de diseño:
 - Únicos = hash distinto por día (sal diaria borrada a los 2 días): por privacidad no se puede contar un visitante entre días.

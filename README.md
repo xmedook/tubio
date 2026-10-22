@@ -31,7 +31,7 @@ Sin SMTP, los correos (verificación, recuperar contraseña) quedan en `data/mai
 
 ```bash
 cp .env.example .env        # pon TUBIO_SECRET, TUBIO_BASE_URL, SMTP…
-npm ci --omit=dev
+npm ci --omit=dev --ignore-scripts   # better-sqlite3 y sharp traen binarios: no hace falta compilador
 npm run migrate
 npm run create-admin -- admin@tu-dominio "contraseña-larga"
 pm2 start ecosystem.config.cjs && pm2 save
@@ -40,6 +40,9 @@ pm2 start ecosystem.config.cjs && pm2 save
 nginx hace TLS y pasa todo a `127.0.0.1:3095` con `X-Forwarded-For` (y `TUBIO_TRUST_PROXY=1`). Respalda
 `data/` (la BD `tubio.sqlite` en modo WAL y `uploads/`); para copiar la BD en caliente usa
 `sqlite3 data/tubio.sqlite ".backup respaldo.sqlite"`.
+
+Respaldo diario: `npm run backup-db` (cron) deja `data/backups/tubio-AAAA-MM-DD.sqlite` y conserva 14 días.
+Base geo mensual: `scripts/update-geo.sh` (cron).
 
 Ubicación de visitas (opcional): descarga "IP to City Lite" en formato MMDB de [DB-IP](https://db-ip.com/db/download/ip-to-city-lite)
 (CC-BY 4.0) a `data/geo/dbip-city-lite.mmdb`; la atribución aparece sola en las estadísticas.
