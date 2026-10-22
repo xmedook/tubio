@@ -10,6 +10,10 @@ tus usuarios: la ruta `/source` del pie de página apunta a `TUBIO_SOURCE_URL`.
 - Decisiones de stack: [`docs/adr/0001-stack.md`](docs/adr/0001-stack.md)
 - Plan y estado de la fase 1: [`docs/PLAN-F1.md`](docs/PLAN-F1.md)
 - Dependencias y licencias: [`docs/DEPENDENCIAS.md`](docs/DEPENDENCIAS.md)
+- Hoja de ruta: [`docs/ROADMAP.md`](docs/ROADMAP.md) · Cambios: [`CHANGELOG.md`](CHANGELOG.md)
+- Operar una instalación (desplegar, respaldar, restaurar, incidentes): [`docs/OPERACION.md`](docs/OPERACION.md)
+- API: [`docs/API.md`](docs/API.md) · Dominios propios: [`docs/DOMINIOS.md`](docs/DOMINIOS.md)
+- Contribuir: [`CONTRIBUTING.md`](CONTRIBUTING.md) · Seguridad: [`SECURITY.md`](SECURITY.md)
 
 ## Requisitos
 
@@ -38,7 +42,7 @@ pm2 start ecosystem.config.cjs && pm2 save
 ```
 
 nginx hace TLS y pasa todo a `127.0.0.1:3095` con `X-Forwarded-For` (y `TUBIO_TRUST_PROXY=1`). Respalda
-`data/` (la BD `tubio.sqlite` en modo WAL y `uploads/`); para copiar la BD en caliente usa
+`data/` (la BD `tubio.sqlite` en modo WAL, `uploads/` y `sites/`); para copiar la BD en caliente usa
 `sqlite3 data/tubio.sqlite ".backup respaldo.sqlite"`.
 
 Respaldo diario: `npm run backup-db` (cron) deja `data/backups/tubio-AAAA-MM-DD.sqlite` y conserva 14 días.
