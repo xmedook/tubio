@@ -122,9 +122,10 @@ h1.heading { font-size: 1.75em; } h2.heading { font-size: 1.4em; } h3.heading { 
 .blk[data-i="1"] { animation-delay: .04s; } .blk[data-i="2"] { animation-delay: .08s; } .blk[data-i="3"] { animation-delay: .12s; }
 .blk[data-i="4"] { animation-delay: .16s; } .blk[data-i="5"] { animation-delay: .2s; } .blk[data-i="6"] { animation-delay: .24s; }
 .blk[data-i="7"] { animation-delay: .28s; } .blk[data-i="8"] { animation-delay: .32s; } .blk[data-i="9"], .blk[data-i="10"], .blk[data-i="11"], .blk[data-i="12"], .blk[data-i="13"], .blk[data-i="14"], .blk[data-i="15"] { animation-delay: .36s; }
-@keyframes fadeIn { from { opacity: 0; } }
-@keyframes rise { from { opacity: 0; transform: translateY(12px); } }
-@keyframes pop { from { opacity: 0; transform: scale(.94); } }
+/* nunca desde opacidad 0: el navegador no cuenta como pintado (LCP) lo invisible */
+@keyframes fadeIn { from { opacity: .35; } }
+@keyframes rise { from { transform: translateY(12px); } }
+@keyframes pop { from { transform: scale(.94); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
 .report { text-align: center; font-size: .72em; opacity: .5; margin: .25rem 0 0; }
