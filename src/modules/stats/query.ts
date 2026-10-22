@@ -58,7 +58,7 @@ export type Report = {
   links: { link_id: number; views: number; clicks: number }[]
 }
 
-export const DIMENSIONS = ['country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign'] as const
+export const DIMENSIONS = ['country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign', 'variant'] as const
 export type Dimension = (typeof DIMENSIONS)[number]
 
 /**

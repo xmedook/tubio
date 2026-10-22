@@ -48,6 +48,7 @@ export function dashboardPage(
         <a href="/panel/links/new?kind=file">${t('links.kind_file')}</a>
         <a href="/panel/links/new?kind=vcard">${t('links.kind_vcard')}</a>
         <a href="/panel/links/new?kind=event">${t('links.kind_event')}</a>
+        <a href="/panel/pixels">${t('mk.title')}</a>
       </div>
     </details>
   </div>
@@ -157,9 +158,44 @@ ${textarea({ ctx, name: 'ev_description', label: t('event.description'), value: 
   return html``
 }
 
+function marketingSection(ctx: Ctx, kind: LinkKind, v: FormValues, e: Errors, mk?: { enabled: boolean; pixels: { id: number; name: string; kind: string }[]; splashes: { id: number; name: string }[] }): SafeHtml {
+  const { t } = ctx
+  if (!mk) return html``
+  if (!mk.enabled) return html`<details class="opt"><summary>${t('mk.title')} <span class="tag">Pro</span></summary><div class="opt-body"><p>${t('mk.locked')} <a href="/panel/plan">${t('plan.see_plans')}</a></p></div></details>`
+  const chosen = new Set((v.pixel_ids ?? '').split(',').filter(Boolean))
+  const hasRules = Object.keys(v).some((k) => k.startsWith('tg__') || k.startsWith('ab__')) || v.splash_id || v.cloak || chosen.size
+  const types = ['country', 'device', 'lang', 'os'].map((x) => ({ value: x, label: t(`mk.rule_${x}`) }))
+  return html`<details class="opt"${hasRules ? html` open` : ''}><summary>${t('mk.title')}</summary><div class="opt-body">
+  <fieldset><legend>${t('mk.pixels')}</legend>
+    ${mk.pixels.length ? mk.pixels.map((p) => checkbox({ name: 'px', value: String(p.id), label: `${p.name} (${t(`mk.px_${p.kind}`)})`, checked: chosen.has(String(p.id)) })) : html`<p class="hint">${t('mk.no_pixels')} <a href="/panel/pixels">${t('mk.manage_pixels')}</a></p>`}
+  </fieldset>
+  ${kind === 'short' ? html`
+  ${select({ ctx, name: 'splash_id', label: t('mk.splash'), value: v.splash_id ?? '', options: [{ value: '', label: t('mk.no_splash') }, ...mk.splashes.map((s) => ({ value: String(s.id), label: s.name }))], hint: t('mk.splash_hint') })}
+  ${checkbox({ name: 'cloak', label: t('mk.cloak'), checked: !!v.cloak, hint: t('mk.cloak_hint') })}
+  <fieldset class="rows"><legend>${t('mk.rules')}</legend><p class="hint">${t('mk.rules_hint')}</p>
+    <ol class="rows-list">${[0, 1, 2, 3, 4].map((i) => html`<li class="row-item"><div class="grid-3">
+      ${select({ ctx, name: `tg__${i}__type`, label: t('mk.rule_type'), value: v[`tg__${i}__type`] ?? 'country', options: types })}
+      ${input({ ctx, name: `tg__${i}__value`, label: t('mk.rule_value'), value: v[`tg__${i}__value`], error: e[`tg__${i}__value`], placeholder: 'MX · mobile · es · ios', maxlength: 60 })}
+      ${input({ ctx, name: `tg__${i}__url`, label: t('mk.rule_url'), value: v[`tg__${i}__url`], error: e[`tg__${i}__url`], placeholder: 'https://' })}
+    </div></li>`)}</ol></fieldset>
+  <fieldset class="rows"><legend>${t('mk.ab')}</legend><p class="hint">${t('mk.ab_hint')}</p>
+    <ol class="rows-list">${[0, 1, 2, 3].map((i) => html`<li class="row-item"><div class="grid-2">
+      ${input({ ctx, name: `ab__${i}__url`, label: t('mk.rule_url'), value: v[`ab__${i}__url`], error: e[`ab__${i}__url`], placeholder: 'https://' })}
+      ${input({ ctx, name: `ab__${i}__weight`, type: 'number', label: t('mk.weight'), value: v[`ab__${i}__weight`], error: e[`ab__${i}__weight`], min: 1, max: 100 })}
+    </div></li>`)}</ol></fieldset>` : ''}
+</div></details>`
+}
+
 export function linkFormPage(
   ctx: Ctx,
-  opts: { kind: LinkKind; link?: Link | undefined; values: FormValues; errors: Errors; projects: Project[] },
+  opts: {
+    kind: LinkKind
+    link?: Link | undefined
+    values: FormValues
+    errors: Errors
+    projects: Project[]
+    marketing?: { enabled: boolean; pixels: { id: number; name: string; kind: string }[]; splashes: { id: number; name: string }[] }
+  },
 ): SafeHtml {
   const { t } = ctx
   const { kind, link, values: v, errors: e } = opts
@@ -220,6 +256,8 @@ ${hasErrors ? html`<p class="flash flash-error" role="alert">${t(e._form ?? 'err
     <div class="grid-3">${UTM_KEYS.map((k) => input({ ctx, name: k, label: k, value: v[k], error: e[k], maxlength: 100 }))}</div>
     ${kind === 'short' ? checkbox({ name: 'forward_query', label: t('links.forward_query'), checked: !!v.forward_query, hint: t('links.forward_query_hint') }) : ''}
   </div></details>
+
+  ${marketingSection(ctx, kind, v, e, opts.marketing)}
 
   <div class="btn-row sticky-actions">
     <button class="btn btn-primary" type="submit">${isNew ? t('links.create') : t('common.save')}</button>

@@ -103,3 +103,17 @@ describe('módulo QR', () => {
     expect((await a.get(`/panel/qr/${id}`)).statusCode).toBe(404)
   })
 })
+
+describe('QR: evento, cripto y PayPal', () => {
+  it('arma el contenido', () => {
+    const ev = buildPayload('event', { name: 'Expo, 2026', start: '2026-11-15 18:00', end: '2026-11-15 20:00', location: 'GDL' })
+    expect(ev.ok && ev.text).toContain('DTSTART:20261115T180000')
+    expect(ev.ok && ev.text).toContain('SUMMARY:Expo\\, 2026')
+    expect(buildPayload('event', { name: 'x', start: 'mañana' }).ok).toBe(false)
+    const btc = buildPayload('crypto', { coin: 'bitcoin', address: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq', amount: '0.01' })
+    expect(btc.ok && btc.text).toBe('bitcoin:bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq?amount=0.01')
+    expect(buildPayload('crypto', { coin: 'ethereum', address: '0x123' }).ok).toBe(false)
+    const pp = buildPayload('paypal', { user: 'ana', amount: '100', currency: 'MXN' })
+    expect(pp.ok && pp.text).toBe('https://paypal.me/ana/100MXN')
+  })
+})

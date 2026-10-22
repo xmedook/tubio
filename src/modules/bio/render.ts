@@ -9,6 +9,8 @@ import { sendHtml } from '../../web/context.ts'
 import { linkUrl, type Link } from '../links/repo.ts'
 import { getSetting } from '../settings/repo.ts'
 import { limitsOf } from '../plans/limits.ts'
+import { pixelCsp, pixelsForLink } from '../marketing/pixels.ts'
+import { pixelBar } from '../marketing/resolve.ts'
 import { findUserById } from '../users/repo.ts'
 import { BLOCK_BY_TYPE, type BlockRow, type RenderCtx } from './blocks.ts'
 import { FONTS, fontFaceCss, readDesign, themeById, type Design } from './design.ts'
@@ -92,6 +94,7 @@ const web = (v: string): string | null => (/^https?:\/\//i.test(v) ? v : null)
 export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: FastifyReply, link: Link) {
   const d = readDesign(link.data)
   const owner = findUserById(deps.db, link.user_id)
+  const px = owner && limitsOf(deps.db, owner, deps.now()).marketing ? pixelsForLink(deps.db, link.user_id, JSON.stringify(link.pixel_ids)) : []
   const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
   if (web(d.leap_url) && !preview && redirectAllowed(deps.db, d.leap_url)) return reply.redirect(d.leap_url, 302)
 
@@ -148,12 +151,21 @@ ${showBrand
 <p class="report"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a> · <a href="/terms" rel="nofollow">${t('legal.terms')}</a> · <a href="/privacy" rel="nofollow">${t('legal.privacy')}</a></p>
 </main>
 ${d.announce_position === 'bottom' ? announce : ''}
+${px.length && !preview ? html`<div id="tb-px" data-px="${JSON.stringify(px.map((p) => ({ k: p.kind, id: p.pixel_id })))}"></div>${pixelBar(t)}<script type="module" src="/_/static/js/pixels.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </body>
 </html>`
 
   // frame-src sólo con los orígenes que usan los bloques de esta página
   const frames = blocks.flatMap((b) => BLOCK_BY_TYPE.get(b.type)?.frameOrigins?.(b, host) ?? [])
-  reply.header('Content-Security-Policy', bioCsp(nonce, preview, frames))
+  let csp = bioCsp(nonce, preview, frames)
+  if (px.length) {
+    const o = pixelCsp(px)
+    csp = csp
+      .replace(`script-src 'self' 'nonce-${nonce}'`, `script-src 'self' 'nonce-${nonce}' ${o.script.join(' ')}`)
+      .replace("img-src 'self' data:", `img-src 'self' data: ${o.other.join(' ')}`)
+      .replace("connect-src 'self'", `connect-src 'self' ${o.other.join(' ')}`)
+  }
+  reply.header('Content-Security-Policy', csp)
   reply.header('X-Frame-Options', preview ? 'SAMEORIGIN' : 'DENY')
   reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   return sendHtml(reply, page)

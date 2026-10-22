@@ -7,10 +7,10 @@ import { checkTarget, UTM_KEYS, type Utm } from '../../lib/urls.ts'
 import { vcardSchema } from '../../lib/vcard.ts'
 import type { Errors } from '../../views/ui.ts'
 import { fromLocalInput, toLocalInput } from '../../views/ui.ts'
-import { checked, field } from '../../web/forms.ts'
+import { checked, field, fieldAll } from '../../web/forms.ts'
 import { getOwnProject } from '../projects/repo.ts'
 import type { User } from '../users/repo.ts'
-import { aliasTaken, type Link, type LinkInput, type LinkKind } from './repo.ts'
+import { aliasTaken, type Link, type LinkInput, type LinkKind, type TargetRule } from './repo.ts'
 
 export type FormValues = Record<string, string>
 
@@ -34,7 +34,19 @@ export function valuesFromLink(link: Link, tz: string): FormValues {
     is_sensitive: link.is_sensitive ? '1' : '',
     forward_query: link.forward_query ? '1' : '',
     public_stats: link.public_stats ? '1' : '',
+    pixel_ids: link.pixel_ids.join(','),
+    splash_id: link.splash_id ? String(link.splash_id) : '',
+    cloak: link.cloak ? '1' : '',
   }
+  ;(link.targeting.rules ?? []).forEach((r, i) => {
+    v[`tg__${i}__type`] = r.type
+    v[`tg__${i}__value`] = r.value
+    v[`tg__${i}__url`] = r.url
+  })
+  ;(link.targeting.ab ?? []).forEach((r, i) => {
+    v[`ab__${i}__url`] = r.url
+    v[`ab__${i}__weight`] = String(r.weight)
+  })
   for (const k of UTM_KEYS) v[k] = link.utm[k] ?? ''
   const d = link.data
   if (link.kind === 'vcard') for (const k of VCARD_FIELDS) v[`vc_${k}`] = String(d[k] ?? '')
@@ -78,6 +90,7 @@ export async function parseLinkForm(
   kind: LinkKind,
   mp: MultipartData,
   existing?: Link,
+  marketing = false,
 ): Promise<ParsedLink> {
   const body = mp.fields
   const f = (k: string) => field(body, k)
@@ -187,6 +200,41 @@ export async function parseLinkForm(
     else passwordHash = await hashPassword(pw)
   }
 
+  // marketing (plan Pro+): píxeles, splash, segmentación, ocultar destino
+  let mk: Pick<LinkInput, 'pixel_ids' | 'splash_id' | 'targeting' | 'cloak'> = {}
+  if (marketing) {
+    const ownPx = new Set(deps.db.prepare('SELECT id FROM pixels WHERE user_id = ?').pluck().all(user.id) as number[])
+    const pixel_ids = fieldAll(body, 'px').map(Number).filter((n) => ownPx.has(n))
+    values.pixel_ids = pixel_ids.join(',')
+    const sp = Number(f('splash_id')) || null
+    const splash_id = sp && deps.db.prepare('SELECT 1 FROM splashes WHERE id = ? AND user_id = ?').get(sp, user.id) ? sp : null
+    const rules: TargetRule[] = []
+    for (let i = 0; i < 8; i++) {
+      const type = f(`tg__${i}__type`)
+      const value = f(`tg__${i}__value`).trim()
+      const url = f(`tg__${i}__url`).trim()
+      if (!value && !url) continue
+      if (!['country', 'device', 'lang', 'os'].includes(type) || !value || value.length > 60) {
+        errors[`tg__${i}__value`] = 'err.invalid'
+        continue
+      }
+      const r = checkTarget(deps.db, url)
+      if (!r.ok) errors[`tg__${i}__url`] = r.error
+      else rules.push({ type: type as TargetRule['type'], value: type === 'country' ? value.toUpperCase().slice(0, 2) : value.toLowerCase(), url: r.url })
+    }
+    const ab: { url: string; weight: number }[] = []
+    for (let i = 0; i < 5; i++) {
+      const url = f(`ab__${i}__url`).trim()
+      const w = Number(f(`ab__${i}__weight`))
+      if (!url) continue
+      const r = checkTarget(deps.db, url)
+      if (!r.ok) errors[`ab__${i}__url`] = r.error
+      else if (!Number.isFinite(w) || w <= 0 || w > 100) errors[`ab__${i}__weight`] = 'err.invalid'
+      else ab.push({ url: r.url, weight: w })
+    }
+    mk = { pixel_ids, splash_id, targeting: { rules, ab }, cloak: kind === 'short' && checked(body, 'cloak') }
+  }
+
   // archivo al final: sólo se guarda si todo lo demás está bien
   if (kind === 'file') {
     const up = mp.files.find((x) => x.field === 'file')
@@ -223,6 +271,7 @@ export async function parseLinkForm(
       utm,
       forward_query: checked(body, 'forward_query'),
       public_stats: checked(body, 'public_stats'),
+      ...mk,
     },
   }
 }

@@ -12,6 +12,9 @@ import { csrfField, input } from '../../views/ui.ts'
 import { cookieOpts, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { renderBioPage } from '../bio/render.ts'
+import { chooseDestination, respondShort } from '../marketing/resolve.ts'
+import { limitsOf } from '../plans/limits.ts'
+import { findUserById } from '../users/repo.ts'
 import { findByAlias, incrementClicks, type Link } from '../links/repo.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import { availability, isConfirmed, isUnlocked, okCookie, okValue, unlockCookie, unlockValue } from './gate.ts'
@@ -94,6 +97,13 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
   }
 
   /** hits cuenta toda entrega (para el tope); clicks y estadísticas sólo humanos */
+  function countVariant(req: FastifyRequest, link: Link, variant: string | null): void {
+    const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
+    if (preview) return
+    const human = recordEvent(deps, visitFromRequest(req), { linkId: link.id, kind: 'view', variant })
+    incrementClicks(db, link.id, human)
+  }
+
   function count(req: FastifyRequest, link: Link): void {
     const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
     if (preview) return
@@ -111,10 +121,15 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
 
     switch (link.kind) {
       case 'short': {
-        count(req, link)
         const forward = link.forward_query ? (req.query as Record<string, unknown>) : null
-        const dest = redirectAllowed(db, buildDestination(link.target_url ?? '', link.utm, forward))
+        const visit = visitFromRequest(req)
+        const owner = findUserById(db, link.user_id)
+        const mkOn = !!owner && limitsOf(db, owner, deps.now()).marketing
+        const chosen = mkOn ? chooseDestination(link, { country: deps.geo.lookup(req.ip).country, ua: visit.ua, lang: visit.lang }) : { url: link.target_url ?? '', variant: null }
+        const dest = redirectAllowed(db, buildDestination(chosen.url, link.utm, forward))
         if (!dest) return unavailable(req.ctx, reply, 'missing')
+        countVariant(req, link, chosen.variant)
+        if (respondShort(deps, req, reply, link, dest)) return reply
         return reply.redirect(dest, link.redirect_code)
       }
       case 'bio': {

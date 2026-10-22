@@ -74,7 +74,7 @@ export function deviceInfo(ua: string): { device: string; os: string | null; bro
 export function recordEvent(
   deps: AppDeps,
   visit: Visit,
-  e: { linkId: number; blockId?: number | null; kind: 'view' | 'click' },
+  e: { linkId: number; blockId?: number | null; kind: 'view' | 'click'; variant?: string | null },
 ): boolean {
   if (isBotVisit(visit)) return false
   const ts = deps.now()
@@ -90,8 +90,8 @@ export function recordEvent(
   }
   deps.db
     .prepare(
-      `INSERT INTO stat_events (link_id, block_id, kind, ts, day, hour, visitor, country, city, device, os, browser, lang, referrer, utm_source, utm_medium, utm_campaign)
-       VALUES (@link_id, @block_id, @kind, @ts, @day, @hour, @visitor, @country, @city, @device, @os, @browser, @lang, @referrer, @utm_source, @utm_medium, @utm_campaign)`,
+      `INSERT INTO stat_events (link_id, block_id, kind, ts, day, hour, visitor, country, city, device, os, browser, lang, referrer, utm_source, utm_medium, utm_campaign, variant)
+       VALUES (@link_id, @block_id, @kind, @ts, @day, @hour, @visitor, @country, @city, @device, @os, @browser, @lang, @referrer, @utm_source, @utm_medium, @utm_campaign, @variant)`,
     )
     .run({
       link_id: e.linkId,
@@ -111,6 +111,7 @@ export function recordEvent(
       utm_source: visit.utm.source,
       utm_medium: visit.utm.medium,
       utm_campaign: visit.utm.campaign,
+      variant: e.variant ?? null,
     })
   return true
 }

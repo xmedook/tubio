@@ -25,6 +25,10 @@ type Row = {
   password_hash: string | null
   is_sensitive: number
   utm: string
+  pixel_ids: string
+  splash_id: number | null
+  targeting: string
+  cloak: number
   forward_query: number
   public_stats: number
   clicks: number
@@ -33,7 +37,9 @@ type Row = {
   updated_at: number
 }
 
-export type Link = Omit<Row, 'data' | 'utm'> & { data: Record<string, unknown>; utm: Utm }
+export type TargetRule = { type: 'country' | 'device' | 'lang' | 'os'; value: string; url: string }
+export type Targeting = { rules?: TargetRule[]; ab?: { url: string; weight: number }[] }
+export type Link = Omit<Row, 'data' | 'utm' | 'pixel_ids' | 'targeting'> & { data: Record<string, unknown>; utm: Utm; pixel_ids: number[]; targeting: Targeting }
 
 function parseJson<T>(s: string, fallback: T): T {
   try {
@@ -46,7 +52,14 @@ function parseJson<T>(s: string, fallback: T): T {
 
 function hydrate(r: Row | undefined): Link | undefined {
   if (!r) return undefined
-  return { ...r, data: parseJson(r.data, {}), utm: parseJson(r.utm, {}) }
+  const ids = parseJson<unknown[]>(r.pixel_ids ?? '[]', [])
+  return {
+    ...r,
+    data: parseJson(r.data, {}),
+    utm: parseJson(r.utm, {}),
+    pixel_ids: Array.isArray(ids) ? ids.map(Number).filter(Number.isInteger) : [],
+    targeting: parseJson<Targeting>(r.targeting ?? '{}', {}),
+  }
 }
 
 export type LinkInput = {
@@ -69,13 +82,19 @@ export type LinkInput = {
   utm: Utm
   forward_query: boolean
   public_stats: boolean
+  pixel_ids?: number[]
+  splash_id?: number | null
+  targeting?: Targeting
+  cloak?: boolean
 }
 
 function toParams(input: Partial<LinkInput>): Record<string, unknown> {
   const p: Record<string, unknown> = { ...input }
   if (input.data) p.data = JSON.stringify(input.data)
   if (input.utm) p.utm = JSON.stringify(input.utm)
-  for (const k of ['is_enabled', 'is_sensitive', 'forward_query', 'public_stats'] as const) if (k in input) p[k] = input[k] ? 1 : 0
+  if (input.pixel_ids) p.pixel_ids = JSON.stringify(input.pixel_ids)
+  if (input.targeting) p.targeting = JSON.stringify(input.targeting)
+  for (const k of ['is_enabled', 'is_sensitive', 'forward_query', 'public_stats', 'cloak'] as const) if (k in input) p[k] = input[k] ? 1 : 0
   return p
 }
 
@@ -89,6 +108,7 @@ export function createLink(db: DB, userId: number, input: LinkInput, now: number
 const UPDATABLE = new Set([
   'project_id', 'alias', 'title', 'target_url', 'redirect_code', 'data', 'is_enabled', 'starts_at', 'ends_at',
   'expired_url', 'click_limit', 'limit_url', 'password_hash', 'is_sensitive', 'utm', 'forward_query', 'public_stats',
+  'pixel_ids', 'splash_id', 'targeting', 'cloak',
 ])
 
 export function updateLink(db: DB, id: number, patch: Partial<LinkInput>, now: number): void {

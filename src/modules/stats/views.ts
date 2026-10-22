@@ -116,7 +116,7 @@ ${opts.blocks
         })}</tbody></table>`}</section>`
   : ''}
 <div class="stat-grid">
-  ${(['country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign'] as const).map((d) => table(ctx, d, r.breakdowns[d], total))}
+  ${(['country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign', 'variant'] as const).filter((d) => d !== 'variant' || r.breakdowns.variant.some((x) => x.key)).map((d) => table(ctx, d, r.breakdowns[d], total))}
   <section class="card stat-table"><h2 class="h3">${t('stats.hours')}</h2>
     <div class="hours" role="img" aria-label="${t('stats.hours')}">${r.hours.map((n, h) => html`<span class="hour" title="${h}:00 · ${formatNumber(locale, n)}"><span class="hour-bar" style="height:${Math.round((n / hourMax) * 100)}%"></span><span class="hour-l">${h % 3 === 0 ? h : ''}</span></span>`)}</div>
   </section>

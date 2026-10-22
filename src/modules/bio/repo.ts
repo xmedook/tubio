@@ -116,6 +116,13 @@ export function imageKeysInUse(db: DB, userId: number): Set<string> {
       /* ignora */
     }
   }
+  for (const d of db.prepare('SELECT data FROM splashes WHERE user_id = ?').pluck().all(userId) as string[]) {
+    try {
+      for (const v of Object.values(JSON.parse(d) as Record<string, unknown>)) add(v)
+    } catch {
+      /* ignora */
+    }
+  }
   for (const d of db.prepare("SELECT data FROM links WHERE user_id = ? AND kind = 'bio'").pluck().all(userId) as string[]) {
     try {
       for (const v of Object.values(JSON.parse(d) as Record<string, unknown>)) add(v)

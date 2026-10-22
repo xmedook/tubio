@@ -3,7 +3,7 @@ import { buildVCard, vcardSchema } from '../../lib/vcard.ts'
 import type { Errors } from '../../views/ui.ts'
 
 /** Tipos de QR y sus campos. "link" = QR dinámico: apunta a un enlace de tubio que puedes editar después. */
-export const QR_KINDS = ['link', 'url', 'text', 'phone', 'sms', 'email', 'whatsapp', 'wifi', 'vcard', 'location'] as const
+export const QR_KINDS = ['link', 'url', 'text', 'phone', 'sms', 'email', 'whatsapp', 'wifi', 'vcard', 'location', 'event', 'crypto', 'paypal'] as const
 export type QrKind = (typeof QR_KINDS)[number]
 
 export type QrField = { name: string; type?: 'text' | 'textarea' | 'select' | 'checkbox' | 'number' | 'link'; options?: string[]; max?: number; required?: boolean; placeholder?: string }
@@ -44,6 +44,22 @@ export const QR_FIELDS: Record<QrKind, QrField[]> = {
   location: [
     { name: 'lat', type: 'number', required: true, placeholder: '19.4326' },
     { name: 'lng', type: 'number', required: true, placeholder: '-99.1332' },
+  ],
+  event: [
+    { name: 'name', required: true, max: 200 },
+    { name: 'start', required: true, placeholder: '2026-11-15 18:00' },
+    { name: 'end', placeholder: '2026-11-15 20:00' },
+    { name: 'location', max: 300 },
+  ],
+  crypto: [
+    { name: 'coin', type: 'select', options: ['bitcoin', 'ethereum', 'litecoin'] },
+    { name: 'address', required: true, max: 120 },
+    { name: 'amount', type: 'number' },
+  ],
+  paypal: [
+    { name: 'user', required: true, max: 40, placeholder: 'usuario' },
+    { name: 'amount', type: 'number' },
+    { name: 'currency', type: 'select', options: ['MXN', 'USD', 'EUR'] },
   ],
 }
 
@@ -122,6 +138,35 @@ export function buildPayload(kind: QrKind, raw: Record<string, string>): Payload
       const vc = vcardSchema.parse(d)
       if (!vc.first_name && !vc.last_name && !vc.org) return { ok: false, errors: { first_name: 'err.vcard_name' } }
       text = buildVCard(vc)
+      break
+    }
+    case 'event': {
+      // fecha local AAAA-MM-DD HH:mm → iCalendar flotante (sin zona: la del teléfono)
+      const toIcs = (v: string) => {
+        const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/.exec(v.trim())
+        return m ? `${m[1]}${m[2]}${m[3]}T${m[4]}${m[5]}00` : null
+      }
+      const start = toIcs(d.start ?? '')
+      const end = d.end ? toIcs(d.end) : start
+      if (!start) return { ok: false, errors: { start: 'err.datetime' } }
+      if (!end) return { ok: false, errors: { end: 'err.datetime' } }
+      const esc = (s: string) => s.replace(/([\\;,])/g, '\\$1').replace(/\n/g, '\\n')
+      text = ['BEGIN:VEVENT', `SUMMARY:${esc(d.name ?? '')}`, `DTSTART:${start}`, `DTEND:${end}`, ...(d.location ? [`LOCATION:${esc(d.location)}`] : []), 'END:VEVENT'].join('\n')
+      break
+    }
+    case 'crypto': {
+      const addr = (d.address ?? '').trim()
+      const ok = d.coin === 'bitcoin' ? /^(bc1[a-z0-9]{25,62}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(addr) : d.coin === 'ethereum' ? /^0x[a-fA-F0-9]{40}$/.test(addr) : /^(ltc1[a-z0-9]{25,62}|[LM3][a-km-zA-HJ-NP-Z1-9]{26,33})$/.test(addr)
+      if (!ok) return { ok: false, errors: { address: 'err.crypto_address' } }
+      const amt = Number(d.amount)
+      text = `${d.coin}:${addr}${d.amount && Number.isFinite(amt) && amt > 0 ? `?amount=${amt}` : ''}`
+      break
+    }
+    case 'paypal': {
+      const u = (d.user ?? '').replace(/^@|^https?:\/\/(www\.)?paypal\.me\//i, '').trim()
+      if (!/^[\w-]{2,40}$/.test(u)) return { ok: false, errors: { user: 'err.paypal_user' } }
+      const amt = Number(d.amount)
+      text = `https://paypal.me/${u}${d.amount && Number.isFinite(amt) && amt > 0 ? `/${amt}${d.currency ?? 'MXN'}` : ''}`
       break
     }
     case 'location': {
