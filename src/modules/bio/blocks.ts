@@ -1,3 +1,4 @@
+import type { DB } from '../../db/index.ts'
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import type { Locale, T } from '../../lib/i18n.ts'
 import { renderMarkdown } from '../../lib/markdown.ts'
@@ -14,6 +15,7 @@ import {
 } from './embeds.ts'
 import { NETWORK_BY_ID, NETWORKS } from './socials.ts'
 import { BUSINESS_BLOCKS } from './blocks-business.ts'
+import { FEED_BLOCKS } from './blocks-feeds.ts'
 
 export type BlockRow = {
   id: number
@@ -63,6 +65,8 @@ export type RenderCtx = {
   /** ya se pintó la insignia de verificado */
   badgeShown: { v: boolean }
   now: number
+  /** para bloques con datos en caché (RSS, clima) */
+  db: DB
 }
 
 export type BlockDef = {
@@ -73,6 +77,8 @@ export type BlockDef = {
   clickable?: boolean
   render: (rc: RenderCtx, b: BlockRow) => SafeHtml
   summary: (b: BlockRow) => string
+  /** al guardar: completa/valida contra el servicio externo; devuelve datos o error en un campo */
+  prepare?: (data: Record<string, unknown>, locale: string) => Promise<{ data: Record<string, unknown> } | { field: string; error: string }>
 }
 
 const s = (v: unknown): string => (typeof v === 'string' ? v : '')
@@ -292,7 +298,7 @@ export const BLOCKS: BlockDef[] = [
   },
 ]
 
-BLOCKS.push(...BUSINESS_BLOCKS)
+BLOCKS.push(...BUSINESS_BLOCKS, ...FEED_BLOCKS)
 
 export const BLOCK_BY_TYPE = new Map(BLOCKS.map((b) => [b.type, b]))
 export const MAX_BLOCKS_PER_PAGE = 100

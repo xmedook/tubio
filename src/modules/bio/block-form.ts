@@ -305,6 +305,16 @@ export async function parseBlockForm(
     }
   }
 
+  if (def.prepare && !Object.keys(errors).length) {
+    try {
+      const r = await def.prepare(data, user.locale)
+      if ('error' in r) errors[r.field] = r.error
+      else Object.assign(data, r.data)
+    } catch {
+      errors[def.fields[0]?.name ?? '_form'] = 'err.remote_failed'
+    }
+  }
+
   const startsAt = fromLocalInput(f('starts_at'), user.timezone)
   const endsAt = fromLocalInput(f('ends_at'), user.timezone)
   if (startsAt && endsAt && endsAt <= startsAt) errors.ends_at = 'err.end_before_start'

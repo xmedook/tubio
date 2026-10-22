@@ -193,3 +193,19 @@ h1.heading { font-size: 1.75em; } h2.heading { font-size: 1.4em; } h3.heading { 
 .modal summary::-webkit-details-marker { display: none; }
 .modal-body { margin-top: .5rem; padding: 1rem 1.1rem; text-align: left; background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); }
 .modal-body h3 { margin: 0 0 .5rem; }
+.feed { text-align: left; background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); padding: .9rem 1.1rem; }
+.feed-title { font-weight: 700; margin: 0 0 .4rem; }
+.feed ul { list-style: none; margin: 0; padding: 0; }
+.feed li { padding: .45rem 0; border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+.feed li:first-child { border-top: 0; }
+.feed a { font-weight: 600; text-decoration: none; }
+.feed small { display: block; opacity: .7; font-size: .8em; }
+.feed-empty { opacity: .7; margin: 0; }
+.ytfeed { display: grid; grid-template-columns: repeat(2, 1fr); gap: .6rem; text-align: left; }
+.ytfeed a { text-decoration: none; display: flex; flex-direction: column; gap: .3rem; font-size: .85em; font-weight: 600; line-height: 1.3; }
+.ytfeed img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: calc(var(--btn-r) * .5); background: rgb(0 0 0 / 10%); }
+.weather { display: flex; align-items: center; gap: .8rem; justify-content: center; background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); padding: .8rem 1.1rem; position: relative; }
+.w-icon { font-size: 2em; } .w-temp { font-size: 1.8em; font-weight: 800; }
+.w-place { display: flex; flex-direction: column; text-align: left; font-weight: 650; }
+.w-place small { font-weight: 400; opacity: .8; }
+.w-src { position: absolute; right: .6rem; bottom: .3rem; font-size: .62em; opacity: .5; }

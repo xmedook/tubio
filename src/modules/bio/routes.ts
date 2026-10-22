@@ -12,6 +12,7 @@ import { ownLinkOr404 } from '../links/routes.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import type { User } from '../users/repo.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
+import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
 import { designSchema, readDesign, WEB_FONTS, type Design } from './design.ts'
 import { createReadStream, existsSync } from 'node:fs'
@@ -147,6 +148,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     const r = await parseBlockForm(deps, user, def, mp, undefined, host())
     if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, r.values, r.errors), 422)
     createBlock(db, link.id, r.input, deps.now())
+    await warmFeedCache(db, r.input, deps.now())
     updateLink(db, link.id, {}, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'bio.block_added' })
     return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
@@ -188,6 +190,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, r.values, r.errors), 422)
     const { type: _t, ...patch } = r.input
     updateBlock(db, own.b.id, patch, deps.now())
+    await warmFeedCache(db, r.input, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect(`/panel/links/${own.link.id}/blocks`, 303)
   })
