@@ -1,7 +1,7 @@
 import type { AppDeps } from '../../app.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
 import { imageUrl, storeFile, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
-import { BUTTON_SCHEMES, checkTarget, WEB_SCHEMES } from '../../lib/urls.ts'
+import { BUTTON_SCHEMES, checkTarget, isBlockedHost, WEB_SCHEMES } from '../../lib/urls.ts'
 import { checkbox, fromLocalInput, input, select, textarea, toLocalInput, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
@@ -195,8 +195,10 @@ export async function parseBlockForm(
         break
       }
       case 'embed': {
+        const emb = raw ? spec.provider(raw, host) : null
         if (!raw) errors[spec.name] = 'err.required'
-        else if (!spec.provider(raw, host)) errors[spec.name] = 'err.embed_url'
+        else if (!emb) errors[spec.name] = 'err.embed_url'
+        else if (emb.src.startsWith('https://') && isBlockedHost(deps.db, new URL(emb.src).hostname)) errors[spec.name] = 'err.url_blocked'
         data[spec.name] = raw
         break
       }

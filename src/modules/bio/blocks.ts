@@ -15,7 +15,9 @@ import {
 } from './embeds.ts'
 import { NETWORK_BY_ID, NETWORKS } from './socials.ts'
 import { BUSINESS_BLOCKS } from './blocks-business.ts'
+import { embedDef } from './embed-block.ts'
 import { FEED_BLOCKS } from './blocks-feeds.ts'
+import { EMBED_BLOCKS } from './blocks-embeds.ts'
 
 export type BlockRow = {
   id: number
@@ -77,6 +79,8 @@ export type BlockDef = {
   clickable?: boolean
   render: (rc: RenderCtx, b: BlockRow) => SafeHtml
   summary: (b: BlockRow) => string
+  /** orígenes que la página debe permitir en frame-src para este bloque */
+  frameOrigins?: (b: BlockRow, host: string) => string[]
   /** al guardar: completa/valida contra el servicio externo; devuelve datos o error en un campo */
   prepare?: (data: Record<string, unknown>, locale: string) => Promise<{ data: Record<string, unknown> } | { field: string; error: string }>
 }
@@ -89,25 +93,6 @@ function badge(rc: RenderCtx): SafeHtml {
   rc.badgeShown.v = true
   return html` <span class="verified" title="${rc.t('bio.verified')}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 1.5l2.6 2 3.3-.3.9 3.2 2.8 1.8-1.2 3.1 1.2 3.1-2.8 1.8-.9 3.2-3.3-.3-2.6 2-2.6-2-3.3.3-.9-3.2L2.4 15l1.2-3.1L2.4 8.7l2.8-1.8.9-3.2 3.3.3z"/><path fill="var(--bio-bg-solid,#fff)" d="M10.6 15.6 7.3 12.3l1.4-1.4 1.9 1.9 4.7-4.7 1.4 1.4z"/></svg><span class="sr-only">${rc.t('bio.verified')}</span></span>`
 }
-
-function embedFrame(e: Embed | null, title: string): SafeHtml {
-  if (!e) return html``
-  const sizeClass = e.ratio === 'fixed' ? 'r-fixed' : `r-${e.ratio}`
-  return html`<div class="embed ${sizeClass}${e.height ? ` h-${e.height}` : ''}"><iframe src="${e.src}" title="${title}" loading="lazy"
-  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"
-  sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"></iframe></div>`
-}
-
-const embedDef = (type: string, provider: (url: string, host: string) => Embed | null, placeholder: string): BlockDef => ({
-  type,
-  group: 'media',
-  fields: [
-    { name: 'url', kind: 'embed', label: 'bio.f.embed_url', provider, placeholder },
-    { name: 'title', kind: 'text', label: 'bio.f.embed_title', max: 120 },
-  ],
-  render: (rc, b) => embedFrame(provider(s(b.data.url), rc.host), s(b.data.title) || rc.t(`bio.type_${type}`)),
-  summary: (b) => s(b.data.title) || s(b.data.url),
-})
 
 export const BLOCKS: BlockDef[] = [
   {
@@ -298,7 +283,7 @@ export const BLOCKS: BlockDef[] = [
   },
 ]
 
-BLOCKS.push(...BUSINESS_BLOCKS, ...FEED_BLOCKS)
+BLOCKS.push(...BUSINESS_BLOCKS, ...FEED_BLOCKS, ...EMBED_BLOCKS)
 
 export const BLOCK_BY_TYPE = new Map(BLOCKS.map((b) => [b.type, b]))
 export const MAX_BLOCKS_PER_PAGE = 100

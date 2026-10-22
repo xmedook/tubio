@@ -209,3 +209,7 @@ h1.heading { font-size: 1.75em; } h2.heading { font-size: 1.4em; } h3.heading { 
 .w-place { display: flex; flex-direction: column; text-align: left; font-weight: 650; }
 .w-place small { font-weight: 400; opacity: .8; }
 .w-src { position: absolute; right: .6rem; bottom: .3rem; font-size: .62em; opacity: .5; }
+.embed.h-360 { height: 360px; } .embed.h-500 { height: 500px; } .embed.h-560 { height: 560px; } .embed.h-600 { height: 600px; }
+.embed.h-640 { height: 640px; } .embed.h-700 { height: 700px; } .embed.h-760 { height: 760px; }
+.embed.r-fixed { background: #fff; }
+.pdf-link { text-align: center; margin: .3rem 0 0; font-size: .85em; }

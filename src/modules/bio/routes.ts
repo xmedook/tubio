@@ -290,6 +290,22 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     return reply.type(mime).send(createReadStream(p))
   })
 
+  app.get('/_/pdf/:id', async (req, reply) => {
+    const r = publicBlock(req, 'pdf')
+    const meta = (r?.b.data.file ?? null) as { file_id?: number } | null
+    const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
+    if (!r || !f || f.user_id !== r.link.user_id || f.mime !== 'application/pdf') return reply.callNotFound()
+    const p = uploadPath(deps, f.key)
+    if (!existsSync(p)) return reply.callNotFound()
+    const download = (req.query as { download?: string }).download === '1'
+    const ascii = f.original_name.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_')
+    reply.header('Content-Disposition', `${download ? 'attachment' : 'inline'}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(f.original_name)}`)
+    reply.header('X-Frame-Options', 'SAMEORIGIN')
+    reply.header('Content-Security-Policy', "frame-ancestors 'self'")
+    reply.header('X-Robots-Tag', 'noindex')
+    return reply.type('application/pdf').send(createReadStream(p))
+  })
+
   // clic en un bloque: cuenta y redirige
   app.get('/_/c/:id', async (req, reply) => {
     const b = getBlock(db, Number((req.params as { id: string }).id))

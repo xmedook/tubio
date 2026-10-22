@@ -67,7 +67,7 @@ export function visibleBlocks(blocks: BlockRow[], now: number): BlockRow[] {
   return blocks.filter((b) => b.is_enabled && (!b.starts_at || now >= b.starts_at) && (!b.ends_at || now < b.ends_at) && BLOCK_BY_TYPE.has(b.type))
 }
 
-export function bioCsp(nonce: string, preview: boolean): string {
+export function bioCsp(nonce: string, preview: boolean, frameOrigins: string[] = EMBED_ORIGINS): string {
   return [
     "default-src 'none'",
     `script-src 'self' 'nonce-${nonce}'`,
@@ -75,7 +75,7 @@ export function bioCsp(nonce: string, preview: boolean): string {
     "img-src 'self' data: https://i.ytimg.com",
     "font-src 'self'",
     'media-src https:',
-    `frame-src ${EMBED_ORIGINS.join(' ')}`,
+    `frame-src ${frameOrigins.length ? [...new Set(frameOrigins)].join(' ') : "'none'"}`,
     "connect-src 'self'",
     "form-action 'self'",
     "base-uri 'none'",
@@ -145,7 +145,9 @@ ${d.announce_position === 'bottom' ? announce : ''}
 </body>
 </html>`
 
-  reply.header('Content-Security-Policy', bioCsp(nonce, preview))
+  // frame-src sólo con los orígenes que usan los bloques de esta página
+  const frames = blocks.flatMap((b) => BLOCK_BY_TYPE.get(b.type)?.frameOrigins?.(b, host) ?? [])
+  reply.header('Content-Security-Policy', bioCsp(nonce, preview, frames))
   reply.header('X-Frame-Options', preview ? 'SAMEORIGIN' : 'DENY')
   reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
   return sendHtml(reply, page)

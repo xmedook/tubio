@@ -91,7 +91,7 @@ describe('página bio', () => {
     expect(res.body).toContain('<h1 class="heading">Ana Pérez')
     const csp = String(res.headers['content-security-policy'])
     expect(csp).toContain("default-src 'none'")
-    expect(csp).toContain('frame-src https://www.youtube-nocookie.com')
+    expect(csp).toContain("frame-src 'none'")
     expect(csp).toContain("frame-ancestors 'none'")
     expect(res.headers['x-frame-options']).toBe('DENY')
     // la única JS de la página pública es bio.js (<50 KB)
