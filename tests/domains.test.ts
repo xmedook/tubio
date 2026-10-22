@@ -14,7 +14,8 @@ describe('dominios propios', () => {
 
   it('alta, verificación por CNAME, enlaces en el dominio y ask de Caddy', async () => {
     let cname: string[] = []
-    const t = await makeApp({ dnsResolver: { txt: async () => [], cname: async () => cname } })
+    let txt: string[][] = []
+    const t = await makeApp({ dnsResolver: { txt: async () => txt, cname: async () => cname } })
     const u = await seedUser(t)
     setPlan(t, u.id, 'pro')
     const a = await loginAgent(t)
@@ -26,6 +27,9 @@ describe('dominios propios', () => {
     await a.post(`/panel/domains/${d.id}/verify`)
     expect(t.deps.db.prepare('SELECT status FROM domains').pluck().get()).toBe('pending')
     cname = ['custom.tubio.link.']
+    await a.post(`/panel/domains/${d.id}/verify`)
+    expect(t.deps.db.prepare('SELECT status FROM domains').pluck().get()).toBe('pending') // el CNAME no prueba propiedad
+    txt = [[`tubio-verify=${d.verify_token}`]]
     await a.post(`/panel/domains/${d.id}/verify`)
     expect(t.deps.db.prepare('SELECT status FROM domains').pluck().get()).toBe('active')
     // enlace en el dominio propio (mismo alias que uno del principal: no chocan)
@@ -57,5 +61,31 @@ describe('dominios propios', () => {
     await seedUser(t)
     const a = await loginAgent(t)
     expect((await a.get('/panel/domains')).body).toContain('vienen con los planes Pro')
+  })
+
+  it('un pendiente no aparta el host y un TXT ajeno no sirve', async () => {
+    const tokens: Record<string, string> = {}
+    const t = await makeApp({ dnsResolver: { txt: async () => Object.values(tokens).map((v) => [v]), cname: async () => ['custom.tubio.link'] } })
+    const squat = await seedUser(t, 'squat@example.com')
+    const real = await seedUser(t, 'marca@example.com')
+    setPlan(t, squat.id, 'pro')
+    setPlan(t, real.id, 'pro')
+    const s = await loginAgent(t, 'squat@example.com')
+    await s.get('/panel/domains')
+    expect((await s.post('/panel/domains', { host: 'links.marca.com' })).statusCode).toBe(303)
+    const r = await loginAgent(t, 'marca@example.com')
+    await r.get('/panel/domains')
+    expect((await r.post('/panel/domains', { host: 'links.marca.com' })).statusCode).toBe(303) // no lo aparta el pendiente
+    const rows = t.deps.db.prepare('SELECT id, user_id, verify_token FROM domains ORDER BY id').all() as { id: number; user_id: number; verify_token: string }[]
+    const [sq, mine] = rows as [typeof rows[0], typeof rows[0]]
+    expect(sq.verify_token).not.toBe(mine.verify_token)
+    // la marca publica SU TXT: el squatter no puede activarlo con eso
+    tokens.real = `tubio-verify=${mine.verify_token}`
+    await s.post(`/panel/domains/${sq.id}/verify`)
+    expect(t.deps.db.prepare('SELECT status FROM domains WHERE id = ?').pluck().get(sq.id)).toBe('pending')
+    await r.post(`/panel/domains/${mine.id}/verify`)
+    expect(t.deps.db.prepare('SELECT status FROM domains WHERE id = ?').pluck().get(mine.id)).toBe('active')
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM domains').pluck().get()).toBe(1) // el intento ajeno se borró
+    expect((await s.post('/panel/domains', { host: 'links.marca.com' })).statusCode).toBe(422)
   })
 })

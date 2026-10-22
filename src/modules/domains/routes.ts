@@ -64,7 +64,7 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
     const mainHost = new URL(deps.config.baseUrl).hostname
     if (!host || host === mainHost || host.endsWith(`.${mainHost}`)) return sendHtml(reply, page(req.ctx, user, 'err.domain', raw), 422)
     if (lim >= 0 && listDomains(db, user.id).length >= lim) return reply.redirect('/panel/plan', 303)
-    if (db.prepare('SELECT 1 FROM domains WHERE host = ?').get(host)) return sendHtml(reply, page(req.ctx, user, 'err.domain_taken', raw), 422)
+    if (db.prepare("SELECT 1 FROM domains WHERE host = ? AND (status = 'active' OR user_id = ?)").get(host, user.id)) return sendHtml(reply, page(req.ctx, user, 'err.domain_taken', raw), 422)
     db.prepare('INSERT INTO domains (user_id, host, verify_token, created_at) VALUES (?, ?, ?, ?)').run(user.id, host, randomBytes(12).toString('hex'), deps.now())
     audit(db, { actorId: user.id, userId: user.id, action: 'domain.add', target: host }, deps.now())
     return reply.redirect('/panel/domains', 303)
@@ -73,8 +73,12 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
   app.post('/panel/domains/:id/verify', { preHandler: userGuard, config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } }, async (req, reply) => {
     const d = getOwnDomain(db, Number((req.params as { id: string }).id), me(req).id)
     if (!d) return reply.callNotFound()
-    if (await verifyDomain(d, CNAME_TARGET, resolver)) {
+    if (db.prepare("SELECT 1 FROM domains WHERE host = ? AND status = 'active' AND id != ?").get(d.host, d.id)) {
+      setFlash(reply, deps, { type: 'error', key: 'err.domain_taken' })
+    } else if (await verifyDomain(d, CNAME_TARGET, resolver)) {
       db.prepare("UPDATE domains SET status = 'active', verified_at = ? WHERE id = ?").run(deps.now(), d.id)
+      // los intentos pendientes de otras cuentas sobre el mismo host ya no sirven
+      db.prepare("DELETE FROM domains WHERE host = ? AND status = 'pending' AND id != ?").run(d.host, d.id)
       refreshDomainCache(db)
       setFlash(reply, deps, { type: 'ok', key: 'domains.verified' })
     } else setFlash(reply, deps, { type: 'error', key: 'domains.not_yet' })

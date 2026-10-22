@@ -1,6 +1,6 @@
 # Dominios propios con Caddy
 
-La app ya hace todo lo suyo: alta y verificación (CNAME a `custom.tubio.link` o TXT `_tubio.<host>`), ruteo por
+La app ya hace todo lo suyo: alta y verificación (TXT `_tubio.<host>` con el token de la cuenta = propiedad; CNAME a `custom.tubio.link` = tráfico), ruteo por
 `Host`, enlaces por dominio, página de inicio por dominio y el endpoint `GET /_/caddy/ask?domain=` (200 si el
 dominio está verificado, 404 si no; sólo responde a 127.0.0.1 o a las IPs de `TUBIO_CADDY_IPS`).
 

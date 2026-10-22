@@ -53,8 +53,9 @@ export function getOwnDomain(db: DB, id: number, userId: number): Domain | undef
 }
 
 /**
- * Verificación: un TXT `_tubio.<host>` con el token, o un CNAME del host a `target`.
- * resolver inyectable para pruebas.
+ * Verificación de propiedad: el TXT `_tubio.<host>` con el token de ESTA cuenta. El CNAME a
+ * `target` sólo lleva el tráfico; no prueba nada (un CNAME olvidado por el dueño anterior
+ * dejaría a cualquiera reclamar el host). resolver inyectable para pruebas.
  */
 export async function verifyDomain(
   d: Domain,
@@ -62,7 +63,6 @@ export async function verifyDomain(
   resolver: { txt: (h: string) => Promise<string[][]>; cname: (h: string) => Promise<string[]> } = { txt: resolveTxt, cname: resolveCname },
 ): Promise<boolean> {
   const txt = await resolver.txt(`_tubio.${d.host}`).catch(() => [] as string[][])
-  if (txt.some((parts) => parts.join('').trim() === `tubio-verify=${d.verify_token}`)) return true
-  const cname = await resolver.cname(d.host).catch(() => [] as string[])
-  return cname.some((c) => c.toLowerCase().replace(/\.$/, '') === target)
+  void target
+  return txt.some((parts) => parts.join('').trim() === `tubio-verify=${d.verify_token}`)
 }
