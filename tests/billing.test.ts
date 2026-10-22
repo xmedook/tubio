@@ -79,3 +79,35 @@ describe('cobro', () => {
     expect(t.mailer.sent.at(-1)!.text).toContain('No vimos el depósito')
   })
 })
+
+describe('recordatorios y bloques de cobro propio', () => {
+  it('avisa 7 y 1 día antes de vencer, una sola vez cada uno', async () => {
+    const { remindExpiring } = await import('../src/jobs.ts')
+    const { setPlan } = await import('./helpers.ts')
+    const t = await makeApp()
+    const u = await seedUser(t)
+    setPlan(t, u.id, 'pro', t.clock.now + 6 * 86400_000)
+    expect(await remindExpiring(t.deps)).toBe(1)
+    expect(await remindExpiring(t.deps)).toBe(0)
+    t.clock.now += 5.5 * 86400_000
+    expect(await remindExpiring(t.deps)).toBe(1)
+    expect(t.mailer.sent.at(-1)!.subject).toContain('vence en 1')
+  })
+
+  it('donación sólo con enlaces de pago reconocidos; PayPal arma el enlace', async () => {
+    const { findByAlias } = await import('../src/modules/links/repo.ts')
+    const { listBlocks } = await import('../src/modules/bio/repo.ts')
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=bio')
+    await a.postMultipart('/panel/links?kind=bio', { alias: 'apoyo', is_enabled: '1' })
+    const id = findByAlias(t.deps.db, 'apoyo')!.id
+    await a.get(`/panel/links/${id}/blocks`)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=donation`, { url: 'https://phishing.com/pay', is_enabled: '1' })).statusCode).toBe(422)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=donation`, { url: 'https://buy.stripe.com/test_123', is_enabled: '1' })).statusCode).toBe(303)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=paypal`, { user: '@ana_mx', amount: '150', currency: 'MXN', is_enabled: '1' })).statusCode).toBe(303)
+    const pp = listBlocks(t.deps.db, id).find((b) => b.type === 'paypal')!
+    expect(pp.data.url).toBe('https://paypal.me/ana_mx/150MXN')
+  })
+})

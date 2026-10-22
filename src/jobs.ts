@@ -7,6 +7,7 @@ import { getSetting } from './modules/settings/repo.ts'
 import { purgeStats } from './modules/stats/record.ts'
 import { runQueue } from './modules/capture/notify.ts'
 import { listPlans } from './modules/plans/limits.ts'
+import { translator, type Locale } from './lib/i18n.ts'
 
 /** Imágenes que ya nadie usa (bloque borrado, imagen reemplazada) y con más de un día */
 export function purgeOrphanImages(deps: AppDeps): number {
@@ -44,6 +45,33 @@ export function purgeStatsByPlan(deps: AppDeps): number {
   return n
 }
 
+/** Aviso por correo 7 días y 1 día antes de que venza un plan (una vez cada uno) */
+export async function remindExpiring(deps: AppDeps): Promise<number> {
+  const now = deps.now()
+  let n = 0
+  for (const [days, key] of [[7, 'remind7'], [1, 'remind1']] as const) {
+    const rows = deps.db
+      .prepare(
+        `SELECT u.id, u.email, u.locale, u.plan_expires_at, p.name FROM users u JOIN plans p ON p.id = u.plan_id
+         WHERE u.plan_expires_at > @now AND u.plan_expires_at <= @until
+         AND NOT EXISTS (SELECT 1 FROM audit_log a WHERE a.user_id = u.id AND a.action = @action AND a.target = CAST(u.plan_expires_at AS TEXT))`,
+      )
+      .all({ now, until: now + days * 86400_000, action: `plan.${key}` }) as { id: number; email: string; locale: string; plan_expires_at: number; name: string }[]
+    for (const r of rows) {
+      const t = translator(r.locale as Locale)
+      await deps.mailer.send({
+        to: r.email,
+        subject: t('mail.plan_expiring_subject', { plan: r.name, n: days }),
+        text: t('mail.plan_expiring_body', { plan: r.name, date: new Intl.DateTimeFormat(r.locale, { dateStyle: 'long' }).format(r.plan_expires_at), link: `${deps.config.baseUrl}/panel/plan` }),
+        button: t('plan.title'),
+      })
+      deps.db.prepare("INSERT INTO audit_log (user_id, action, target, meta, ts) VALUES (?, ?, ?, '{}', ?)").run(r.id, `plan.${key}`, String(r.plan_expires_at), now)
+      n++
+    }
+  }
+  return n
+}
+
 /** Tareas periódicas dentro del proceso (un solo host) */
 export function runJobs(deps: AppDeps): Record<string, number> {
   const stats = purgeStats(deps, getSetting(deps.db, 'stats_retention_days'))
@@ -66,6 +94,7 @@ export function startJobs(deps: AppDeps, log: FastifyBaseLogger): () => void {
   const tick = () => {
     try {
       const result = runJobs(deps)
+      void remindExpiring(deps).catch((err) => log.error(err, 'recordatorios de plan fallaron'))
       last = { at: deps.now(), result, error: null }
       log.info({ jobs: result }, 'tareas periódicas')
     } catch (err) {

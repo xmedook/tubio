@@ -233,3 +233,5 @@ textarea.cap-in { resize: vertical; }
 .poll-n { font-size: .8em; opacity: .75; margin: .3rem 0 0; }
 .poll:not(.cap) { background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); padding: 1rem 1.1rem; }
 .cap-err { margin: 0; padding: .6rem .8rem; border-radius: 8px; background: #fee2e2; color: #991b1b; font-weight: 600; font-size: .9em; }
+.donation { display: flex; flex-direction: column; gap: .5rem; text-align: center; }
+.btn-paypal { background: #ffc439; color: #111; border-color: #ffc439; }

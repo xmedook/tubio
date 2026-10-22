@@ -1083,5 +1083,16 @@
   "mail.pay_ok_subject": "Your tubio {plan} plan is active",
   "mail.pay_ok_body": "Hi,\n\nWe received your payment and your {plan} plan is active (valid until: {until}).\n\nYour receipt:\n\n{link}\n\nThank you for supporting tubio.",
   "mail.pay_rejected_subject": "Your payment {ref} couldn't be confirmed",
-  "mail.pay_rejected_body": "Hi,\n\nWe couldn't confirm payment {ref}. Reason: {notes}\n\nYou can check it here or write to hola@tubio.link:\n\n{link}"
+  "mail.pay_rejected_body": "Hi,\n\nWe couldn't confirm payment {ref}. Reason: {notes}\n\nYou can check it here or write to hola@tubio.link:\n\n{link}",
+  "bio.type_donation": "Donation or payment",
+  "bio.type_paypal": "PayPal button",
+  "bio.f.pay_link": "Your payment link (Stripe, PayPal, Mercado Pago, Ko-fi…)",
+  "bio.f.paypal_user": "PayPal.me username",
+  "bio.f.amount_optional": "Amount (optional)",
+  "bio.donate": "Support me",
+  "bio.pay_paypal": "Pay with PayPal",
+  "err.pay_link": "Use a Stripe, PayPal, Mercado Pago, Ko-fi or Buy Me a Coffee payment link.",
+  "err.paypal_user": "Enter your PayPal.me username.",
+  "mail.plan_expiring_subject": "Your tubio {plan} plan expires in {n} day(s)",
+  "mail.plan_expiring_body": "Hi,\n\nYour {plan} plan expires on {date}. To keep all its features, renew it here:\n\n{link}\n\nIf you don't renew, your account moves to the free plan without deleting anything."
 }

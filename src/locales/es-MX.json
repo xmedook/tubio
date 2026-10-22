@@ -1083,5 +1083,16 @@
   "mail.pay_ok_subject": "Tu plan {plan} de tubio está activo",
   "mail.pay_ok_body": "Hola:\n\nRecibimos tu pago y tu plan {plan} ya está activo (vigente hasta: {until}).\n\nTu recibo:\n\n{link}\n\nGracias por apoyar a tubio.",
   "mail.pay_rejected_subject": "Tu pago {ref} no se pudo confirmar",
-  "mail.pay_rejected_body": "Hola:\n\nNo pudimos confirmar el pago {ref}. Motivo: {notes}\n\nPuedes revisarlo aquí o escribirnos a hola@tubio.link:\n\n{link}"
+  "mail.pay_rejected_body": "Hola:\n\nNo pudimos confirmar el pago {ref}. Motivo: {notes}\n\nPuedes revisarlo aquí o escribirnos a hola@tubio.link:\n\n{link}",
+  "bio.type_donation": "Donación o pago",
+  "bio.type_paypal": "Botón de PayPal",
+  "bio.f.pay_link": "Tu enlace de cobro (Stripe, PayPal, Mercado Pago, Ko-fi…)",
+  "bio.f.paypal_user": "Usuario de PayPal.me",
+  "bio.f.amount_optional": "Monto (opcional)",
+  "bio.donate": "Apóyame",
+  "bio.pay_paypal": "Pagar con PayPal",
+  "err.pay_link": "Usa un enlace de pago de Stripe, PayPal, Mercado Pago, Ko-fi o Buy Me a Coffee.",
+  "err.paypal_user": "Escribe tu usuario de PayPal.me.",
+  "mail.plan_expiring_subject": "Tu plan {plan} de tubio vence en {n} día(s)",
+  "mail.plan_expiring_body": "Hola:\n\nTu plan {plan} vence el {date}. Para seguir con todas sus funciones, renuévalo aquí:\n\n{link}\n\nSi no lo renuevas, tu cuenta pasa al plan gratis sin borrar nada."
 }

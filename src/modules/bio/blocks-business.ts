@@ -45,7 +45,51 @@ function stars(n: number): SafeHtml {
   return html`<span class="stars" aria-label="${v}/5">${'★'.repeat(v)}<span class="off">${'★'.repeat(5 - v)}</span></span>`
 }
 
+/** Enlaces de cobro del propio usuario: tubio nunca toca el dinero */
+const PAY_HOSTS = ['buy.stripe.com', 'donate.stripe.com', 'paypal.me', 'www.paypal.com', 'paypal.com', 'mpago.la', 'link.mercadopago.com.mx', 'www.mercadopago.com.mx', 'mercadopago.com.mx', 'ko-fi.com', 'buymeacoffee.com', 'www.buymeacoffee.com']
+
+export function payHostOk(url: string): boolean {
+  try {
+    return PAY_HOSTS.includes(new URL(url).hostname.toLowerCase())
+  } catch {
+    return false
+  }
+}
+
 export const BUSINESS_BLOCKS: BlockDef[] = [
+  {
+    type: 'donation',
+    group: 'business',
+    clickable: true,
+    fields: [
+      { name: 'title', kind: 'text', label: 'bio.f.title', max: 120 },
+      { name: 'description', kind: 'text', label: 'bio.f.description', max: 240 },
+      { name: 'url', kind: 'url', label: 'bio.f.pay_link', required: true, schemes: 'web', placeholder: 'https://buy.stripe.com/… · https://paypal.me/… · https://mpago.la/…' },
+      { name: 'button', kind: 'text', label: 'bio.f.button_label', max: 40 },
+    ],
+    prepare: async (data) => (payHostOk(String(data.url ?? '')) ? { data: {} } : { field: 'url', error: 'err.pay_link' }),
+    render: (rc, b) => html`<div class="donation">${b.data.title ? html`<p class="cap-title">${s(b.data.title)}</p>` : ''}${b.data.description ? html`<p class="cap-desc">${s(b.data.description)}</p>` : ''}<a class="btn" href="${clickHref(b)}">♥ ${s(b.data.button) || rc.t('bio.donate')}</a></div>`,
+    summary: (b) => s(b.data.title) || s(b.data.url),
+  },
+  {
+    type: 'paypal',
+    group: 'business',
+    clickable: true,
+    fields: [
+      { name: 'user', kind: 'text', label: 'bio.f.paypal_user', max: 40, required: true, placeholder: 'tuusuario' },
+      { name: 'amount', kind: 'number', label: 'bio.f.amount_optional', min: 1, max: 100000, step: 0.01 },
+      { name: 'currency', kind: 'select', label: 'bio.f.currency', options: ['MXN', 'USD', 'EUR'], default: 'MXN' },
+      { name: 'button', kind: 'text', label: 'bio.f.button_label', max: 40 },
+    ],
+    prepare: async (data) => {
+      const u = String(data.user ?? '').replace(/^@|^https?:\/\/(www\.)?paypal\.me\//i, '').trim()
+      if (!/^[\w-]{2,40}$/.test(u)) return { field: 'user', error: 'err.paypal_user' }
+      const amount = typeof data.amount === 'number' ? `/${data.amount}${String(data.currency ?? 'MXN')}` : ''
+      return { data: { user: u, url: `https://paypal.me/${u}${amount}` } }
+    },
+    render: (rc, b) => html`<a class="btn btn-paypal" href="${clickHref(b)}">${s(b.data.button) || rc.t('bio.pay_paypal')}${typeof b.data.amount === 'number' ? html`<small>${new Intl.NumberFormat(rc.locale, { style: 'currency', currency: s(b.data.currency) || 'MXN' }).format(b.data.amount)}</small>` : ''}</a>`,
+    summary: (b) => `paypal.me/${s(b.data.user)}`,
+  },
   {
     type: 'faq',
     group: 'business',
