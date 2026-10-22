@@ -162,3 +162,20 @@ body.auth { display: grid; place-items: center; min-height: 100vh; padding: 1.25
 .qr-figure { margin: 1rem 0; display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
 .qr-figure svg { width: 220px; height: auto; border-radius: 8px; background: #fff; }
 .qr-figure figcaption { flex: 1 1 200px; color: var(--muted); }
+.swatch { width: 2.4rem; height: 2.2rem; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.inline-input { flex: 1 1 160px; min-width: 0; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+.prefixed { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); overflow: hidden; }
+.prefixed:focus-within { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.prefixed .prefix { padding: .55rem .2rem .55rem .7rem; color: var(--muted); background: var(--surface-2); white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
+.prefixed input { flex: 1; min-width: 0; border: 0; padding: .55rem .7rem; background: transparent; color: var(--text); font: inherit; outline: none; }
+.has-error .prefixed { border-color: var(--danger); }
+.menu { position: relative; }
+.menu > summary { list-style: none; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu-body { position: absolute; right: 0; top: calc(100% + 4px); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 200px; z-index: 5; padding: .35rem; }
+.menu-body a { display: block; padding: .5rem .7rem; border-radius: 6px; text-decoration: none; color: var(--text); }
+.menu-body a:hover { background: var(--surface-2); }
+.num-link { text-decoration: none; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pager { display: flex; gap: 1rem; justify-content: center; align-items: center; margin-top: 1rem; }
+.sticky-actions { position: sticky; bottom: 0; background: color-mix(in srgb, var(--bg) 92%, transparent); padding: .75rem 0; backdrop-filter: blur(6px); }
+.danger-zone { margin-top: 2rem; border-color: color-mix(in srgb, var(--danger) 30%, var(--border)); }

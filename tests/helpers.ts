@@ -74,6 +74,35 @@ export class Agent {
     return res
   }
 
+  /** multipart/form-data; el token CSRF va en la query como lo hace el formulario real */
+  async postMultipart(
+    url: string,
+    fields: Record<string, string | string[]> = {},
+    files: { field: string; filename: string; content: Buffer; type?: string }[] = [],
+  ): Promise<LightMyRequestResponse> {
+    const boundary = '----tubio' + Math.random().toString(16).slice(2)
+    const chunks: Buffer[] = []
+    for (const [k, v] of Object.entries(fields)) {
+      for (const one of Array.isArray(v) ? v : [v]) {
+        chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${one}\r\n`))
+      }
+    }
+    for (const f of files) {
+      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${f.field}"; filename="${f.filename}"\r\nContent-Type: ${f.type ?? 'application/octet-stream'}\r\n\r\n`))
+      chunks.push(f.content, Buffer.from('\r\n'))
+    }
+    chunks.push(Buffer.from(`--${boundary}--\r\n`))
+    const sep = url.includes('?') ? '&' : '?'
+    const res = await this.app.inject({
+      method: 'POST',
+      url: `${url}${sep}_csrf=${encodeURIComponent(this.csrf)}`,
+      payload: Buffer.concat(chunks),
+      headers: { 'content-type': `multipart/form-data; boundary=${boundary}`, cookie: this.cookieHeader() },
+    })
+    this.store(res)
+    return res
+  }
+
   async postJson(url: string, body: unknown): Promise<LightMyRequestResponse> {
     const res = await this.app.inject({
       method: 'POST',
