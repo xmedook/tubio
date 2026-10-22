@@ -1309,5 +1309,6 @@
   "admin.verified_pct": "% con correo verificado",
   "admin.signups_30d": "Registros por día (30 días)",
   "admin.users_by_plan": "Personas por plan",
-  "admin.top_links": "Más vistos (30 días)"
+  "admin.top_links": "Más vistos (30 días)",
+  "legal.security": "Seguridad"
 }

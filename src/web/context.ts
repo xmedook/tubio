@@ -105,7 +105,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     if (domainId && !(ownerLimits(deps.db, domainOwner(domainId) ?? 0, now)?.custom_domains ?? 0)) {
       return reply.code(404).type('text/plain').send('Not found')
     }
-    if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source|_\/caddy)(\/|$|\?)/.test(path)) {
+    if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source|security|help|_\/caddy)(\/|$|\?)/.test(path)) {
       return reply.redirect(deps.config.baseUrl + req.url, 301)
     }
     let user: User | null = null

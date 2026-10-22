@@ -123,3 +123,15 @@ describe('cupones', () => {
     delete process.env.TUBIO_BANK_CLABE
   })
 })
+
+describe('divulgación responsable', () => {
+  it('security.txt según RFC 9116 y página de política', async () => {
+    const t = await makeApp()
+    const r = await t.app.inject({ method: 'GET', url: '/.well-known/security.txt' })
+    expect(r.headers['content-type']).toContain('text/plain')
+    expect(r.body).toMatch(/^Contact: mailto:.+@.+$/m)
+    expect(r.body).toMatch(/^Expires: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/m)
+    expect(r.body).toContain('Policy: http://tubio.test/security')
+    expect((await t.app.inject({ method: 'GET', url: '/security' })).body).toContain('divulgación responsable')
+  })
+})

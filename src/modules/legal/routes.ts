@@ -14,7 +14,7 @@ import { SOURCE_URL } from '../home/routes.ts'
 /** Fecha de la versión vigente de los textos legales (cámbiala al editarlos) */
 export const LEGAL_UPDATED = '2026-10-22'
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '../../content/legal')
-export const LEGAL_PAGES = { terms: 'terms', privacy: 'privacy', 'acceptable-use': 'acceptable-use' } as const
+export const LEGAL_PAGES = { terms: 'terms', privacy: 'privacy', 'acceptable-use': 'acceptable-use', security: 'security' } as const
 
 function load(name: string, locale: Locale): string {
   try {
@@ -36,7 +36,20 @@ export function registerLegal(app: FastifyInstance, deps: AppDeps): void {
     JURISDICTION: e.TUBIO_JURISDICTION || pending,
     SOURCE_URL,
     RETENTION: String(getSetting(deps.db, 'stats_retention_days')),
+    SECURITY_EMAIL: securityEmail(),
   })
+  const securityEmail = () => e.TUBIO_SECURITY_EMAIL || e.TUBIO_CONTACT_EMAIL || 'hola@tubio.link'
+
+  // RFC 9116
+  app.get('/.well-known/security.txt', async (_req, reply) => {
+    const base = deps.config.baseUrl
+    const expires = new Date(deps.now() + 300 * 86400_000).toISOString().replace(/\.\d+Z$/, 'Z')
+    reply.header('Cache-Control', 'public, max-age=86400')
+    return reply.type('text/plain; charset=utf-8').send(
+      [`Contact: mailto:${securityEmail()}`, `Expires: ${expires}`, 'Preferred-Languages: es, en', `Canonical: ${base}/.well-known/security.txt`, `Policy: ${base}/security`, ''].join('\n'),
+    )
+  })
+  app.get('/security.txt', async (_req, reply) => reply.redirect('/.well-known/security.txt', 301))
 
   for (const [path, file] of Object.entries(LEGAL_PAGES)) {
     app.get(`/${path}`, async (req, reply) => {
@@ -51,7 +64,7 @@ export function registerLegal(app: FastifyInstance, deps: AppDeps): void {
         html`<html lang="${req.ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · tubio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
 <body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/">tu<span>bio</span></a></p>${raw(body)}
-<p class="muted small"><a href="/terms">${req.ctx.t('legal.terms')}</a> · <a href="/privacy">${req.ctx.t('legal.privacy')}</a> · <a href="/acceptable-use">${req.ctx.t('legal.aup')}</a></p></main></body></html>`,
+<p class="muted small"><a href="/terms">${req.ctx.t('legal.terms')}</a> · <a href="/privacy">${req.ctx.t('legal.privacy')}</a> · <a href="/acceptable-use">${req.ctx.t('legal.aup')}</a> · <a href="/security">${req.ctx.t('legal.security')}</a></p></main></body></html>`,
       )
     })
   }
