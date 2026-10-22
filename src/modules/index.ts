@@ -19,12 +19,14 @@ import { registerProjects } from './projects/routes.ts'
 import { registerPublic } from './public/routes.ts'
 import { registerQr } from './qr/routes.ts'
 import { registerStats } from './stats/routes.ts'
+import { registerSite } from './site/routes.ts'
 import { registerTeam } from './team/routes.ts'
 
 /** Orden importa: el resolvedor público /:alias va al final. */
 export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerHome(app, deps)
   registerLegal(app, deps)
+  registerSite(app, deps)
   registerAuth(app, deps)
   registerGoogle(app, deps)
   registerAccount(app, deps)

@@ -5,6 +5,7 @@ import { cookieOpts, LANG_COOKIE, powOk, safeNext, sendHtml } from '../../web/co
 import { field } from '../../web/forms.ts'
 import { getSetting } from '../settings/repo.ts'
 import { landingPage } from './landing.ts'
+import { footerPages } from '../site/routes.ts'
 import { updateUser } from '../users/repo.ts'
 
 export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xmedook/tubio'
@@ -18,7 +19,7 @@ export function registerHome(app: FastifyInstance, deps: AppDeps): void {
       return l && l.domain_id === req.ctx.domainId ? reply.redirect(`/${l.alias}`, 302) : reply.callNotFound()
     }
     const joined = (req.query as { joined?: string }).joined === '1'
-    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL }))
+    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL, pages: footerPages(deps, req.ctx.locale) }))
   })
 
   app.post('/waitlist', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {

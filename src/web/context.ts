@@ -8,6 +8,7 @@ import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '.
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
 import { domainIdForHost } from '../modules/domains/repo.ts'
 import { findUserById } from '../modules/users/repo.ts'
+import { getSetting } from '../modules/settings/repo.ts'
 import type { User } from '../modules/users/repo.ts'
 
 export type Flash = { type: 'ok' | 'error' | 'info'; key: string; vars?: Record<string, string | number> }
@@ -33,6 +34,7 @@ export type Ctx = {
   /** trabajando en el espacio de otro: `user` es el dueño y `member` la persona real */
   member: User | null
   teamRole: 'viewer' | 'editor' | 'admin' | null
+  announcement: { text: string; level: 'info' | 'warn' } | null
 }
 
 declare module 'fastify' {
@@ -151,6 +153,16 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       domainId,
       member,
       teamRole,
+      announcement: (() => {
+        const text = getSetting(deps.db, 'announcement')
+        return text ? { text, level: getSetting(deps.db, 'announcement_level') === 'warn' ? 'warn' : 'info' } : null
+      })(),
+    }
+    // mantenimiento: el panel se cierra a quien no es admin (los enlaces públicos siguen)
+    const real = member ?? user
+    if (getSetting(deps.db, 'maintenance') && /^\/(panel|register)(\/|$|\?)/.test(req.url) && real?.role !== 'admin') {
+      const t = req.ctx.t
+      return reply.code(503).header('Retry-After', '1800').type('text/html; charset=utf-8').send(`<!doctype html><html lang="${locale}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>tubio</title><link rel="stylesheet" href="/_/static/css/app.css"><body class="auth"><main class="auth-card"><p class="brand brand-lg">tu<span>bio</span></p><h1>${t('site.maintenance_title')}</h1><p>${t('site.maintenance_body')}</p></main></body></html>`)
     }
   })
 

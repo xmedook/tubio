@@ -7,6 +7,13 @@ export const SETTING_DEFAULTS = {
   stats_retention_days: 365,
   /** Muestra "hecho con tubio" en las páginas bio (el usuario puede ocultarlo si esto es false) */
   branding_forced: false,
+  /** Aviso del sistema arriba del panel (vacío = ninguno) */
+  announcement: '',
+  announcement_level: 'info' as 'info' | 'warn',
+  /** Mantenimiento: el panel se cierra a no-admins; los enlaces públicos siguen funcionando */
+  maintenance: false,
+  /** Comisión de afiliados (% del pago) */
+  referral_percent: 20,
 }
 export type Settings = typeof SETTING_DEFAULTS
 export type SettingKey = keyof Settings

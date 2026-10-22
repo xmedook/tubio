@@ -25,6 +25,7 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['links', '/admin/links', t('nav.links')],
     ['reports', '/admin/reports', t('admin.reports')],
     ['payments', '/admin/payments', t('admin.payments')],
+    ['pages', '/admin/pages', t('site.admin')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
@@ -291,6 +292,10 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
 <form class="card" method="post" action="/admin/settings" novalidate>${csrfField(ctx)}
   ${input({ ctx, name: 'site_name', label: t('admin.site_name'), value: s.site_name, maxlength: 60 })}
   ${input({ ctx, name: 'stats_retention_days', type: 'number', label: t('admin.retention'), value: s.stats_retention_days, min: 7, max: 3650, hint: t('admin.retention_hint') })}
+  ${input({ ctx, name: 'announcement', label: t('site.announcement'), value: s.announcement, maxlength: 300, hint: t('site.announcement_hint') })}
+  ${select({ ctx, name: 'announcement_level', label: t('site.announcement_level'), value: s.announcement_level, options: [{ value: 'info', label: t('site.level_info') }, { value: 'warn', label: t('site.level_warn') }] })}
+  ${input({ ctx, name: 'referral_percent', type: 'number', label: t('ref.percent'), value: s.referral_percent, min: 0, max: 90 })}
+  ${checkbox({ name: 'maintenance', label: t('site.maintenance'), checked: s.maintenance, hint: t('site.maintenance_hint') })}
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
   ${checkbox({ name: 'branding_forced', label: t('admin.branding_forced'), checked: s.branding_forced, hint: t('admin.branding_forced_hint') })}
   <button class="btn btn-primary" type="submit">${t('common.save')}</button>
@@ -305,6 +310,11 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
     const days = Number(field(b, 'stats_retention_days'))
     if (Number.isInteger(days) && days >= 7 && days <= 3650) setSetting(db, 'stats_retention_days', days)
     setSetting(db, 'registration_open', checked(b, 'registration_open'))
+    setSetting(db, 'announcement', field(b, 'announcement').trim().slice(0, 300))
+    setSetting(db, 'announcement_level', field(b, 'announcement_level') === 'warn' ? 'warn' : 'info')
+    setSetting(db, 'maintenance', checked(b, 'maintenance'))
+    const rp = Number(field(b, 'referral_percent'))
+    if (Number.isInteger(rp) && rp >= 0 && rp <= 90) setSetting(db, 'referral_percent', rp)
     setSetting(db, 'branding_forced', checked(b, 'branding_forced'))
     audit(db, { actorId: me(req).id, action: 'admin.settings' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })

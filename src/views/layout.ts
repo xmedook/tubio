@@ -55,6 +55,7 @@ ${head(ctx, opts.title, opts.head)}
     <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
   </div>
 </header>
+${ctx.announcement ? html`<div class="banner${ctx.announcement.level === 'warn' ? ' banner-warn' : ''}" role="status">${ctx.announcement.text}</div>` : ''}
 ${ctx.session?.impersonator_id
   ? html`<div class="banner banner-warn">${t('admin.impersonating', { email: user?.email ?? '' })}
       <form method="post" action="/admin/stop-impersonating" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('admin.stop_impersonating')}</button></form></div>`

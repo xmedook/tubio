@@ -4,7 +4,7 @@ import { csrfField, flashBox, powAttr, powField } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 
 /** Portada pública. Sin JS salvo la prueba de trabajo de la lista de espera. */
-export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string }): SafeHtml {
+export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string; pages?: { slug: string; title: string }[] }): SafeHtml {
   const { t } = ctx
   const other = ctx.locale === 'es-MX' ? 'en' : 'es-MX'
   const pow = ctx.pow()
@@ -78,7 +78,7 @@ export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?
     <p><a class="btn" href="${opts.sourceUrl}">${t('home.free_cta')}</a></p>
   </section>
 </main>
-<footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="/acceptable-use">${t('legal.aup')}</a> · <a href="/source">${t('foot.source')}</a></footer>
+<footer class="foot"><a href="/blog">${t('site.blog')}</a> · ${(opts.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a> · `)}<a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="/acceptable-use">${t('legal.aup')}</a> · <a href="/source">${t('foot.source')}</a></footer>
 </body>
 </html>`
 }
