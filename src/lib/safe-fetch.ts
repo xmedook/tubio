@@ -1,5 +1,5 @@
 import { lookup } from 'node:dns/promises'
-import { isIP } from 'node:net'
+import { BlockList, isIP } from 'node:net'
 import { request as httpsRequest } from 'node:https'
 import { request as httpRequest } from 'node:http'
 
@@ -12,27 +12,54 @@ import { request as httpRequest } from 'node:http'
 
 export class SafeFetchError extends Error {}
 
+const V4_BLOCK = new BlockList()
+for (const [net, bits] of [
+  ['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12],
+  ['192.0.0.0', 24], ['192.0.2.0', 24], ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24],
+  ['203.0.113.0', 24], ['224.0.0.0', 3],
+] as const) V4_BLOCK.addSubnet(net, bits, 'ipv4')
+
+const V6_BLOCK = new BlockList()
+for (const [net, bits] of [
+  ['::', 96], // no especificada, loopback e IPv4-compatible
+  ['100::', 64], ['2001::', 23], ['2001:db8::', 32], ['fc00::', 7], ['fe80::', 10], ['fec0::', 10], ['ff00::', 8],
+] as const) V6_BLOCK.addSubnet(net, bits, 'ipv6')
+
+/** 8 grupos de 16 bits de una IPv6 (acepta la forma con IPv4 al final) */
+function hextets(ip: string): number[] | null {
+  let v = ip.toLowerCase().split('%')[0] ?? ''
+  const tail = /(\d+\.\d+\.\d+\.\d+)$/.exec(v)
+  if (tail) {
+    const o = (tail[1] as string).split('.').map(Number)
+    v = v.slice(0, -(tail[1] as string).length) + `${(((o[0] ?? 0) << 8) | (o[1] ?? 0)).toString(16)}:${(((o[2] ?? 0) << 8) | (o[3] ?? 0)).toString(16)}`
+  }
+  const [head = '', rest] = v.split('::')
+  const a = head ? head.split(':') : []
+  const b = rest !== undefined && rest !== '' ? rest.split(':') : []
+  const fill = rest !== undefined ? 8 - a.length - b.length : 0
+  const all = [...a, ...new Array<string>(Math.max(0, fill)).fill('0'), ...b]
+  if (all.length !== 8) return null
+  const n = all.map((h) => parseInt(h, 16))
+  return n.some((x) => !Number.isFinite(x) || x < 0 || x > 0xffff) ? null : n
+}
+
+const v4From = (hi: number, lo: number) => `${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`
+
+/**
+ * ¿Es una IP de internet pública? Se revisa por bits, no por texto: `[::ffff:127.0.0.1]` llega como
+ * `::ffff:7f00:1` y las IPv4 embebidas (mapeadas, NAT64, 6to4) se revisan como la IPv4 que son.
+ */
 export function isPublicIp(ip: string): boolean {
-  if (isIP(ip) === 4) {
-    const [a = 0, b = 0, c = 0] = ip.split('.').map(Number)
-    if (a === 0 || a === 10 || a === 127 || a >= 224) return false
-    if (a === 169 && b === 254) return false
-    if (a === 172 && b >= 16 && b <= 31) return false
-    if (a === 192 && b === 168) return false
-    if (a === 100 && b >= 64 && b <= 127) return false
-    if (a === 192 && b === 0 && (c === 0 || c === 2)) return false
-    if (a === 198 && (b === 18 || b === 19)) return false
-    return true
-  }
-  if (isIP(ip) === 6) {
-    const v = ip.toLowerCase()
-    if (v === '::' || v === '::1') return false
-    if (v.startsWith('fc') || v.startsWith('fd') || v.startsWith('fe8') || v.startsWith('fe9') || v.startsWith('fea') || v.startsWith('feb') || v.startsWith('ff')) return false
-    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v)
-    if (mapped) return isPublicIp(mapped[1] as string)
-    return true
-  }
-  return false
+  if (isIP(ip) === 4) return !V4_BLOCK.check(ip, 'ipv4')
+  if (isIP(ip) !== 6) return false
+  const h = hextets(ip)
+  if (!h) return false
+  const zero = (from: number, to: number) => h.slice(from, to).every((x) => x === 0)
+  if (zero(0, 5) && h[5] === 0xffff) return isPublicIp(v4From(h[6] as number, h[7] as number)) // ::ffff:a.b.c.d
+  if (h[0] === 0x64 && h[1] === 0xff9b && zero(2, 6)) return isPublicIp(v4From(h[6] as number, h[7] as number)) // NAT64
+  if (h[0] === 0x2002) return isPublicIp(v4From(h[1] as number, h[2] as number)) // 6to4
+  const norm = h.map((x) => x.toString(16)).join(':')
+  return !V6_BLOCK.check(norm, 'ipv6')
 }
 
 export type SafeResponse = { status: number; headers: Record<string, string | string[] | undefined>; body: Buffer; url: string }
@@ -100,8 +127,10 @@ export async function safeFetch(rawUrl: string, opts: SafeFetchOptions = {}, hop
   })
   if (res.status >= 300 && res.status < 400 && typeof res.headers.location === 'string') {
     if (hops >= 3) throw new SafeFetchError('too_many_redirects')
-    const next = new URL(res.headers.location, u).href
-    return safeFetch(next, { ...opts, method: 'GET', body: undefined }, hops + 1)
+    const next = new URL(res.headers.location, u)
+    // a otro origen no viajan las cabeceras propias (firma del webhook, etc.)
+    const headers = next.origin === u.origin ? opts.headers : undefined
+    return safeFetch(next.href, { ...opts, method: 'GET', body: undefined, headers }, hops + 1)
   }
   return res
 }
