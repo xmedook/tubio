@@ -1,7 +1,7 @@
 import { createReadStream, existsSync } from 'node:fs'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { hmac, safeEqual, verifyPassword } from '../../lib/crypto.ts'
+import { verifyPassword } from '../../lib/crypto.ts'
 import { html } from '../../lib/html.ts'
 import { buildIcs, eventSchema } from '../../lib/ical.ts'
 import { findFile, findFileByKey, uploadPath } from '../../lib/uploads.ts'
@@ -14,17 +14,10 @@ import { field } from '../../web/forms.ts'
 import { renderBioPage } from '../bio/render.ts'
 import { findByAlias, incrementClicks, type Link } from '../links/repo.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
-import { findUserById } from '../users/repo.ts'
+import { availability, isConfirmed, isUnlocked, okCookie, okValue, unlockCookie, unlockValue } from './gate.ts'
 
 /** Tipos que el navegador podría ejecutar: siempre se descargan como binario */
 const UNSAFE_INLINE = /^(text\/html|image\/svg|application\/xhtml|text\/xml|application\/xml|application\/javascript|text\/javascript)/
-
-function unlockCookie(link: Link): string {
-  return `tb_pw_${link.id}`
-}
-function okCookie(link: Link): string {
-  return `tb_ok_${link.id}`
-}
 
 function gatePage(ctx: Ctx, link: Link, mode: 'password' | 'sensitive', error?: string) {
   const { t } = ctx
@@ -73,40 +66,28 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
   })
 
   /** Revisa estado, programación, tope, contraseña y aviso. Devuelve null si ya respondió. */
+  /** Revisa estado, programación, tope, contraseña y aviso. Devuelve false si ya respondió. */
   async function gate(req: FastifyRequest, reply: FastifyReply, link: Link): Promise<boolean> {
-    const now = deps.now()
-    const owner = findUserById(db, link.user_id)
-    if (!owner || owner.status !== 'active' || !link.is_enabled) {
-      unavailable(req.ctx, reply, 'missing')
+    const av = availability(deps, link)
+    if (av === 'expired' && link.expired_url) {
+      reply.redirect(link.expired_url, 302)
       return false
     }
-    if (link.starts_at && now < link.starts_at) {
-      unavailable(req.ctx, reply, 'missing')
+    if (av === 'limit' && link.limit_url) {
+      reply.redirect(link.limit_url, 302)
       return false
     }
-    if (link.ends_at && now >= link.ends_at) {
-      if (link.expired_url) reply.redirect(link.expired_url, 302)
-      else unavailable(req.ctx, reply, 'expired')
+    if (av !== 'ok') {
+      unavailable(req.ctx, reply, av)
       return false
     }
-    if (link.click_limit && link.clicks >= link.click_limit) {
-      if (link.limit_url) reply.redirect(link.limit_url, 302)
-      else unavailable(req.ctx, reply, 'limit')
+    if (!isUnlocked(deps, req, link)) {
+      sendHtml(reply, gatePage(req.ctx, link, 'password'), 401)
       return false
     }
-    if (link.password_hash) {
-      const c = req.cookies[unlockCookie(link)]
-      if (!c || !safeEqual(c, hmac(deps.config.secret, `${link.id}:${link.password_hash}`))) {
-        sendHtml(reply, gatePage(req.ctx, link, 'password'), 401)
-        return false
-      }
-    }
-    if (link.is_sensitive) {
-      const c = req.cookies[okCookie(link)]
-      if (!c || !safeEqual(c, hmac(deps.config.secret, `${link.id}:ok`))) {
-        sendHtml(reply, gatePage(req.ctx, link, 'sensitive'))
-        return false
-      }
+    if (!isConfirmed(deps, req, link)) {
+      sendHtml(reply, gatePage(req.ctx, link, 'sensitive'))
+      return false
     }
     return true
   }
@@ -172,9 +153,9 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
       if (!(await verifyPassword(field(req.body, 'password'), link.password_hash))) {
         return sendHtml(reply, gatePage(req.ctx, link, 'password', 'err.password_wrong'), 401)
       }
-      reply.setCookie(unlockCookie(link), hmac(deps.config.secret, `${link.id}:${link.password_hash}`), cookieOpts(deps))
+      reply.setCookie(unlockCookie(link), unlockValue(deps, link), cookieOpts(deps))
     } else if (action === 'confirm' && link.is_sensitive) {
-      reply.setCookie(okCookie(link), hmac(deps.config.secret, `${link.id}:ok`), cookieOpts(deps, 30 * 86400))
+      reply.setCookie(okCookie(link), okValue(deps, link), cookieOpts(deps, 30 * 86400))
     }
     return reply.redirect(`/${link.alias}`, 303)
   })

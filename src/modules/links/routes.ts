@@ -9,6 +9,7 @@ import { defaultValues, parseLinkForm, valuesFromLink } from './form.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
 import { dashboardPage, linkFormPage } from './views.ts'
 import { defaultBioData } from '../bio/design.ts'
+import { createBlock } from '../bio/repo.ts'
 
 const PER_PAGE = 30
 
@@ -72,6 +73,9 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind, values: r.values, errors: r.errors, projects: listProjects(db, user.id) }), 422)
     if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name)
     const link = createLink(db, user.id, r.input, deps.now())
+    if (kind === 'bio') {
+      createBlock(db, link.id, { type: 'heading', is_enabled: true, starts_at: null, ends_at: null, data: { text: r.input.title || user.name || link.alias, level: 'h1' }, style: {} }, deps.now())
+    }
     audit(db, { actorId: user.id, userId: user.id, action: 'link.create', target: `link:${link.id}`, meta: { kind, alias: link.alias } }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'links.created' })
     return reply.redirect(kind === 'bio' ? `/panel/links/${link.id}/blocks` : `/panel/links/${link.id}`, 303)

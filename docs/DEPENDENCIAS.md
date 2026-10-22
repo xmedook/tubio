@@ -25,6 +25,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | maxmind | MIT | leer base geo MMDB |
 | nodemailer | MIT-0 | correo SMTP |
 | sortablejs | MIT | ordenar bloques arrastrando (servido localmente) |
+| simple-icons | CC0-1.0 | logos de redes sociales (path SVG y color de marca) |
 
 ## Desarrollo
 
@@ -40,5 +41,6 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | Recurso | Licencia | Atribución |
 |---|---|---|
 | DB-IP "IP to City Lite" (opcional, no se versiona) | CC-BY 4.0 | "IP Geolocation by DB-IP" (https://db-ip.com) — se muestra en la página de estadísticas cuando la base está instalada |
-| Iconos de redes y de la interfaz | propios (AGPL, dibujados para tubio) | — |
+| Logos de redes sociales | Simple Icons, CC0-1.0 (https://simpleicons.org) | no requerida; se agradece en el README. Las marcas son de sus dueños |
+| Iconos LinkedIn, correo, teléfono, sitio web, compartir, verificado | trazos propios (AGPL) | — |
 | Favicon / marca tubio | propio | — |

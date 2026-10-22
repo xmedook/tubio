@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm test",
     "migrate": "node src/db/cli.ts",
-    "create-admin": "node src/cli/create-admin.ts"
+    "create-admin": "node src/cli/create-admin.ts",
+    "seed-demo": "node src/cli/seed-demo.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",
