@@ -1,0 +1,46 @@
+{
+  "name": "tubio",
+  "version": "0.1.0",
+  "description": "Link in bio open source: páginas bio, enlaces cortos, QR y estadísticas",
+  "license": "AGPL-3.0-or-later",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "dev": "node --watch src/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test",
+    "migrate": "node src/db/cli.ts",
+    "create-admin": "node src/cli/create-admin.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.3",
+    "@fastify/formbody": "^9.0.1",
+    "@fastify/multipart": "^10.1.4",
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/static": "^10.1.7",
+    "better-sqlite3": "^13.0.3",
+    "bowser": "^2.14.1",
+    "fastify": "^5.12.7",
+    "file-type": "^22.2.0",
+    "isbot": "^5.2.2",
+    "maxmind": "^5.0.7",
+    "nodemailer": "^10.2.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.5",
+    "sortablejs": "^1.15.7",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.5",
+    "@types/nodemailer": "^8.0.2",
+    "@types/qrcode": "^1.5.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
