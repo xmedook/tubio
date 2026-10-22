@@ -23,7 +23,7 @@ function langSwitch(ctx: Ctx, path: string): SafeHtml {
   return html`<a class="lang" href="/lang/${other}?next=${encodeURIComponent(path)}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>`
 }
 
-export type NavKey = 'links' | 'qr' | 'projects' | 'account' | 'admin'
+export type NavKey = 'links' | 'qr' | 'data' | 'projects' | 'account' | 'admin'
 
 export function panelLayout(
   ctx: Ctx,
@@ -33,6 +33,7 @@ export function panelLayout(
   const nav: [NavKey, string, string][] = [
     ['links', '/panel', t('nav.links')],
     ['qr', '/panel/qr', t('nav.qr')],
+    ['data', '/panel/data', t('nav.data')],
     ['projects', '/panel/projects', t('nav.projects')],
     ['account', '/panel/account', t('nav.account')],
   ]

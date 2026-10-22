@@ -4,7 +4,7 @@ import { imageUrl, storeFile, storeImage, UploadError, type MultipartData } from
 import { BUTTON_SCHEMES, checkTarget, isBlockedHost, WEB_SCHEMES } from '../../lib/urls.ts'
 import { checkbox, fromLocalInput, input, select, textarea, toLocalInput, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
-import { checked, field } from '../../web/forms.ts'
+import { checked, field, fieldAll } from '../../web/forms.ts'
 import type { User } from '../users/repo.ts'
 import { type BlockDef, type BlockRow, type BlockStyle, type FieldSpec } from './blocks.ts'
 import { mediaUrl } from './embeds.ts'
@@ -28,6 +28,7 @@ export function valuesFromBlock(def: BlockDef, b: BlockRow | undefined, tz: stri
     } else if (f.kind === 'images') v[f.name] = JSON.stringify(Array.isArray(d) ? d : [])
     else if (f.kind === 'datetime') v[f.name] = toLocalInput(typeof d === 'number' ? d : null, tz)
     else if (f.kind === 'number') v[f.name] = typeof d === 'number' ? String(d) : ''
+    else if (f.kind === 'targets') v[f.name] = Array.isArray(d) ? (d as number[]).join(',') : ''
     else if (f.kind === 'file') v[f.name] = d && typeof d === 'object' ? String((d as { name?: string }).name ?? '') : ''
     else if (f.kind === 'socials') {
       const links = (d ?? {}) as Record<string, string>
@@ -45,7 +46,7 @@ export function valuesFromBlock(def: BlockDef, b: BlockRow | undefined, tz: stri
   return v
 }
 
-function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: string): SafeHtml {
+function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: string, targetsFor?: { id: number; name: string; kind: string }[]): SafeHtml {
   const { t } = ctx
   const label = t(f.label)
   switch (f.kind) {
@@ -107,6 +108,16 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
       return input({ ctx, name: f.name, type: 'number', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })
     case 'file':
       return html`${v[f.name] ? html`<p>${t('links.current_file')}: <strong>${v[f.name]}</strong></p>` : ''}${input({ ctx, name: f.name, type: 'file', label: v[f.name] ? t('links.replace_file') : label, error: e[f.name], required: f.required && !v[f.name] })}`
+    case 'targets': {
+      const chosen = new Set((v[f.name] ?? '').split(',').filter(Boolean))
+      const list = targetsFor ?? []
+      return html`<fieldset><legend>${label}</legend>
+  ${list.length === 0
+    ? html`<p class="hint">${t('bio.f.targets_none')} <a href="/panel/notifications">${t('nav.notifications')}</a></p>`
+    : list.map((x) => checkbox({ name: f.name, value: String(x.id), label: `${x.name} (${t(`notify.kind_${x.kind}`)})`, checked: chosen.has(String(x.id)) }))}
+  <p class="hint">${t('bio.f.targets_hint')}</p>
+</fieldset>`
+    }
     case 'socials':
       return html`<fieldset><legend>${label}</legend><p class="hint">${t('bio.f.socials_hint')}</p>
   <div class="grid-2">${NETWORKS.map((n) =>
@@ -121,10 +132,10 @@ function optLabel(t: Ctx['t'], key: string, raw: string): string {
   return v === key ? raw.replace(/_/g, ' ') : v
 }
 
-export function blockFields(ctx: Ctx, def: BlockDef, v: BlockValues, e: Errors): SafeHtml {
+export function blockFields(ctx: Ctx, def: BlockDef, v: BlockValues, e: Errors, targetsFor?: { id: number; name: string; kind: string }[]): SafeHtml {
   const { t } = ctx
   const isButton = def.clickable && def.type !== 'socials' && def.type !== 'image'
-  return html`<div class="card">${def.fields.map((f) => fieldHtml(ctx, f, v, e, def.type))}
+  return html`<div class="card">${def.fields.map((f) => fieldHtml(ctx, f, v, e, def.type, targetsFor))}
   ${checkbox({ name: 'is_enabled', label: t('bio.f.enabled'), checked: !!v.is_enabled })}
 </div>
 <details class="opt"${v.starts_at || v.ends_at || e.ends_at ? html` open` : ''}><summary>${t('links.opt_schedule')}</summary><div class="opt-body">
@@ -287,6 +298,12 @@ export async function parseBlockForm(
         if (up) pendingFile = { name: spec.name, buf: up.buffer, filename: up.filename }
         else data[spec.name] = prev
         if (spec.required && !up && !prev) errors[spec.name] = 'err.file_required'
+        break
+      }
+      case 'targets': {
+        const own = new Set((deps.db.prepare('SELECT id FROM notify_targets WHERE user_id = ?').pluck().all(user.id) as number[]))
+        data[spec.name] = fieldAll(body, spec.name).map(Number).filter((n) => own.has(n))
+        values[spec.name] = (data[spec.name] as number[]).join(',')
         break
       }
       case 'socials': {

@@ -97,7 +97,9 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const t = translator(locale)
   const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now())
   const host = new URL(deps.config.baseUrl).hostname
-  const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db }
+  const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
+    csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias,
+    formError: (() => { const q = req.query as { err?: string; b?: string }; return q.err && /^\w{2,20}$/.test(q.err) && Number(q.b) ? { id: Number(q.b), key: q.err } : null })() }
   const url = linkUrl(deps.config.baseUrl, link)
   const title = d.seo_title || link.title || link.alias
   const ogImage = d.seo_image ? `${deps.config.baseUrl}${imageUrl(d.seo_image)}` : null
@@ -126,6 +128,7 @@ ${ogImage ? html`<meta property="og:image" content="${ogImage}"><meta name="twit
 <link rel="stylesheet" href="/_/static/css/bio.css?v=${ASSET_VERSION}">
 <style nonce="${nonce}">${raw(pageCss(d, blocks))}</style>
 <script type="module" src="/_/static/js/bio.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>
+${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </head>
 <body class="bio al-${d.align} anim-${d.animation} hov-${d.hover}${d.bg_type === 'image' && d.bg_image ? ' has-bg-img' : ''}">
 <div class="bg" aria-hidden="true"></div>

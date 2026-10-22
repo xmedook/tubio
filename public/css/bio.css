@@ -213,3 +213,23 @@ h1.heading { font-size: 1.75em; } h2.heading { font-size: 1.4em; } h3.heading { 
 .embed.h-640 { height: 640px; } .embed.h-700 { height: 700px; } .embed.h-760 { height: 760px; }
 .embed.r-fixed { background: #fff; }
 .pdf-link { text-align: center; margin: .3rem 0 0; font-size: .85em; }
+
+/* captura de datos */
+.cap { display: flex; flex-direction: column; gap: .55rem; background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); padding: 1rem 1.1rem; text-align: left; }
+.cap fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.cap-title { font-weight: 700; margin: 0; } .cap-desc { margin: 0; opacity: .85; font-size: .94em; }
+.cap-in { width: 100%; padding: .7rem .8rem; border-radius: calc(var(--btn-r) * .5 + 2px); border: 1px solid color-mix(in srgb, currentColor 30%, transparent); background: color-mix(in srgb, var(--btn-bg) 85%, #fff); color: inherit; font: inherit; }
+textarea.cap-in { resize: vertical; }
+.cap .btn { background: var(--btn-text); color: var(--btn-bg); border-color: var(--btn-text); min-height: 2.9rem; }
+.cap-consent { display: flex; gap: .5rem; align-items: flex-start; font-size: .82em; opacity: .9; }
+.cap-consent input { margin-top: .2rem; }
+.cap-status { margin: 0; font-size: .8em; opacity: .75; min-height: 0; }
+.cap-status:empty { display: none; }
+.cap-ok { margin: 0; padding: 1rem; border-radius: var(--btn-r); background: #dcfce7; color: #166534; font-weight: 600; text-align: center; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.poll-o { display: flex; gap: .5rem; align-items: center; padding: .45rem .2rem; cursor: pointer; }
+.poll-r { display: grid; grid-template-columns: 1fr auto; gap: .2rem .6rem; margin: .5rem 0; text-align: left; }
+.poll-r progress { grid-column: 1 / -1; width: 100%; height: .55rem; accent-color: var(--text); }
+.poll-n { font-size: .8em; opacity: .75; margin: .3rem 0 0; }
+.poll:not(.cap) { background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); border-radius: var(--btn-r); padding: 1rem 1.1rem; }
+.cap-err { margin: 0; padding: .6rem .8rem; border-radius: 8px; background: #fee2e2; color: #991b1b; font-weight: 600; font-size: .9em; }

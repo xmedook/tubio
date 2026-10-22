@@ -6,6 +6,7 @@ import { registerAdmin } from './admin/routes.ts'
 import { registerGoogle } from './auth/google.ts'
 import { registerAuth } from './auth/routes.ts'
 import { registerBio } from './bio/routes.ts'
+import { registerCapture } from './capture/routes.ts'
 import { registerHome } from './home/routes.ts'
 import { registerLegal } from './legal/routes.ts'
 import { registerLinks } from './links/routes.ts'
@@ -24,6 +25,7 @@ export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerLinks(app, deps)
   registerProjects(app, deps)
   registerBio(app, deps)
+  registerCapture(app, deps)
   registerStats(app, deps)
   registerQr(app, deps)
   registerAdmin(app, deps)

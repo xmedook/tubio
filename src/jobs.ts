@@ -5,6 +5,7 @@ import { purgeExpiredSessions } from './modules/auth/sessions.ts'
 import { imageKeysInUse } from './modules/bio/repo.ts'
 import { getSetting } from './modules/settings/repo.ts'
 import { purgeStats } from './modules/stats/record.ts'
+import { runQueue } from './modules/capture/notify.ts'
 
 /** Imágenes que ya nadie usa (bloque borrado, imagen reemplazada) y con más de un día */
 export function purgeOrphanImages(deps: AppDeps): number {
@@ -54,8 +55,18 @@ export function startJobs(deps: AppDeps, log: FastifyBaseLogger): () => void {
   }
   const first = setTimeout(tick, 10_000)
   const every = setInterval(tick, 6 * 3600 * 1000)
+  // cola de avisos: cada 10 s
+  let busy = false
+  const queue = setInterval(() => {
+    if (busy) return
+    busy = true
+    runQueue(deps)
+      .catch((err) => log.error(err, 'cola de avisos falló'))
+      .finally(() => (busy = false))
+  }, 10_000)
   return () => {
     clearTimeout(first)
     clearInterval(every)
+    clearInterval(queue)
   }
 }

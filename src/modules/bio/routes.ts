@@ -11,6 +11,7 @@ import { availability, isConfirmed, isUnlocked } from '../public/gate.ts'
 import { ownLinkOr404 } from '../links/routes.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import type { User } from '../users/repo.ts'
+import { listTargets } from '../capture/notify.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
@@ -96,6 +97,7 @@ function bioLinkOr404(deps: AppDeps, req: FastifyRequest, reply: FastifyReply): 
 
 export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
+  const targetsOf = (req: FastifyRequest) => listTargets(deps, (req.ctx.user as User).id).map((x) => ({ id: x.id, name: x.name, kind: x.kind }))
   const host = () => new URL(deps.config.baseUrl).hostname
 
   // archivos de fuentes web (sólo los de la lista blanca)
@@ -128,7 +130,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!link) return
     const def = BLOCK_BY_TYPE.get(String((req.query as { type?: string }).type))
     if (!def) return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
-    return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, (req.ctx.user as User).timezone), {}))
+    return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, (req.ctx.user as User).timezone), {}, targetsOf(req)))
   })
 
   app.post('/panel/links/:id/blocks', { preHandler: userGuard }, async (req, reply) => {
@@ -142,11 +144,11 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     try {
       mp = await readMultipart(req)
     } catch (e) {
-      if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, user.timezone), { _form: e.key }), 413)
+      if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
     }
     const r = await parseBlockForm(deps, user, def, mp, undefined, host())
-    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, r.values, r.errors), 422)
+    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, r.values, r.errors, targetsOf(req)), 422)
     createBlock(db, link.id, r.input, deps.now())
     await warmFeedCache(db, r.input, deps.now())
     updateLink(db, link.id, {}, deps.now())
@@ -170,7 +172,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!own) return
     const def = BLOCK_BY_TYPE.get(own.b.type)
     if (!def) return reply.callNotFound()
-    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}))
+    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}, targetsOf(req)))
   })
 
   app.post('/panel/blocks/:id', { preHandler: userGuard }, async (req, reply) => {
@@ -183,11 +185,11 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     try {
       mp = await readMultipart(req)
     } catch (e) {
-      if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, user.timezone), { _form: e.key }), 413)
+      if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
     }
     const r = await parseBlockForm(deps, user, def, mp, own.b, host())
-    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, r.values, r.errors), 422)
+    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, r.values, r.errors, targetsOf(req)), 422)
     const { type: _t, ...patch } = r.input
     updateBlock(db, own.b.id, patch, deps.now())
     await warmFeedCache(db, r.input, deps.now())

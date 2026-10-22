@@ -41,5 +41,7 @@ export function exportUserData(db: DB, userId: number): Record<string, unknown> 
     qr_codes: qr,
     files: db.prepare('SELECT id, key, kind, original_name, mime, size, sha256, created_at FROM files WHERE user_id = ? ORDER BY id').all(userId),
     stats_daily: stats,
+    collected: (db.prepare('SELECT id, link_id, block_id, kind, data, created_at FROM collected WHERE user_id = ? ORDER BY id').all(userId) as Record<string, unknown>[]).map((c) => ({ ...c, data: parse(c.data) })),
+    notify_targets: db.prepare('SELECT id, kind, name, is_enabled, created_at FROM notify_targets WHERE user_id = ?').all(userId),
   }
 }

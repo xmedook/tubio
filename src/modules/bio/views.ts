@@ -10,7 +10,7 @@ import { blockFields, type BlockValues } from './block-form.ts'
 import { BLOCK_BY_TYPE, BLOCKS, MAX_BLOCKS_PER_PAGE, type BlockDef, type BlockRow } from './blocks.ts'
 import { FONT_IDS, FONTS, THEMES, type Design } from './design.ts'
 
-const GROUPS: BlockDef['group'][] = ['basic', 'business', 'social', 'media']
+const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', 'media']
 
 function preview(ctx: Ctx, link: Link): SafeHtml {
   const { t } = ctx
@@ -70,7 +70,7 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[]): SafeHtml {
   })
 }
 
-export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors): SafeHtml {
+export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors, targets: { id: number; name: string; kind: string }[] = []): SafeHtml {
   const { t } = ctx
   const action = block ? `/panel/blocks/${block.id}` : `/panel/links/${link.id}/blocks?type=${def.type}`
   const sep = action.includes('?') ? '&' : '?'
@@ -85,7 +85,7 @@ export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockR
     <h2>${block ? t('bio.edit_block', { type: t(`bio.type_${def.type}`) }) : t('bio.new_block', { type: t(`bio.type_${def.type}`) })}</h2>
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="${action}${sep}_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
-      ${blockFields(ctx, def, values, errors)}
+      ${blockFields(ctx, def, values, errors, targets)}
       <div class="btn-row sticky-actions">
         <button class="btn btn-primary" type="submit">${block ? t('common.save') : t('bio.add')}</button>
         <a class="btn" href="/panel/links/${link.id}/blocks">${t('common.cancel')}</a>
