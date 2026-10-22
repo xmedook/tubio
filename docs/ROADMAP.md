@@ -104,6 +104,14 @@ correo/webhook firmado/Slack/Discord/Telegram con cola y reintentos. Todo HTTP s
 
 ---
 
+### Estado F5 (2026-10-22)
+- ✅ Calidad: `npm run a11y` (axe, 0 violaciones en públicas, panel y los 10 temas) + prueba de contraste por tema — ⬜ revisión manual con teclado y lector de pantalla (persona).
+- ✅ Seguridad: dos revisiones internas cerradas, `/.well-known/security.txt` y `/security` — ⬜ revisión externa / pentest.
+- ✅ Operación: runbook de incidentes, simulacro de restauración desde R2 (OK), respaldo incluye `data/sites` — ⬜ probar que Kuma avisa; vigilancia de 5xx sin dueño desde que se retiró `tubio-watch`.
+- ✅ Soporte: `/help` es/en y formulario a hola@tubio.link — ⬜ que esos correos abran ticket en Zammad (canal de correo).
+- ✅ Escala: 980 req/s en página bio (meta 200) y plan en `docs/ESCALA.md`.
+- ✅ Comunidad: CONTRIBUTING, SECURITY, CHANGELOG, plantillas de issues — ⬜ etiquetar **1.0.0** (cuando se cierren los pendientes de Alejandro: precios, CLABE, Stripe/MP, Caddy, Google).
+
 ## Decisiones de Alejandro (2026-10-22)
 
 1. **Dominios propios (F2c): Caddy** delante con TLS bajo demanda para dominios de clientes; Plesk sigue sirviendo tubio.link.
