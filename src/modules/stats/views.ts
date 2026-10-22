@@ -73,7 +73,7 @@ ${rows.length === 0
   ${rows.map((r) => {
     const n = r.views + r.clicks
     const pct = total ? Math.round((n / total) * 100) : 0
-    return html`<tr><td><span class="bar-bg"><span class="bar-fill" style="width:${pct}%"></span></span>${label(ctx, dim, r.key)}</td><td class="num">${formatNumber(locale, n)}</td><td class="num">${pct}%</td></tr>`
+    return html`<tr><td><span class="bar-bg"><span class="bar-fill" style="width:${pct}%"></span></span><span class="lbl">${label(ctx, dim, r.key)}</span></td><td class="num">${formatNumber(locale, n)}</td><td class="num">${pct}%</td></tr>`
   })}</tbody></table>`}
 </section>`
 }
