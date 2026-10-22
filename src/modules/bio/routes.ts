@@ -12,6 +12,7 @@ import { ownLinkOr404 } from '../links/routes.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import type { User } from '../users/repo.ts'
 import { listTargets } from '../capture/notify.ts'
+import { getSetting } from '../settings/repo.ts'
 import { blockAddDenied, blockTypeAllowed, limitsOf, ownerLimits, PLAN_GATED_BLOCKS } from '../plans/limits.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
@@ -80,6 +81,7 @@ async function parseDesign(deps: AppDeps, user: User, mp: MultipartData, current
       }
     }
   }
+  if (raw.theme !== current.theme && getSetting(deps.db, 'themes_hidden').includes(String(raw.theme))) errors.theme = 'err.invalid'
   if (Object.keys(errors).length) return { ok: false, errors }
   const r = designSchema.safeParse(raw)
   if (!r.success) {
@@ -286,7 +288,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   app.get('/panel/links/:id/design', { preHandler: userGuard }, async (req, reply) => {
     const link = bioLinkOr404(deps, req, reply)
     if (!link) return
-    return sendHtml(reply, designPage(req.ctx, link, readDesign(link.data)))
+    return sendHtml(reply, designPage(req.ctx, link, readDesign(link.data), {}, getSetting(db, 'themes_hidden')))
   })
 
   app.post('/panel/links/:id/design', { preHandler: userGuard }, async (req, reply) => {
@@ -298,11 +300,11 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     try {
       mp = await readMultipart(req)
     } catch (e) {
-      if (e instanceof UploadError) return sendHtml(reply, designPage(req.ctx, link, current, { _form: e.key }), 413)
+      if (e instanceof UploadError) return sendHtml(reply, designPage(req.ctx, link, current, { _form: e.key }, getSetting(db, 'themes_hidden')), 413)
       throw e
     }
     const r = await parseDesign(deps, user, mp, current)
-    if (!r.ok) return sendHtml(reply, designPage(req.ctx, link, current, r.errors), 422)
+    if (!r.ok) return sendHtml(reply, designPage(req.ctx, link, current, r.errors, getSetting(db, 'themes_hidden')), 422)
     updateLink(db, link.id, { data: r.design as unknown as Record<string, unknown> }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect(`/panel/links/${link.id}/design`, 303)

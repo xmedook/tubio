@@ -3,7 +3,7 @@ import type { AppDeps } from '../../app.ts'
 import { deleteStoredFile, findFile, readMultipart, UploadError } from '../../lib/uploads.ts'
 import { sendHtml, setFlash, userGuard } from '../../web/context.ts'
 import { listProjects } from '../projects/repo.ts'
-import { audit } from '../settings/repo.ts'
+import { audit, getSetting } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { defaultValues, parseLinkForm, valuesFromLink } from './form.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
@@ -91,7 +91,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     }
     const r = await parseLinkForm(deps, user, kind, mp, undefined, limitsOf(db, user, deps.now()).marketing)
     if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind, values: r.values, errors: r.errors, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 422)
-    if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name)
+    if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name, getSetting(db, 'default_theme'))
     const link = createLink(db, user.id, r.input, deps.now())
     if (kind === 'bio') {
       createBlock(db, link.id, { type: 'heading', is_enabled: true, starts_at: null, ends_at: null, data: { text: r.input.title || user.name || link.alias, level: 'h1' }, style: {} }, deps.now())

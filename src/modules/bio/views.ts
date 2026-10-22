@@ -120,7 +120,7 @@ function imageOpt(ctx: Ctx, name: string, label: string, key: string | null, hin
 </div>`
 }
 
-export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {}): SafeHtml {
+export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {}, hiddenThemes: string[] = []): SafeHtml {
   const { t } = ctx
   const opts = (name: string, values: readonly string[]) => values.map((v) => ({ value: v, label: t(`bio.d.${name}.${v}`) }))
   return panelLayout(ctx, {
@@ -135,7 +135,7 @@ export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {})
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="/panel/links/${link.id}/design?_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
       <fieldset><legend>${t('bio.d.theme')}</legend>
-        <div class="themes">${THEMES.map((th) => themeCard(ctx, th.id, d.theme))}</div>
+        <div class="themes">${THEMES.filter((th) => th.id === d.theme || !hiddenThemes.includes(th.id)).map((th) => themeCard(ctx, th.id, d.theme))}</div>
       </fieldset>
 
       <details class="opt" open><summary>${t('bio.d.background')}</summary><div class="opt-body">

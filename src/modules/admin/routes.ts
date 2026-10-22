@@ -14,6 +14,8 @@ import { getLink, linkUrl, updateLink, type Link } from '../links/repo.ts'
 import { kindLabel } from '../links/views.ts'
 import { audit, getSettings, setSetting } from '../settings/repo.ts'
 import { csvCell } from '../stats/query.ts'
+import { money } from '../plans/routes.ts'
+import { THEMES } from '../bio/design.ts'
 import { listPlans } from '../plans/limits.ts'
 import { deleteUser, findUserById, searchUsers, updateUser, type User } from '../users/repo.ts'
 
@@ -51,6 +53,15 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
     const log = db.prepare('SELECT a.*, u.email AS actor FROM audit_log a LEFT JOIN users u ON u.id = a.actor_id ORDER BY a.id DESC LIMIT 25').all() as { id: number; action: string; target: string; actor: string | null; ts: number; user_id: number | null }[]
     const kpi = (v: number, label: string) => html`<div class="kpi"><span class="kpi-n">${formatNumber(locale, v)}</span><span class="kpi-l">${label}</span></div>`
     const js = jobStatus()
+    const now = deps.now()
+    const revenue = n("SELECT COALESCE(SUM(amount - discount), 0) FROM payments WHERE status = 'paid' AND paid_at >= ?", since)
+    const byPlan = db.prepare("SELECT COALESCE(p.name, 'Gratis') AS name, COUNT(*) AS n FROM users u LEFT JOIN plans p ON p.id = u.plan_id AND (u.plan_expires_at IS NULL OR u.plan_expires_at > ?) GROUP BY 1 ORDER BY n DESC").all(now) as { name: string; n: number }[]
+    const signups = new Map((db.prepare("SELECT date(created_at / 1000, 'unixepoch') AS d, COUNT(*) AS n FROM users WHERE created_at >= ? GROUP BY d").all(since) as { d: string; n: number }[]).map((r) => [r.d, r.n]))
+    const days = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400_000).toISOString().slice(0, 10))
+    const maxS = Math.max(1, ...days.map((d) => signups.get(d) ?? 0))
+    const top = db.prepare("SELECT l.id, l.alias, l.kind, u.email, COUNT(*) AS v FROM stat_events e JOIN links l ON l.id = e.link_id JOIN users u ON u.id = l.user_id WHERE e.ts >= ? AND e.kind = 'view' GROUP BY l.id ORDER BY v DESC LIMIT 10").all(since) as { id: number; alias: string; kind: Link['kind']; email: string; v: number }[]
+    const verified = n('SELECT COUNT(*) FROM users WHERE email_verified_at IS NOT NULL')
+    const totalUsers = n('SELECT COUNT(*) FROM users')
     return sendHtml(reply, page(req.ctx, 'home', t('admin.overview'), html`
 <div class="kpis">
   ${kpi(n('SELECT COUNT(*) FROM users'), t('admin.users'))}
@@ -62,9 +73,17 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
   ${kpi(n("SELECT COUNT(*) FROM payments WHERE status = 'pending' AND proof_file_id IS NOT NULL"), t('admin.payments_pending'))}
   ${kpi(n('SELECT COUNT(*) FROM stat_events WHERE ts >= ?', since), t('admin.events_30d'))}
   ${kpi(Math.round(n('SELECT COALESCE(SUM(size), 0) FROM files') / 1048576), t('admin.storage_mb'))}
+  <div class="kpi"><span class="kpi-n">${money(locale, revenue)}</span><span class="kpi-l">${t('admin.revenue_30d')}</span></div>
+  ${kpi(totalUsers ? Math.round((verified / totalUsers) * 100) : 0, t('admin.verified_pct'))}
+  <div class="kpi"><span class="kpi-n">${money(locale, n("SELECT COALESCE(SUM(amount), 0) FROM referral_earnings WHERE status = 'pending'"))}</span><span class="kpi-l">${t('ref.pending')}</span></div>
 </div>
+<section class="card"><h2 class="h3">${t('admin.signups_30d')}</h2>
+  <div class="spark" role="img" aria-label="${t('admin.signups_30d')}">${days.map((d) => html`<span style="--h:${Math.round(((signups.get(d) ?? 0) / maxS) * 100)}%" title="${d}: ${signups.get(d) ?? 0}"></span>`)}</div>
+</section>
 <div class="stat-grid">
   <section class="card"><h2 class="h3">${t('admin.links_by_kind')}</h2><table class="data"><tbody>${kinds.map((k) => html`<tr><td>${kindLabel(req.ctx, k.kind)}</td><td class="num">${formatNumber(locale, k.n)}</td></tr>`)}</tbody></table></section>
+  <section class="card"><h2 class="h3">${t('admin.users_by_plan')}</h2><table class="data"><tbody>${byPlan.map((r) => html`<tr><td>${r.name}</td><td class="num">${formatNumber(locale, r.n)}</td></tr>`)}</tbody></table></section>
+  <section class="card"><h2 class="h3">${t('admin.top_links')}</h2>${top.length ? html`<table class="data"><tbody>${top.map((r) => html`<tr><td><a href="/panel/links/${r.id}/stats">${r.alias}</a> <span class="muted small">${r.email}</span></td><td class="num">${formatNumber(locale, r.v)}</td></tr>`)}</tbody></table>` : html`<p class="muted">—</p>`}</section>
   <section class="card"><h2 class="h3">${t('admin.jobs')}</h2>${js.at
     ? html`<p>${t('admin.jobs_last', { when: when(req, js.at) })}</p>${js.error ? html`<p class="error">${js.error}</p>` : html`<p class="mono small">${JSON.stringify(js.result)}</p>`}`
     : html`<p class="muted">${t('admin.jobs_never')}</p>`}</section>
@@ -299,6 +318,10 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
   ${checkbox({ name: 'maintenance', label: t('site.maintenance'), checked: s.maintenance, hint: t('site.maintenance_hint') })}
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
   ${checkbox({ name: 'branding_forced', label: t('admin.branding_forced'), checked: s.branding_forced, hint: t('admin.branding_forced_hint') })}
+  <fieldset><legend>${t('admin.themes')}</legend><p class="hint">${t('admin.themes_hint')}</p>
+    ${select({ ctx, name: 'default_theme', label: t('admin.default_theme'), value: s.default_theme, options: [{ value: '', label: t('admin.default_theme_none') }, ...THEMES.map((th) => ({ value: th.id, label: t(`bio.theme_${th.id}`) }))] })}
+    <div class="grid-3">${THEMES.map((th) => checkbox({ name: `theme_off_${th.id}`, label: t('admin.theme_hide', { name: t(`bio.theme_${th.id}`) }), checked: s.themes_hidden.includes(th.id) }))}</div>
+  </fieldset>
   <button class="btn btn-primary" type="submit">${t('common.save')}</button>
 </form>
 <p><a class="btn" href="/admin/waitlist.csv" download>${t('admin.waitlist_export')}</a></p>`, '/admin/settings'))
@@ -317,6 +340,11 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
     const rp = Number(field(b, 'referral_percent'))
     if (Number.isInteger(rp) && rp >= 0 && rp <= 90) setSetting(db, 'referral_percent', rp)
     setSetting(db, 'branding_forced', checked(b, 'branding_forced'))
+    const hidden = THEMES.map((th) => th.id).filter((id) => checked(b, `theme_off_${id}`))
+    const def = field(b, 'default_theme')
+    // no se puede ocultar todo ni dejar por defecto uno oculto
+    if (hidden.length < THEMES.length) setSetting(db, 'themes_hidden', hidden)
+    setSetting(db, 'default_theme', THEMES.some((th) => th.id === def) && !hidden.includes(def) ? def : '')
     audit(db, { actorId: me(req).id, action: 'admin.settings' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect('/admin/settings', 303)

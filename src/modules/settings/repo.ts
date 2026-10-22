@@ -14,6 +14,10 @@ export const SETTING_DEFAULTS = {
   maintenance: false,
   /** Comisión de afiliados (% del pago) */
   referral_percent: 20,
+  /** Temas que ya no se ofrecen al elegir diseño (quien ya lo usa lo conserva) */
+  themes_hidden: [] as string[],
+  /** Tema de las páginas nuevas ('' = el del sistema) */
+  default_theme: '',
 }
 export type Settings = typeof SETTING_DEFAULTS
 export type SettingKey = keyof Settings

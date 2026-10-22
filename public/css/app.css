@@ -329,3 +329,5 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
 .dir-card img, .dir-ph { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
 .dir-ph { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 1.5rem; }
 .dir-t { font-weight: 700; } .dir-d { color: var(--muted); font-size: .88rem; }
+.spark { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
+.spark span { flex: 1; min-height: 2px; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }

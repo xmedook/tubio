@@ -138,6 +138,6 @@ export function readDesign(data: Record<string, unknown>): Design {
   return out as Design
 }
 
-export function defaultBioData(title: string, _ownerName: string): Record<string, unknown> {
-  return { ...designSchema.parse({}), seo_title: title.slice(0, 70) }
+export function defaultBioData(title: string, _ownerName: string, theme = ''): Record<string, unknown> {
+  return { ...designSchema.parse(THEME_IDS.includes(theme) ? { theme } : {}), seo_title: title.slice(0, 70) }
 }

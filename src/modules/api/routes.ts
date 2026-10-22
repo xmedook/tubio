@@ -18,7 +18,7 @@ import { dropOldFile } from '../links/routes.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, linkUrl, listLinks, updateLink, type Link, type LinkKind } from '../links/repo.ts'
 import { blockAddDenied, dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { buildPayload, payloadText, QR_KINDS, type QrKind } from '../qr/payload.ts'
-import { audit } from '../settings/repo.ts'
+import { audit, getSetting } from '../settings/repo.ts'
 import { buildReport, parseRange } from '../stats/query.ts'
 import { findUserById, type User } from '../users/repo.ts'
 
@@ -186,7 +186,7 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
     if (kind === 'bio' ? !withinLimit(lim.bio_pages, used.bio_pages) : !withinLimit(lim.links, used.links)) return err(reply, 402, 'plan_limit')
     const r = await parseLinkForm(deps, user, kind, { fields: linkFields(body, user.timezone), files: [] }, undefined, false)
     if (!r.ok) return err(reply, 422, 'validation', r.errors)
-    if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name)
+    if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name, getSetting(db, 'default_theme'))
     const link = createLink(db, user.id, r.input, deps.now())
     audit(db, { actorId: user.id, userId: user.id, action: 'link.create', target: `link:${link.id}`, meta: { kind, via: 'api' } }, deps.now())
     return reply.code(201).send(publicLink(deps.config.baseUrl, link, user.timezone))

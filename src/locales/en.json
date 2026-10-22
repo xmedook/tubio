@@ -1299,5 +1299,15 @@
   "err.site_format": "We could not read the ZIP. Make sure it is a regular .zip or an .html.",
   "err.site_too_many": "The ZIP has too many files (max 500).",
   "err.site_too_big": "The site is too big uncompressed (max 40 MB).",
-  "err.site_empty": "The ZIP is empty."
+  "err.site_empty": "The ZIP is empty.",
+  "admin.themes": "Page themes",
+  "admin.themes_hint": "Hide themes you no longer want to offer (pages already using them keep them) and pick the one for new pages.",
+  "admin.default_theme": "Theme for new pages",
+  "admin.default_theme_none": "System default",
+  "admin.theme_hide": "Hide “{name}”",
+  "admin.revenue_30d": "collected in 30 days",
+  "admin.verified_pct": "% with verified email",
+  "admin.signups_30d": "Sign-ups per day (30 days)",
+  "admin.users_by_plan": "People by plan",
+  "admin.top_links": "Most viewed (30 days)"
 }
