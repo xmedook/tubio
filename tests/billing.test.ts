@@ -64,6 +64,9 @@ describe('cobro', () => {
     const a = await loginAgent(t)
     await a.get('/panel/checkout?plan=business')
     await a.post('/panel/trial?plan=business')
+    expect(findUserById(t.deps.db, u.id)!.plan_id).toBeNull() // sin correo verificado no hay prueba
+    t.deps.db.prepare('UPDATE users SET email_verified_at = 1 WHERE id = ?').run(u.id)
+    await a.post('/panel/trial?plan=business')
     expect(planOf(t.deps.db, findUserById(t.deps.db, u.id)!, t.clock.now).slug).toBe('business')
     t.clock.now += 15 * 86400_000
     expect(planOf(t.deps.db, findUserById(t.deps.db, u.id)!, t.clock.now).slug).toBe('free')

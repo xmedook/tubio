@@ -11,12 +11,11 @@ import { dashboardPage, linkFormPage } from './views.ts'
 import { actorOf } from '../auth/routes.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
-import { limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
+import { dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { listPixels } from '../marketing/pixels.ts'
 
 const PER_PAGE = 30
-export const DAILY_CAP_UNVERIFIED = 20
-export const DAILY_CAP_VERIFIED = 300
+export { DAILY_CAP_UNVERIFIED, DAILY_CAP_VERIFIED } from '../plans/limits.ts'
 
 function asKind(v: unknown): LinkKind | undefined {
   return typeof v === 'string' && (LINK_KINDS as readonly string[]).includes(v) ? (v as LinkKind) : undefined
@@ -72,9 +71,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     if (!kind) return reply.code(400).send('kind')
     const user = req.ctx.user as User
     // tope diario anti-abuso: cuentas sin verificar crean pocos enlaces
-    const cap = user.email_verified_at ? DAILY_CAP_VERIFIED : DAILY_CAP_UNVERIFIED
-    const today = db.prepare('SELECT COUNT(*) FROM links WHERE user_id = ? AND created_at > ?').pluck().get(user.id, deps.now() - 86400_000) as number
-    if (today >= cap && user.role !== 'admin') {
+    if (dailyCapHit(db, user, deps.now())) {
       return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: user.email_verified_at ? 'err.daily_cap' : 'err.daily_cap_unverified' }, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 429)
     }
     // límite del plan: páginas bio por un lado, el resto de enlaces por otro

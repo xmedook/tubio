@@ -6,14 +6,21 @@ export type Domain = { id: number; user_id: number; host: string; status: 'pendi
 /** Host de cada dominio activo (para armar URLs públicas sin consultar la BD en cada enlace) */
 const hostById = new Map<number, string>()
 const idByHost = new Map<string, number>()
+const ownerById = new Map<number, number>()
 
 export function refreshDomainCache(db: DB): void {
   hostById.clear()
   idByHost.clear()
-  for (const d of db.prepare("SELECT id, host FROM domains WHERE status = 'active'").all() as { id: number; host: string }[]) {
+  ownerById.clear()
+  for (const d of db.prepare("SELECT id, host, user_id FROM domains WHERE status = 'active'").all() as { id: number; host: string; user_id: number }[]) {
     hostById.set(d.id, d.host)
     idByHost.set(d.host, d.id)
+    ownerById.set(d.id, d.user_id)
   }
+}
+
+export function domainOwner(id: number): number | undefined {
+  return ownerById.get(id)
 }
 
 export function domainHost(id: number): string | undefined {

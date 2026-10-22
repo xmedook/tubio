@@ -92,6 +92,7 @@ describe('captura de datos', () => {
 
   it('webhook: reintentos con espera creciente y error visible en el destino', async () => {
     const { t } = await setup()
+    t.deps.db.prepare("UPDATE users SET plan_id = (SELECT id FROM plans WHERE slug = 'business') WHERE id = 1").run()
     t.deps.db.prepare("INSERT INTO notify_targets (user_id, kind, name, config, created_at) VALUES (1, 'webhook', 'wh', ?, 0)").run(JSON.stringify({ url: 'https://127.0.0.1/hook', secret: 's3' }))
     const tid = t.deps.db.prepare('SELECT id FROM notify_targets').pluck().get() as number
     enqueue(t.deps, 'notify', { target_id: tid, notice: { title: 'x', lines: [], url: '', at: 0, payload: { a: 1 } } })

@@ -6,7 +6,8 @@ import { createChallenge, verifySolution, type PowChallenge } from '../lib/pow.t
 import type { SafeHtml } from '../lib/html.ts'
 import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '../lib/i18n.ts'
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
-import { domainIdForHost } from '../modules/domains/repo.ts'
+import { domainIdForHost, domainOwner } from '../modules/domains/repo.ts'
+import { limitsOf, ownerLimits } from '../modules/plans/limits.ts'
 import { findUserById } from '../modules/users/repo.ts'
 import { getSetting } from '../modules/settings/repo.ts'
 import type { User } from '../modules/users/repo.ts'
@@ -100,6 +101,10 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     // dominio propio: sólo lo público; el panel y la cuenta viven en el dominio principal
     const domainId = domainIdForHost(req.hostname) ?? 0
     const path = routePath(req)
+    // dominio de alguien cuyo plan ya no incluye dominios propios: no se sirve
+    if (domainId && !(ownerLimits(deps.db, domainOwner(domainId) ?? 0, now)?.custom_domains ?? 0)) {
+      return reply.code(404).type('text/plain').send('Not found')
+    }
     if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source|_\/caddy)(\/|$|\?)/.test(path)) {
       return reply.redirect(deps.config.baseUrl + req.url, 301)
     }
@@ -123,7 +128,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     if (user && wsId && wsId !== user.id && !PERSONAL.test(path)) {
       const m = deps.db.prepare('SELECT role FROM team_members WHERE owner_id = ? AND user_id = ? AND accepted_at IS NOT NULL').get(wsId, user.id) as { role: Ctx['teamRole'] } | undefined
       const owner = m ? findUserById(deps.db, wsId) : undefined
-      if (m && owner && owner.status === 'active') {
+      if (m && owner && owner.status === 'active' && (limitsOf(deps.db, owner, now).team_members ?? 0) !== 0) {
         member = user
         user = owner
         teamRole = m.role

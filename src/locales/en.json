@@ -1290,5 +1290,6 @@
   "ref.payout_hint": "We pay commissions by transfer every month; write to hola@tubio.link with your details.",
   "ref.none": "No pending commissions",
   "ref.mark_paid": "Mark paid",
-  "ref.void": "Void"
+  "ref.void": "Void",
+  "err.verify_first": "Confirm your email first: we sent you a link when you signed up (you can request another from Account)."
 }

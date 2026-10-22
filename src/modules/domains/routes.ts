@@ -7,7 +7,7 @@ import { csrfField, emptyState, input, postButton, select } from '../../views/ui
 import { sendHtml, setFlash, userGuard, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { listLinks } from '../links/repo.ts'
-import { limitsOf } from '../plans/limits.ts'
+import { limitsOf, ownerLimits } from '../plans/limits.ts'
 import { audit } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { getOwnDomain, listDomains, normalizeHost, refreshDomainCache, verifyDomain } from './repo.ts'
@@ -110,7 +110,8 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
     const ip = req.socket.remoteAddress ?? ''
     if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip) && !(process.env.TUBIO_CADDY_IPS ?? '').split(',').includes(ip)) return reply.code(403).send('no')
     const host = normalizeHost(String((req.query as { domain?: string }).domain ?? ''))
-    const ok = host && db.prepare("SELECT 1 FROM domains WHERE host = ? AND status = 'active'").get(host)
+    const d = host ? (db.prepare("SELECT user_id FROM domains WHERE host = ? AND status = 'active'").get(host) as { user_id: number } | undefined) : undefined
+    const ok = d && (ownerLimits(db, d.user_id, deps.now())?.custom_domains ?? 0) !== 0
     return reply.code(ok ? 200 : 404).send(ok ? 'ok' : 'no')
   })
 }

@@ -1290,5 +1290,6 @@
   "ref.payout_hint": "Pagamos las comisiones por transferencia cada mes; escríbenos a hola@tubio.link con tus datos.",
   "ref.none": "No hay comisiones pendientes",
   "ref.mark_paid": "Marcar pagada",
-  "ref.void": "Anular"
+  "ref.void": "Anular",
+  "err.verify_first": "Primero confirma tu correo: te mandamos un enlace al registrarte (puedes pedir otro desde Cuenta)."
 }

@@ -96,3 +96,34 @@ export function usageOf(db: DB, userId: number): Usage {
 
 /** Bloques que exigen función de plan */
 export const PLAN_GATED_BLOCKS: Record<string, keyof Limits> = { html: 'custom_code', iframe: 'custom_code' }
+
+/** Límites vigentes del dueño por id (al servir: el plan pudo vencer después de crear el contenido) */
+export function ownerLimits(db: DB, userId: number, now: number): Limits | null {
+  const u = db.prepare('SELECT role, plan_id, plan_expires_at FROM users WHERE id = ?').get(userId) as Parameters<typeof planOf>[1] | undefined
+  return u ? limitsOf(db, u, now) : null
+}
+
+/** ¿Se puede mostrar este tipo de bloque con el plan vigente del dueño? */
+export function blockTypeAllowed(lim: Limits | null, type: string): boolean {
+  const gate = PLAN_GATED_BLOCKS[type]
+  return !gate || !!lim?.[gate]
+}
+
+export const DAILY_CAP_UNVERIFIED = 20
+export const DAILY_CAP_VERIFIED = 300
+
+/** Tope diario anti-abuso de enlaces nuevos (panel y API) */
+export function dailyCapHit(db: DB, user: Pick<User, 'id' | 'role' | 'email_verified_at'>, now: number): boolean {
+  if (user.role === 'admin') return false
+  const cap = user.email_verified_at ? DAILY_CAP_VERIFIED : DAILY_CAP_UNVERIFIED
+  return (db.prepare('SELECT COUNT(*) FROM links WHERE user_id = ? AND created_at > ?').pluck().get(user.id, now - 86400_000) as number) >= cap
+}
+
+/** Por qué no se puede añadir un bloque (clave de error) o null si sí */
+export function blockAddDenied(db: DB, user: Parameters<typeof planOf>[1], linkId: number, type: string, now: number, hardMax: number): string | null {
+  const lim = limitsOf(db, user, now)
+  const max = Math.min(hardMax, lim.blocks_per_page < 0 ? hardMax : lim.blocks_per_page)
+  if ((db.prepare('SELECT COUNT(*) FROM bio_blocks WHERE link_id = ?').pluck().get(linkId) as number) >= max) return 'err.plan_blocks'
+  if (!blockTypeAllowed(lim, type)) return 'err.plan_feature'
+  return null
+}

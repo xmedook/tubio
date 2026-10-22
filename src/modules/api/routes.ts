@@ -7,15 +7,15 @@ import { parseQrStyle, rasterizeSvg, renderQrSvg } from '../../lib/qr.ts'
 import { UTM_KEYS } from '../../lib/urls.ts'
 import { panelLayout } from '../../views/layout.ts'
 import { csrfField, emptyState, input, postButton, toLocalInput } from '../../views/ui.ts'
-import { sendHtml, userGuard } from '../../web/context.ts'
+import { sendHtml, setFlash, userGuard } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { parseBlockForm } from '../bio/block-form.ts'
-import { BLOCK_BY_TYPE } from '../bio/blocks.ts'
+import { BLOCK_BY_TYPE, MAX_BLOCKS_PER_PAGE } from '../bio/blocks.ts'
 import { createBlock, deleteBlock, getOwnBlock, listBlocks } from '../bio/repo.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { parseLinkForm } from '../links/form.ts'
 import { createLink, deleteLink, getOwnLink, LINK_KINDS, linkUrl, listLinks, updateLink, type Link, type LinkKind } from '../links/repo.ts'
-import { limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
+import { blockAddDenied, dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { buildPayload, payloadText, QR_KINDS, type QrKind } from '../qr/payload.ts'
 import { audit } from '../settings/repo.ts'
 import { buildReport, parseRange } from '../stats/query.ts'
@@ -121,6 +121,10 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
   app.post('/panel/api', { preHandler: userGuard }, async (req, reply) => {
     const user = req.ctx.user as User
     if (!limitsOf(db, user, deps.now()).api) return reply.redirect('/panel/plan', 303)
+    if (!user.email_verified_at && user.role !== 'admin') {
+      setFlash(reply, deps, { type: 'error', key: 'err.verify_first' })
+      return reply.redirect('/panel/api', 303)
+    }
     if ((db.prepare('SELECT COUNT(*) FROM api_keys WHERE user_id = ?').pluck().get(user.id) as number) >= 10) return reply.redirect('/panel/api', 303)
     const name = field(req.body, 'name').trim().slice(0, 60) || 'API'
     let prefix = randomToken(6).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8)
@@ -175,6 +179,7 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
     const user = U(req)
     const body = (req.body ?? {}) as Record<string, unknown>
     const kind = body.kind === 'bio' ? 'bio' : 'short'
+    if (dailyCapHit(db, user, deps.now())) return err(reply, 429, 'daily_cap')
     const lim = limitsOf(db, user, deps.now())
     const used = usageOf(db, user.id)
     if (kind === 'bio' ? !withinLimit(lim.bio_pages, used.bio_pages) : !withinLimit(lim.links, used.links)) return err(reply, 402, 'plan_limit')
@@ -233,6 +238,8 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
     if (!def) return err(reply, 422, 'unknown_type')
     // sólo bloques sin archivos por API (imágenes: subir desde el panel)
     if (def.fields.some((f) => f.kind === 'image' || f.kind === 'images' || f.kind === 'file')) return err(reply, 422, 'type_needs_upload')
+    const denied = blockAddDenied(db, user, l.id, def.type, deps.now(), MAX_BLOCKS_PER_PAGE)
+    if (denied) return err(reply, 402, denied === 'err.plan_blocks' ? 'plan_limit' : 'plan_feature')
     const fields: Record<string, string | string[]> = { is_enabled: '1' }
     for (const [k, v] of Object.entries(body.data ?? {})) {
       if (Array.isArray(v)) v.forEach((row, i) => (typeof row === 'object' && row ? Object.entries(row as Record<string, unknown>).forEach(([c, cv]) => (fields[`${k}__${i}__${c}`] = String(cv ?? ''))) : (fields[k] = v.map(String))))

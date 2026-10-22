@@ -12,7 +12,7 @@ import { ownLinkOr404 } from '../links/routes.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import type { User } from '../users/repo.ts'
 import { listTargets } from '../capture/notify.ts'
-import { limitsOf, PLAN_GATED_BLOCKS } from '../plans/limits.ts'
+import { blockAddDenied, blockTypeAllowed, limitsOf, ownerLimits, PLAN_GATED_BLOCKS } from '../plans/limits.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
@@ -25,7 +25,6 @@ import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { visibleBlocks } from './render.ts'
 import {
-  countBlocks,
   createBlock,
   deleteBlock,
   getBlock,
@@ -191,14 +190,9 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     const user = req.ctx.user as User
     const def = BLOCK_BY_TYPE.get(String((req.query as { type?: string }).type))
     if (!def) return reply.code(400).send('type')
-    const lim = limitsOf(db, user, deps.now())
-    if (countBlocks(db, link.id) >= Math.min(MAX_BLOCKS_PER_PAGE, lim.blocks_per_page < 0 ? MAX_BLOCKS_PER_PAGE : lim.blocks_per_page)) {
-      setFlash(reply, deps, { type: 'error', key: 'err.plan_blocks', vars: { n: lim.blocks_per_page } })
-      return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
-    }
-    const gate = PLAN_GATED_BLOCKS[def.type]
-    if (gate && !lim[gate]) {
-      setFlash(reply, deps, { type: 'error', key: 'err.plan_feature' })
+    const denied = blockAddDenied(db, user, link.id, def.type, deps.now(), MAX_BLOCKS_PER_PAGE)
+    if (denied) {
+      setFlash(reply, deps, { type: 'error', key: denied, vars: { n: limitsOf(db, user, deps.now()).blocks_per_page } })
       return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
     }
     let mp: MultipartData
@@ -320,6 +314,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     const link = b ? getLink(db, b.link_id) : undefined
     if (!b || b.type !== type || !link || availability(deps, link) !== 'ok' || !isUnlocked(deps, req, link) || !isConfirmed(deps, req, link)) return null
     if (!visibleBlocks([b], deps.now()).length) return null
+    if (!blockTypeAllowed(ownerLimits(db, link.user_id, deps.now()), b.type)) return null
     return { b, link }
   }
   const countClick = (req: FastifyRequest, linkId: number, blockId: number) => {

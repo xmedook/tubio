@@ -121,7 +121,11 @@ ${b
   app.post('/panel/trial', { preHandler: userGuard }, async (req, reply) => {
     const user = me(req)
     const plan = getPlanBySlug(db, String((req.query as { plan?: string }).plan ?? ''))
-    if (!plan || !plan.trial_days || user.trial_used_at || planOf(db, user, deps.now()).slug !== 'free') return reply.redirect('/panel/plan', 303)
+    if (!plan || !plan.trial_days || !plan.is_public || user.trial_used_at || planOf(db, user, deps.now()).slug !== 'free') return reply.redirect('/panel/plan', 303)
+    if (!user.email_verified_at) {
+      setFlash(reply, deps, { type: 'error', key: 'err.verify_first' })
+      return reply.redirect('/panel/plan', 303)
+    }
     const now = deps.now()
     updateUser(db, user.id, { plan_id: plan.id, plan_expires_at: now + plan.trial_days * 86400_000, trial_used_at: now }, now)
     audit(db, { actorId: user.id, userId: user.id, action: 'pay.trial', meta: { plan: plan.slug } }, now)

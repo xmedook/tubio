@@ -8,7 +8,7 @@ import { ASSET_VERSION } from '../../views/layout.ts'
 import { sendHtml } from '../../web/context.ts'
 import { linkUrl, type Link } from '../links/repo.ts'
 import { getSetting } from '../settings/repo.ts'
-import { limitsOf } from '../plans/limits.ts'
+import { blockTypeAllowed, limitsOf } from '../plans/limits.ts'
 import { pixelCsp, pixelsForLink } from '../marketing/pixels.ts'
 import { pixelBar } from '../marketing/resolve.ts'
 import { findUserById } from '../users/repo.ts'
@@ -101,7 +101,8 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
 
   const locale: Locale = owner && isLocale(owner.locale) ? owner.locale : 'es-MX'
   const t = translator(locale)
-  const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now())
+  const ownerLim = owner ? limitsOf(deps.db, owner, deps.now()) : null
+  const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now()).filter((b) => blockTypeAllowed(ownerLim, b.type))
   const host = new URL(deps.config.baseUrl).hostname
   const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
     csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias,

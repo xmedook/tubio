@@ -4,6 +4,7 @@ import { loginAgent, makeApp, seedUser, setPlan, type TestApp } from './helpers.
 async function keyFor(t: TestApp, plan = 'business') {
   const u = await seedUser(t)
   setPlan(t, u.id, plan)
+  t.deps.db.prepare('UPDATE users SET email_verified_at = 1 WHERE id = ?').run(u.id)
   const a = await loginAgent(t)
   await a.get('/panel/api')
   const res = await a.post('/panel/api', { name: 'pruebas' })
@@ -61,6 +62,7 @@ describe('API v1', () => {
     // otra cuenta no ve nada
     const u2 = await seedUser(t, 'beto@example.com')
     setPlan(t, u2.id, 'business')
+    t.deps.db.prepare('UPDATE users SET email_verified_at = 1 WHERE id = ?').run(u2.id)
     const b2 = await loginAgent(t, 'beto@example.com')
     await b2.get('/panel/api')
     await b2.post('/panel/api', { name: 'x' })

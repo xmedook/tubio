@@ -1,4 +1,5 @@
 import { createHmac } from 'node:crypto'
+import { ownerLimits } from '../plans/limits.ts'
 import type { AppDeps } from '../../app.ts'
 import { safeFetch } from '../../lib/safe-fetch.ts'
 import { findUserById } from '../users/repo.ts'
@@ -76,6 +77,8 @@ export async function deliver(deps: AppDeps, t: Target, n: Notice): Promise<void
   const ok = (status: number) => {
     if (status < 200 || status >= 300) throw new Error(`http_${status}`)
   }
+  // el plan pudo vencer después de configurar el destino: sólo se entrega lo que incluye hoy
+  if (t.kind !== 'email' && !(ownerLimits(deps.db, t.user_id, deps.now())?.capture_targets ?? []).includes(t.kind)) throw new Error('plan_lapsed')
   switch (t.kind) {
     case 'email': {
       const u = findUserById(deps.db, t.user_id)
