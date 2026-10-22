@@ -12,7 +12,10 @@ import { recordEvent, visitFromRequest } from '../stats/record.ts'
 import type { User } from '../users/repo.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
-import { designSchema, readDesign, type Design } from './design.ts'
+import { designSchema, readDesign, WEB_FONTS, type Design } from './design.ts'
+import { createReadStream } from 'node:fs'
+import { createRequire } from 'node:module'
+import { dirname, join } from 'node:path'
 import { visibleBlocks } from './render.ts'
 import {
   countBlocks,
@@ -92,6 +95,20 @@ function bioLinkOr404(deps: AppDeps, req: FastifyRequest, reply: FastifyReply): 
 export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
   const host = () => new URL(deps.config.baseUrl).hostname
+
+  // archivos de fuentes web (sólo los de la lista blanca)
+  const fontFiles = new Map<string, string>()
+  for (const f of Object.values(WEB_FONTS)) for (const x of f?.faces ?? []) fontFiles.set(x.file, x.pkg)
+  const req_ = createRequire(import.meta.url)
+  app.get('/_/fonts/:file', async (req, reply) => {
+    const file = (req.params as { file: string }).file
+    const pkg = fontFiles.get(file)
+    if (!pkg) return reply.callNotFound()
+    const path = join(dirname(req_.resolve(`${pkg}/package.json`)), 'files', file)
+    reply.header('Cache-Control', 'public, max-age=31536000, immutable')
+    reply.header('Access-Control-Allow-Origin', '*')
+    return reply.type('font/woff2').send(createReadStream(path))
+  })
 
   app.get('/_/themes.css', async (_req, reply) => {
     reply.header('Cache-Control', 'public, max-age=86400')

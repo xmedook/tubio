@@ -10,7 +10,7 @@ import { linkUrl, type Link } from '../links/repo.ts'
 import { getSetting } from '../settings/repo.ts'
 import { findUserById } from '../users/repo.ts'
 import { BLOCK_BY_TYPE, type BlockRow, type RenderCtx } from './blocks.ts'
-import { FONTS, readDesign, themeById, type Design } from './design.ts'
+import { FONTS, fontFaceCss, readDesign, themeById, type Design } from './design.ts'
 import { EMBED_ORIGINS } from './embeds.ts'
 import { listBlocks } from './repo.ts'
 
@@ -49,7 +49,8 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     ['--ann-bg', d.announce_bg],
     ['--ann-text', d.announce_color],
   ]
-  let css = `:root{${vars.map(([k, v]) => `${k}:${v}`).join(';')}}`
+  const fontId = d.font === 'theme' ? th.font : d.font
+  let css = fontFaceCss(fontId) + `:root{${vars.map(([k, v]) => `${k}:${v}`).join(';')}}`
   for (const b of blocks) {
     const st = b.style
     const rules: string[] = []
@@ -72,6 +73,7 @@ export function bioCsp(nonce: string, preview: boolean): string {
     `script-src 'self' 'nonce-${nonce}'`,
     `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' data:",
+    "font-src 'self'",
     'media-src https:',
     `frame-src ${EMBED_ORIGINS.join(' ')}`,
     "connect-src 'self'",

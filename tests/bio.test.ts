@@ -250,3 +250,17 @@ describe('página bio', () => {
     expect((await new Agent(t.app).get('/ana', UA)).body).toContain('Promo')
   })
 })
+
+describe('fuentes web', () => {
+  it('sirve sólo las fuentes de la lista y las declara en la página', async () => {
+    const { t, a, id } = await bioPage()
+    await a.get(`/panel/links/${id}/design`)
+    await a.postMultipart(`/panel/links/${id}/design`, { theme: 'nube', font: 'playfair', share_button: '1', show_branding: '1' })
+    const page = (await new Agent(t.app).get('/ana', UA)).body
+    expect(page).toContain('@font-face{font-family:"Playfair Display Variable"')
+    const f = await new Agent(t.app).get('/_/fonts/playfair-display-latin-wght-normal.woff2')
+    expect(f.statusCode).toBe(200)
+    expect(f.headers['content-type']).toBe('font/woff2')
+    expect((await new Agent(t.app).get('/_/fonts/..%2Fpackage.json')).statusCode).toBe(404)
+  })
+})

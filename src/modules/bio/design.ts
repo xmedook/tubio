@@ -24,8 +24,38 @@ export const FONTS = {
   slab: 'Rockwell, "Rockwell Nova", "Roboto Slab", "DejaVu Serif", "Sitka Small", serif',
   mono: 'ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, "DejaVu Sans Mono", monospace',
   handwritten: '"Segoe Print", "Bradley Hand", Chilanka, TSCu_Comic, casual, cursive',
+  // fuentes web libres (OFL-1.1, paquetes @fontsource) servidas desde nuestro servidor
+  inter: '"Inter Variable", system-ui, sans-serif',
+  montserrat: '"Montserrat Variable", Avenir, sans-serif',
+  poppins: 'Poppins, system-ui, sans-serif',
+  space: '"Space Grotesk Variable", system-ui, sans-serif',
+  playfair: '"Playfair Display Variable", Georgia, serif',
+  lora: '"Lora Variable", Georgia, serif',
+  caveat: '"Caveat Variable", cursive',
+  jetbrains: '"JetBrains Mono Variable", ui-monospace, monospace',
 } as const
 export type FontId = keyof typeof FONTS
+
+/** @font-face de las fuentes web: archivo en node_modules → ruta pública /_/fonts/<archivo> */
+export const WEB_FONTS: Partial<Record<FontId, { family: string; faces: { file: string; pkg: string; weight: string }[] }>> = {
+  inter: { family: 'Inter Variable', faces: [{ pkg: '@fontsource-variable/inter', file: 'inter-latin-wght-normal.woff2', weight: '100 900' }] },
+  montserrat: { family: 'Montserrat Variable', faces: [{ pkg: '@fontsource-variable/montserrat', file: 'montserrat-latin-wght-normal.woff2', weight: '100 900' }] },
+  poppins: {
+    family: 'Poppins',
+    faces: ['400', '600', '700'].map((w) => ({ pkg: '@fontsource/poppins', file: `poppins-latin-${w}-normal.woff2`, weight: w })),
+  },
+  space: { family: 'Space Grotesk Variable', faces: [{ pkg: '@fontsource-variable/space-grotesk', file: 'space-grotesk-latin-wght-normal.woff2', weight: '300 700' }] },
+  playfair: { family: 'Playfair Display Variable', faces: [{ pkg: '@fontsource-variable/playfair-display', file: 'playfair-display-latin-wght-normal.woff2', weight: '400 900' }] },
+  lora: { family: 'Lora Variable', faces: [{ pkg: '@fontsource-variable/lora', file: 'lora-latin-wght-normal.woff2', weight: '400 700' }] },
+  caveat: { family: 'Caveat Variable', faces: [{ pkg: '@fontsource-variable/caveat', file: 'caveat-latin-wght-normal.woff2', weight: '400 700' }] },
+  jetbrains: { family: 'JetBrains Mono Variable', faces: [{ pkg: '@fontsource-variable/jetbrains-mono', file: 'jetbrains-mono-latin-wght-normal.woff2', weight: '100 800' }] },
+}
+
+export function fontFaceCss(id: FontId): string {
+  const f = WEB_FONTS[id]
+  if (!f) return ''
+  return f.faces.map((x) => `@font-face{font-family:"${f.family}";font-style:normal;font-display:swap;font-weight:${x.weight};src:url("/_/fonts/${x.file}") format("woff2")}`).join('')
+}
 export const FONT_IDS = Object.keys(FONTS) as [FontId, ...FontId[]]
 
 export const THEMES: Theme[] = [

@@ -705,5 +705,13 @@
   "legal.privacy": "Privacy",
   "legal.aup": "Acceptable use",
   "auth.accept_terms_html": "I accept the <a href=\"/terms\" target=\"_blank\">terms of use</a> and the <a href=\"/privacy\" target=\"_blank\">privacy notice</a>.",
-  "err.accept_terms": "To create the account, accept the terms and privacy notice."
+  "err.accept_terms": "To create the account, accept the terms and privacy notice.",
+  "bio.font_inter": "Inter",
+  "bio.font_montserrat": "Montserrat",
+  "bio.font_poppins": "Poppins",
+  "bio.font_space": "Space Grotesk",
+  "bio.font_playfair": "Playfair Display",
+  "bio.font_lora": "Lora",
+  "bio.font_caveat": "Caveat (manuscrita)",
+  "bio.font_jetbrains": "JetBrains Mono"
 }

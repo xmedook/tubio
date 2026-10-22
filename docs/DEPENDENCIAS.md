@@ -25,6 +25,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | maxmind | MIT | leer base geo MMDB |
 | nodemailer | MIT-0 | correo SMTP |
 | sortablejs | MIT | ordenar bloques arrastrando (servido localmente) |
+| @fontsource-variable/{inter,montserrat,space-grotesk,playfair-display,lora,caveat,jetbrains-mono}, @fontsource/poppins | fuentes OFL-1.1 (paquete MIT) | fuentes web de páginas bio, servidas desde /_/fonts/ |
 | simple-icons | CC0-1.0 | logos de redes sociales (path SVG y color de marca) |
 
 ## Desarrollo
@@ -41,6 +42,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | Recurso | Licencia | Atribución |
 |---|---|---|
 | DB-IP "IP to City Lite" (opcional, no se versiona) | CC-BY 4.0 | "IP Geolocation by DB-IP" (https://db-ip.com) — se muestra en la página de estadísticas cuando la base está instalada |
+| Fuentes Inter, Montserrat, Poppins, Space Grotesk, Playfair Display, Lora, Caveat, JetBrains Mono | SIL Open Font License 1.1 | autores de cada familia (ver LICENSE en cada paquete @fontsource) |
 | Logos de redes sociales | Simple Icons, CC0-1.0 (https://simpleicons.org) | no requerida; se agradece en el README. Las marcas son de sus dueños |
 | Iconos LinkedIn, correo, teléfono, sitio web, compartir, verificado | trazos propios (AGPL) | — |
 | Favicon / marca tubio | propio | — |
