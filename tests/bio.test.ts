@@ -69,14 +69,14 @@ describe('redes', () => {
 
 describe('catálogo', () => {
   it('cada tipo y cada opción tiene texto en ambos idiomas', () => {
-    expect(BLOCKS.length).toBeGreaterThanOrEqual(20)
+    expect(BLOCKS.length).toBeGreaterThanOrEqual(36)
     for (const loc of ['es-MX', 'en'] as const) {
       const d = dictionary(loc)
       for (const b of BLOCKS) {
         expect(d[`bio.type_${b.type}`], `${loc} bio.type_${b.type}`).toBeTruthy()
         for (const f of b.fields) {
           expect(d[f.label], `${loc} ${f.label}`).toBeTruthy()
-          if (f.kind === 'select') for (const o of f.options) expect(d[`bio.o.${b.type}.${f.name}.${o}`], `${loc} bio.o.${b.type}.${f.name}.${o}`).toBeTruthy()
+          if (f.kind === 'select' && f.name !== 'timezone' && f.name !== 'currency') for (const o of f.options) expect(d[`bio.o.${b.type}.${f.name}.${o}`], `${loc} bio.o.${b.type}.${f.name}.${o}`).toBeTruthy()
         }
       }
     }

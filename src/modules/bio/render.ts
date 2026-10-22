@@ -97,7 +97,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const t = translator(locale)
   const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now())
   const host = new URL(deps.config.baseUrl).hostname
-  const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false } }
+  const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now() }
   const url = linkUrl(deps.config.baseUrl, link)
   const title = d.seo_title || link.title || link.alias
   const ogImage = d.seo_image ? `${deps.config.baseUrl}${imageUrl(d.seo_image)}` : null

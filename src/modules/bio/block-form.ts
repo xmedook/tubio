@@ -1,6 +1,6 @@
 import type { AppDeps } from '../../app.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { imageUrl, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { imageUrl, storeFile, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
 import { BUTTON_SCHEMES, checkTarget, WEB_SCHEMES } from '../../lib/urls.ts'
 import { checkbox, fromLocalInput, input, select, textarea, toLocalInput, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
@@ -19,7 +19,17 @@ export function valuesFromBlock(def: BlockDef, b: BlockRow | undefined, tz: stri
   const v: BlockValues = { is_enabled: !b || b.is_enabled ? '1' : '' }
   for (const f of def.fields) {
     const d = b?.data[f.name]
-    if (f.kind === 'socials') {
+    if (f.kind === 'rows') {
+      const rows = Array.isArray(d) ? (d as Record<string, unknown>[]) : []
+      rows.forEach((r, i) => {
+        for (const c of f.columns) v[`${f.name}__${i}__${c.name}`] = r[c.name] === undefined || r[c.name] === null ? '' : String(r[c.name])
+      })
+      v[`${f.name}__count`] = String(rows.length)
+    } else if (f.kind === 'images') v[f.name] = JSON.stringify(Array.isArray(d) ? d : [])
+    else if (f.kind === 'datetime') v[f.name] = toLocalInput(typeof d === 'number' ? d : null, tz)
+    else if (f.kind === 'number') v[f.name] = typeof d === 'number' ? String(d) : ''
+    else if (f.kind === 'file') v[f.name] = d && typeof d === 'object' ? String((d as { name?: string }).name ?? '') : ''
+    else if (f.kind === 'socials') {
       const links = (d ?? {}) as Record<string, string>
       for (const n of NETWORKS) v[`social_${n.id}`] = links[n.id] ?? ''
     } else if (f.kind === 'checkbox') v[f.name] = (b ? d : f.default) ? '1' : ''
@@ -50,7 +60,7 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
     case 'media':
       return input({ ctx, name: f.name, type: 'url', label, value: v[f.name], error: e[f.name], required: true, placeholder: 'https://…', hint: t(f.media === 'video' ? 'bio.f.video_hint' : 'bio.f.audio_hint') })
     case 'select':
-      return select({ ctx, name: f.name, label, value: v[f.name] ?? f.default, options: f.options.map((o) => ({ value: o, label: t(`bio.o.${type}.${f.name}.${o}`) })) })
+      return select({ ctx, name: f.name, label, value: v[f.name] ?? f.default, options: f.options.map((o) => ({ value: o, label: optLabel(t, `bio.o.${type}.${f.name}.${o}`, o) })) })
     case 'checkbox':
       return checkbox({ name: f.name, label, checked: !!v[f.name] })
     case 'image': {
@@ -61,12 +71,54 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
   ${cur && !f.required ? checkbox({ name: `${f.name}__remove`, label: t('bio.f.remove_image') }) : ''}
 </div>`
     }
+    case 'rows': {
+      const count = Number(v[`${f.name}__count`] ?? 0)
+      const shown = Math.min(f.maxRows, Math.max(count + 2, f.minRows ?? 1, 3))
+      return html`<fieldset class="rows"><legend>${label}</legend>
+  <p class="hint">${t('bio.f.rows_hint', { n: f.maxRows })}</p>
+  ${e[f.name] ? html`<p class="error" role="alert">${t(e[f.name] as string)}</p>` : ''}
+  <ol class="rows-list">${Array.from({ length: shown }, (_, i) => html`<li class="row-item"><div class="grid-${Math.min(f.columns.length, 3)}">${f.columns.map((c) => {
+        const name = `${f.name}__${i}__${c.name}`
+        const lab = t(c.label)
+        if (c.type === 'textarea') return textarea({ ctx, name, label: lab, value: v[name], maxlength: c.max, rows: 2, error: e[name] })
+        if (c.type === 'select') return select({ ctx, name, label: lab, value: v[name], options: (c.options ?? []).map((o) => ({ value: o, label: optLabel(t, `bio.o.${type}.${c.name}.${o}`, o) })) })
+        return input({ ctx, name, label: lab, value: v[name], maxlength: c.max, type: c.type === 'time' ? 'time' : c.type === 'number' ? 'number' : c.type === 'url' ? 'url' : 'text', error: e[name] })
+      })}</div></li>`)}</ol>
+</fieldset>`
+    }
+    case 'images': {
+      let keys: string[] = []
+      try {
+        keys = JSON.parse(v[f.name] || '[]') as string[]
+      } catch {
+        keys = []
+      }
+      return html`<fieldset><legend>${label}</legend>
+  ${keys.length ? html`<ul class="thumbs">${keys.map((k) => html`<li><img src="${imageUrl(k)}" alt="">${checkbox({ name: `${f.name}__remove__${k}`, label: t('bio.f.remove_image') })}</li>`)}</ul>` : ''}
+  <input type="hidden" name="${f.name}__keep" value="${keys.join(',')}">
+  <div class="field${e[f.name] ? ' has-error' : ''}"><label for="f-${f.name}-up">${t('bio.f.add_images', { n: f.max })}</label>
+  <input id="f-${f.name}-up" type="file" name="${f.name}" multiple accept="image/png,image/jpeg,image/webp,image/gif,image/avif">
+  ${e[f.name] ? html`<p class="error" role="alert">${t(e[f.name] as string)}</p>` : ''}</div>
+</fieldset>`
+    }
+    case 'datetime':
+      return input({ ctx, name: f.name, type: 'datetime-local', label, value: v[f.name], error: e[f.name], required: f.required, hint: t('bio.f.tz_hint', { tz: ctx.user?.timezone ?? '' }) })
+    case 'number':
+      return input({ ctx, name: f.name, type: 'number', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })
+    case 'file':
+      return html`${v[f.name] ? html`<p>${t('links.current_file')}: <strong>${v[f.name]}</strong></p>` : ''}${input({ ctx, name: f.name, type: 'file', label: v[f.name] ? t('links.replace_file') : label, error: e[f.name], required: f.required && !v[f.name] })}`
     case 'socials':
       return html`<fieldset><legend>${label}</legend><p class="hint">${t('bio.f.socials_hint')}</p>
   <div class="grid-2">${NETWORKS.map((n) =>
     input({ ctx, name: `social_${n.id}`, label: n.name, value: v[`social_${n.id}`], error: e[`social_${n.id}`], placeholder: n.placeholder, autocomplete: 'off' }),
   )}</div></fieldset>`
   }
+}
+
+/** Opciones que son códigos (zonas horarias, monedas) no tienen traducción: se muestran tal cual */
+function optLabel(t: Ctx['t'], key: string, raw: string): string {
+  const v = t(key)
+  return v === key ? raw.replace(/_/g, ' ') : v
 }
 
 export function blockFields(ctx: Ctx, def: BlockDef, v: BlockValues, e: Errors): SafeHtml {
@@ -118,6 +170,8 @@ export async function parseBlockForm(
   for (const [k, val] of Object.entries(body)) if (k !== '_csrf') values[k] = Array.isArray(val) ? (val[0] ?? '') : val
   const data: Record<string, unknown> = {}
   const pendingImages: { name: string; buf: Buffer; filename: string; spec: Extract<FieldSpec, { kind: 'image' }> }[] = []
+  const pendingMulti: { name: string; buf: Buffer; filename: string; maxDim: number }[] = []
+  let pendingFile: { name: string; buf: Buffer; filename: string } | null = null
 
   for (const spec of def.fields) {
     const raw = f(spec.name).trim()
@@ -168,6 +222,71 @@ export async function parseBlockForm(
         if (spec.required && !up && !prev) errors[spec.name] = 'err.image_required'
         break
       }
+      case 'rows': {
+        const rows: Record<string, unknown>[] = []
+        for (let i = 0; i < spec.maxRows + 3; i++) {
+          const row: Record<string, unknown> = {}
+          let any = false
+          for (const c of spec.columns) {
+            const key = `${spec.name}__${i}__${c.name}`
+            const val = f(key).trim()
+            if (val) any = true
+            if (c.max && val.length > c.max) errors[key] = 'err.too_long'
+            if (c.type === 'url' && val) {
+              const r = checkTarget(deps.db, val, BUTTON_SCHEMES)
+              if (!r.ok) errors[key] = r.error
+              row[c.name] = r.ok ? r.url : val
+            } else if (c.type === 'number') row[c.name] = val === '' ? null : Number(val)
+            else if (c.type === 'time') row[c.name] = /^\d{2}:\d{2}$/.test(val) ? val : ''
+            else if (c.type === 'select') row[c.name] = c.options?.includes(val) ? val : (c.options?.[0] ?? '')
+            else row[c.name] = val
+          }
+          if (!any) continue
+          for (const c of spec.columns) if (c.required && !String(row[c.name] ?? '').trim()) errors[`${spec.name}__${i}__${c.name}`] = 'err.required'
+          rows.push(row)
+        }
+        if (rows.length > spec.maxRows) errors[spec.name] = 'err.too_many_rows'
+        if (rows.length < (spec.minRows ?? 1)) errors[spec.name] = 'err.rows_empty'
+        data[spec.name] = rows.slice(0, spec.maxRows)
+        break
+      }
+      case 'images': {
+        const keep = f(`${spec.name}__keep`).split(',').filter((k) => /^[\w-]+\.webp$/.test(k) && !checked(body, `${spec.name}__remove__${k}`))
+        // sólo llaves que ya tenía el bloque (no se pueden "adoptar" imágenes ajenas)
+        const prev = Array.isArray(existing?.data[spec.name]) ? (existing?.data[spec.name] as string[]) : []
+        const kept = keep.filter((k) => prev.includes(k))
+        const ups = mp.files.filter((x) => x.field === spec.name)
+        if (kept.length + ups.length > spec.max) errors[spec.name] = 'err.too_many_images'
+        else if (kept.length + ups.length === 0) errors[spec.name] = 'err.image_required'
+        data[spec.name] = kept
+        for (const up of ups) pendingMulti.push({ name: spec.name, buf: up.buffer, filename: up.filename, maxDim: spec.maxDim ?? 1400 })
+        break
+      }
+      case 'datetime': {
+        const ts = fromLocalInput(raw, user.timezone)
+        if (spec.required && !ts) errors[spec.name] = 'err.required'
+        data[spec.name] = ts
+        break
+      }
+      case 'number': {
+        if (!raw) {
+          if (spec.required) errors[spec.name] = 'err.required'
+          data[spec.name] = null
+          break
+        }
+        const n = Number(raw)
+        if (!Number.isFinite(n) || n < spec.min || n > spec.max) errors[spec.name] = 'err.invalid'
+        data[spec.name] = n
+        break
+      }
+      case 'file': {
+        const up = mp.files.find((x) => x.field === spec.name)
+        const prev = existing?.data[spec.name] ?? null
+        if (up) pendingFile = { name: spec.name, buf: up.buffer, filename: up.filename }
+        else data[spec.name] = prev
+        if (spec.required && !up && !prev) errors[spec.name] = 'err.file_required'
+        break
+      }
       case 'socials': {
         const links: Record<string, string> = {}
         for (const n of NETWORKS) {
@@ -211,10 +330,28 @@ export async function parseBlockForm(
         errors[p.name] = e instanceof UploadError ? e.key : 'err.upload_not_image'
       }
     }
+    for (const p of pendingMulti) {
+      try {
+        const stored = await storeImage(deps, user.id, p.buf, p.filename, { maxDim: p.maxDim })
+        ;(data[p.name] as string[]).push(stored.key)
+      } catch (e) {
+        errors[p.name] = e instanceof UploadError ? e.key : 'err.upload_not_image'
+      }
+    }
+    if (pendingFile && !Object.keys(errors).length) {
+      try {
+        const stored = await storeFile(deps, user.id, pendingFile.buf, pendingFile.filename)
+        data[pendingFile.name] = { file_id: stored.id, name: stored.original_name, size: stored.size, mime: stored.mime }
+      } catch (e) {
+        errors[pendingFile.name] = e instanceof UploadError ? e.key : 'err.invalid'
+      }
+    }
   }
   if (existing) for (const spec of def.fields) if (spec.kind === 'image' && !(spec.name in data)) data[spec.name] = existing.data[spec.name] ?? null
   if (Object.keys(errors).length) {
     for (const spec of def.fields) if (spec.kind === 'image') values[spec.name] = typeof existing?.data[spec.name] === 'string' ? (existing.data[spec.name] as string) : ''
+    for (const spec of def.fields) if (spec.kind === 'images') values[spec.name] = JSON.stringify(Array.isArray(existing?.data[spec.name]) ? existing?.data[spec.name] : [])
+    for (const spec of def.fields) if (spec.kind === 'rows') values[`${spec.name}__count`] = String(spec.maxRows)
     return { ok: false, errors, values }
   }
   return { ok: true, input: { type: def.type, is_enabled: checked(body, 'is_enabled'), starts_at: startsAt, ends_at: endsAt, data, style } }

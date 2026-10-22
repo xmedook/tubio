@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { storeImage, readMultipart, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { findFile, readMultipart, storeImage, uploadPath, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { buildVCard, vcardFileName, vcardSchema } from '../../lib/vcard.ts'
 import { checkTarget, redirectAllowed } from '../../lib/urls.ts'
 import { sendHtml, setFlash, userGuard } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
@@ -13,7 +14,7 @@ import type { User } from '../users/repo.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
 import { designSchema, readDesign, WEB_FONTS, type Design } from './design.ts'
-import { createReadStream } from 'node:fs'
+import { createReadStream, existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { visibleBlocks } from './render.ts'
@@ -245,6 +246,45 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     updateLink(db, link.id, { data: r.design as unknown as Record<string, unknown> }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect(`/panel/links/${link.id}/design`, 303)
+  })
+
+  /** bloque visible de una página disponible y desbloqueada (para descargas desde bloques) */
+  function publicBlock(req: FastifyRequest, type: string) {
+    const b = getBlock(db, Number((req.params as { id: string }).id))
+    const link = b ? getLink(db, b.link_id) : undefined
+    if (!b || b.type !== type || !link || availability(deps, link) !== 'ok' || !isUnlocked(deps, req, link) || !isConfirmed(deps, req, link)) return null
+    if (!visibleBlocks([b], deps.now()).length) return null
+    return { b, link }
+  }
+  const countClick = (req: FastifyRequest, linkId: number, blockId: number) => {
+    if (recordEvent(deps, visitFromRequest(req), { linkId, blockId, kind: 'click' })) incrementBlockClicks(db, blockId)
+  }
+
+  app.get('/_/vcf/:id', async (req, reply) => {
+    const r = publicBlock(req, 'vcard_button')
+    if (!r) return reply.callNotFound()
+    const d = vcardSchema.parse({ ...r.b.data, url: typeof r.b.data.url === 'string' ? r.b.data.url : '' })
+    countClick(req, r.link.id, r.b.id)
+    reply.header('Content-Disposition', `attachment; filename="${vcardFileName(d)}"`)
+    reply.header('Cache-Control', 'no-store')
+    return reply.type('text/vcard; charset=utf-8').send(buildVCard(d))
+  })
+
+  app.get('/_/dl/:id', async (req, reply) => {
+    const r = publicBlock(req, 'file_button')
+    const meta = (r?.b.data.file ?? null) as { file_id?: number } | null
+    const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
+    if (!r || !f || f.user_id !== r.link.user_id) return reply.callNotFound()
+    const p = uploadPath(deps, f.key)
+    if (!existsSync(p)) return reply.callNotFound()
+    countClick(req, r.link.id, r.b.id)
+    const mime = /^(text\/html|image\/svg|application\/xhtml|text\/xml|application\/xml|application\/javascript|text\/javascript)/.test(f.mime) ? 'application/octet-stream' : f.mime
+    const ascii = f.original_name.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_')
+    reply.header('Content-Disposition', `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(f.original_name)}`)
+    reply.header('Content-Length', String(f.size))
+    reply.header('Content-Security-Policy', "default-src 'none'; sandbox")
+    reply.header('X-Robots-Tag', 'noindex')
+    return reply.type(mime).send(createReadStream(p))
   })
 
   // clic en un bloque: cuenta y redirige

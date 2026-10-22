@@ -50,7 +50,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(cookie, { secret: deps.config.secret })
   // formbody con querystring de Node: campos repetidos llegan como arreglo
   await app.register(formbody, { parser: (s) => parseQs(s) })
-  await app.register(multipart, { limits: { fileSize: deps.config.maxUploadBytes, files: 2, fields: 50 } })
+  await app.register(multipart, { limits: { fileSize: deps.config.maxUploadBytes, files: 13, fields: 400 } })
   await app.register(rateLimit, { global: false })
   await app.register(fastifyStatic, {
     root: join(ROOT, 'public'),

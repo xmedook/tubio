@@ -13,6 +13,7 @@ import {
   type Embed,
 } from './embeds.ts'
 import { NETWORK_BY_ID, NETWORKS } from './socials.ts'
+import { BUSINESS_BLOCKS } from './blocks-business.ts'
 
 export type BlockRow = {
   id: number
@@ -41,6 +42,17 @@ export type FieldSpec =
   | { name: string; kind: 'checkbox'; label: string; default?: boolean }
   | { name: string; kind: 'image'; label: string; required?: boolean; square?: boolean; maxDim?: number }
   | { name: string; kind: 'socials'; label: string }
+  /** filas repetibles (FAQ, horario, reseñas…); se guardan como arreglo de objetos */
+  | { name: string; kind: 'rows'; label: string; columns: RowColumn[]; maxRows: number; minRows?: number }
+  /** varias imágenes (galería, carrusel); arreglo de llaves */
+  | { name: string; kind: 'images'; label: string; max: number; maxDim?: number }
+  /** fecha y hora en la zona del usuario; epoch ms */
+  | { name: string; kind: 'datetime'; label: string; required?: boolean }
+  | { name: string; kind: 'number'; label: string; min: number; max: number; required?: boolean; step?: number }
+  /** archivo cualquiera para descargar; { file_id, name, size } */
+  | { name: string; kind: 'file'; label: string; required?: boolean }
+
+export type RowColumn = { name: string; label: string; type: 'text' | 'textarea' | 'url' | 'number' | 'time' | 'select'; max?: number; options?: string[]; required?: boolean }
 
 export type RenderCtx = {
   t: T
@@ -50,11 +62,12 @@ export type RenderCtx = {
   verified: boolean
   /** ya se pintó la insignia de verificado */
   badgeShown: { v: boolean }
+  now: number
 }
 
 export type BlockDef = {
   type: string
-  group: 'basic' | 'social' | 'media'
+  group: 'basic' | 'social' | 'media' | 'business'
   fields: FieldSpec[]
   /** ¿El bloque es un enlace que cuenta clics? */
   clickable?: boolean
@@ -278,6 +291,8 @@ export const BLOCKS: BlockDef[] = [
     summary: (b) => s(b.data.title) || s(b.data.url),
   },
 ]
+
+BLOCKS.push(...BUSINESS_BLOCKS)
 
 export const BLOCK_BY_TYPE = new Map(BLOCKS.map((b) => [b.type, b]))
 export const MAX_BLOCKS_PER_PAGE = 100

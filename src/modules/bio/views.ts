@@ -10,7 +10,7 @@ import { blockFields, type BlockValues } from './block-form.ts'
 import { BLOCK_BY_TYPE, BLOCKS, MAX_BLOCKS_PER_PAGE, type BlockDef, type BlockRow } from './blocks.ts'
 import { FONT_IDS, FONTS, THEMES, type Design } from './design.ts'
 
-const GROUPS: BlockDef['group'][] = ['basic', 'social', 'media']
+const GROUPS: BlockDef['group'][] = ['basic', 'business', 'social', 'media']
 
 function preview(ctx: Ctx, link: Link): SafeHtml {
   const { t } = ctx
