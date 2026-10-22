@@ -119,7 +119,7 @@ sólo aceptan URLs de su proveedor y se convierten a la URL de embed oficial; el
 ## 5. Estadísticas
 
 - Evento `view` al abrir cualquier enlace (página bio = visita; corto/archivo/vCard/evento = clic) y `click`
-  al pasar por `/_/c/:blockId`. Crawlers (isbot) no cuentan; tampoco las vistas previas del propio dueño.
+  al pasar por `/_/c/:blockId`. Crawlers (isbot) no cuentan; tampoco la vista previa del editor (`?_preview=1` del dueño).
 - `visitor = sha256(sal_del_día + ip + user-agent)`; las sales viejas se borran a los 2 días → el único que se
   puede contar es por día (documentado como decisión de privacidad).
 - Agregados por rango: totales, serie diaria (SVG propio), país, ciudad, dispositivo, SO, navegador, idioma,
@@ -143,3 +143,30 @@ sólo aceptan URLs de su proveedor y se convierten a la URL de embed oficial; el
 14. Pulido: accesibilidad, CSP, tamaños de página, README de instalación, PM2 local en 127.0.0.1:3095.
 
 Hitos con aviso a Alejandro: (a) esqueleto+auth, (b) enlaces cortos, (c) páginas bio, (d) estadísticas+QR, (e) admin y F1 completa.
+
+## 7. Estado (2026-10-22)
+
+Hecho, con tests (`npm run check`: tsc + 93 tests de vitest):
+
+| Paso | Estado |
+|---|---|
+| 1–3 Esqueleto, BD/migraciones, plantillas, i18n | ✅ |
+| 4–5 Cuentas: registro, login, 2FA TOTP, verificación, recuperar, perfil, exportar, borrar | ✅ |
+| 6–8 Enlaces corto/archivo/vCard/evento + opciones comunes; proyectos | ✅ |
+| 9–10 Página bio: 22 bloques, editor con arrastre y vista previa, 10 temas, diseño completo | ✅ |
+| 11 Estadísticas por enlace y globales, CSV/JSON, página pública opcional, retención | ✅ |
+| 12 QR: 10 tipos, dinámico, estilos, logo, marco, SVG/PNG/JPG/WEBP | ✅ |
+| 13 Admin mínimo | ✅ |
+| 14 Pulido: axe sin fallas reales, CSP, README, PM2 local en 127.0.0.1:3095 | ✅ |
+
+Pendiente de F1 / decisiones de Alejandro:
+- **Login con Google** (SPEC §6): falta un cliente OAuth (client id/secret y redirect `https://tubio.link/login/google/callback`).
+- **SMTP** para correos de verificación y recuperación (hoy quedan en `data/mail/`).
+- **Base geo DB-IP Lite** (CC-BY): descargarla a `data/geo/` para ver país/ciudad.
+- **Despliegue** en la suscripción `tubio.link` (hoy ahí está el clon v63): nginx → 127.0.0.1:3095 sólo con ok.
+- **Repo público** `xmedook/tubio` sólo con ok.
+
+Notas de diseño:
+- Únicos = hash distinto por día (sal diaria borrada a los 2 días): por privacidad no se puede contar un visitante entre días.
+- Fuentes de la página bio: pilas del sistema (cero peticiones externas). Fuentes web OFL autoalojadas → F2.
+- HTML propio en bloques: no existe en F1 (markdown seguro en su lugar).
