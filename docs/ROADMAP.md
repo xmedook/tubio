@@ -24,9 +24,9 @@ Lo que hace falta para que la gente pueda usar tubio sin riesgo, sin funciones n
 
 **Estado (2026-10-22):**
 - ✅ Respaldo diario a R2 (aws2 04:05, 30 días) + simulacro de restauración OK; `docs/OPERACION.md`.
-- ✅ Vigilante cada 5 min desde aws2 (caída y 5xx → Telegram) y rotación de logs PM2. ⏳ Monitor en Kuma: falta acceso para dar de alta monitores (sólo hay llave de `/metrics`).
+- ✅ Vigilante cada 5 min desde aws2 (caída y 5xx → Telegram) y rotación de logs PM2. ⏳ Monitor en Kuma: pedido a master (buzón a-master 2026-10-22).
 - ✅ Captcha de prueba de trabajo propio (registro, recuperar, reportes, lista de espera), reportes de abuso con cola en admin, tope diario de enlaces. ⏳ Safe Browsing: opcional, requiere llave de Google.
-- ✅ Términos, aviso de privacidad y uso aceptable es/en con aceptación al registrarse. ⏳ Faltan datos del responsable (razón social, domicilio, correo de privacidad, jurisdicción).
+- ✅ Términos, aviso de privacidad y uso aceptable es/en con aceptación al registrarse. ✅ Responsable: datos de Dolibarr; contacto hola@tubio.link (reenvía a robot@koode.mx); jurisdicción Zapopan, Jalisco.
 - ✅ Correos HTML, portada con lista de espera, plurales, 8 fuentes OFL autoalojadas.
 - ✅ Rendimiento: Lighthouse móvil 100/100/100/100, LCP 1.0 s, 31 KB; la app responde en ~1 ms, así que la caché de páginas queda para cuando haga falta.
 
@@ -104,7 +104,7 @@ Se divide en tres entregas que se pueden publicar por separado.
 2. **Facturación (F3): recibo simple** (PDF descargable, sin CFDI por ahora).
 3. **Planes: tabla simple** (propuesta abajo, por confirmar precios).
 4. **Plan gratis: «Hecho con tubio» obligatorio.**
-5. **Registro cerrado** hasta terminar F1.5 (aplicado en producción el 2026-10-22; sólo entra quien crea el admin).
+5. **Registro cerrado** hasta terminar F1.5 → **abierto el 2026-10-22** al cerrar F1.5.
 
 ### Planes — propuesta (MXN, IVA incluido)
 
