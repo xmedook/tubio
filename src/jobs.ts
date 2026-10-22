@@ -35,11 +35,20 @@ export function runJobs(deps: AppDeps): Record<string, number> {
   }
 }
 
+let last: { at: number | null; result: Record<string, number> | null; error: string | null } = { at: null, result: null, error: null }
+/** Última corrida de las tareas (para el panel de admin) */
+export function jobStatus() {
+  return last
+}
+
 export function startJobs(deps: AppDeps, log: FastifyBaseLogger): () => void {
   const tick = () => {
     try {
-      log.info({ jobs: runJobs(deps) }, 'tareas periódicas')
+      const result = runJobs(deps)
+      last = { at: deps.now(), result, error: null }
+      log.info({ jobs: result }, 'tareas periódicas')
     } catch (err) {
+      last = { at: deps.now(), result: null, error: String(err) }
       log.error(err, 'tareas periódicas fallaron')
     }
   }

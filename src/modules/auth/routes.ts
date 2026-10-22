@@ -28,9 +28,9 @@ let dummyHash: Promise<string> | null = null
 
 const AUTH_LIMIT = { rateLimit: { max: 10, timeWindow: '1 minute' } }
 
-export function startSession(req: FastifyRequest, reply: FastifyReply, deps: AppDeps, userId: number, pending2fa = false) {
+export function startSession(req: FastifyRequest, reply: FastifyReply, deps: AppDeps, userId: number, pending2fa = false, impersonatorId: number | null = null) {
   if (req.ctx.session) destroySession(deps.db, req.ctx.session.id_hash)
-  const { token } = createSession(deps.db, userId, { pending2fa }, deps.now())
+  const { token } = createSession(deps.db, userId, { pending2fa, impersonatorId }, deps.now())
   reply.setCookie(SESSION_COOKIE, token, cookieOpts(deps, pending2fa ? 600 : SESSION_TTL_MS / 1000))
 }
 
