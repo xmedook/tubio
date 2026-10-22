@@ -59,3 +59,21 @@ describe('legales', () => {
     delete process.env.TUBIO_LEGAL_OWNER
   })
 })
+
+describe('portada y lista de espera', () => {
+  it('con registro cerrado muestra la lista de espera y guarda el correo', async () => {
+    const { setSetting } = await import('../src/modules/settings/repo.ts')
+    const t = await makeApp()
+    setSetting(t.deps.db, 'registration_open', false)
+    const a = new Agent(t.app)
+    const home = await a.get('/')
+    expect(home.body).toContain('action="/waitlist"')
+    expect((await a.post('/waitlist', { email: 'malo' })).statusCode).toBe(422)
+    const ok = await a.post('/waitlist', { email: 'Fan@Example.com' })
+    expect(ok.headers.location).toBe('/?joined=1')
+    await a.post('/waitlist', { email: 'fan@example.com' })
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM waitlist').pluck().get()).toBe(1)
+    setSetting(t.deps.db, 'registration_open', true)
+    expect((await a.get('/')).body).toContain('href="/register"')
+  })
+})

@@ -13,6 +13,7 @@ import { destroyUserSessions } from '../auth/sessions.ts'
 import { getLink, linkUrl, updateLink, type Link } from '../links/repo.ts'
 import { kindLabel } from '../links/views.ts'
 import { audit, getSettings, setSetting } from '../settings/repo.ts'
+import { csvCell } from '../stats/query.ts'
 import { deleteUser, findUserById, searchUsers, updateUser, type User } from '../users/repo.ts'
 
 function adminNav(ctx: Ctx, active: string): SafeHtml {
@@ -53,6 +54,7 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
   ${kpi(n('SELECT COUNT(*) FROM links'), t('nav.links'))}
   ${kpi(n('SELECT COUNT(*) FROM qr_codes'), t('nav.qr'))}
   ${kpi(n("SELECT COUNT(*) FROM abuse_reports WHERE status = 'open'"), t('admin.reports_open'))}
+  ${kpi(n('SELECT COUNT(*) FROM waitlist WHERE invited_at IS NULL'), t('admin.waitlist'))}
   ${kpi(n('SELECT COUNT(*) FROM stat_events WHERE ts >= ?', since), t('admin.events_30d'))}
   ${kpi(Math.round(n('SELECT COALESCE(SUM(size), 0) FROM files') / 1048576), t('admin.storage_mb'))}
 </div>
@@ -227,6 +229,13 @@ ${rows.length === 0 ? emptyState(t('admin.no_reports'), '') : html`<ul class="li
     return reply.redirect('/admin/reports', 303)
   })
 
+  app.get('/admin/waitlist.csv', { preHandler: adminGuard }, async (_req, reply) => {
+    const rows = db.prepare('SELECT email, locale, created_at, invited_at FROM waitlist ORDER BY created_at').all() as { email: string; locale: string; created_at: number; invited_at: number | null }[]
+    const csv = '\ufeffemail,locale,created_at,invited_at\n' + rows.map((r) => [r.email, r.locale, new Date(r.created_at).toISOString(), r.invited_at ? new Date(r.invited_at).toISOString() : ''].map(csvCell).join(',')).join('\n')
+    reply.header('Content-Disposition', 'attachment; filename="tubio-lista-de-espera.csv"')
+    return reply.type('text/csv; charset=utf-8').send(csv)
+  })
+
   app.get('/admin/blocked-hosts', { preHandler: adminGuard }, async (req, reply) => {
     const { t } = req.ctx
     const ctx = req.ctx
@@ -275,7 +284,8 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
   ${checkbox({ name: 'branding_forced', label: t('admin.branding_forced'), checked: s.branding_forced, hint: t('admin.branding_forced_hint') })}
   <button class="btn btn-primary" type="submit">${t('common.save')}</button>
-</form>`, '/admin/settings'))
+</form>
+<p><a class="btn" href="/admin/waitlist.csv" download>${t('admin.waitlist_export')}</a></p>`, '/admin/settings'))
   })
 
   app.post('/admin/settings', { preHandler: adminGuard }, async (req, reply) => {

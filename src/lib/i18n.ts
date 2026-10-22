@@ -42,6 +42,12 @@ export function translator(locale: Locale): T {
   }
 }
 
+/** Plural: usa la clave `<key>_one` u `<key>_other` según el número (Intl.PluralRules) */
+export function plural(t: T, locale: Locale, key: string, n: number): string {
+  const form = new Intl.PluralRules(locale).select(n) === 'one' ? 'one' : 'other'
+  return t(`${key}_${form}`, { n: formatNumber(locale, n) })
+}
+
 export function dictionary(locale: Locale): Dict {
   return DICTS[locale]
 }

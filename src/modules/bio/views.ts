@@ -1,5 +1,5 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { formatNumber } from '../../lib/i18n.ts'
+import { formatNumber, plural } from '../../lib/i18n.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import { panelLayout } from '../../views/layout.ts'
 import { checkbox, csrfField, input, postButton, select, type Errors } from '../../views/ui.ts'
@@ -53,7 +53,7 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[]): SafeHtml {
           <div class="title">${t(`bio.type_${b.type}`)}${b.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}${scheduled(b) ? html` <span class="tag">${t('bio.scheduled')}</span>` : ''}</div>
           <div class="sub">${def?.summary(b) ?? ''}</div>
         </div>
-        ${def?.clickable ? html`<span class="muted nowrap">${formatNumber(ctx.locale, b.clicks)} ${t('links.clicks')}</span>` : ''}
+        ${def?.clickable ? html`<span class="muted nowrap">${plural(t, ctx.locale, 'links.n_clicks', b.clicks)}</span>` : ''}
         <div class="btn-row">
           <form method="post" action="/panel/blocks/${b.id}/move" class="inline">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button class="btn btn-sm" type="submit" aria-label="${t('bio.move_up')}"${i === 0 ? html` disabled` : ''}>↑</button></form>
           <form method="post" action="/panel/blocks/${b.id}/move" class="inline">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button class="btn btn-sm" type="submit" aria-label="${t('bio.move_down')}"${i === blocks.length - 1 ? html` disabled` : ''}>↓</button></form>

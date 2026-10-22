@@ -1,29 +1,28 @@
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { html } from '../../lib/html.ts'
 import { isLocale } from '../../lib/i18n.ts'
-import { authLayout } from '../../views/layout.ts'
-import { cookieOpts, LANG_COOKIE, safeNext, sendHtml } from '../../web/context.ts'
+import { cookieOpts, LANG_COOKIE, powOk, safeNext, sendHtml } from '../../web/context.ts'
+import { field } from '../../web/forms.ts'
+import { getSetting } from '../settings/repo.ts'
+import { landingPage } from './landing.ts'
 import { updateUser } from '../users/repo.ts'
 
 export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xmedook/tubio'
 
 export function registerHome(app: FastifyInstance, deps: AppDeps): void {
   app.get('/', async (req, reply) => {
-    const { t } = req.ctx
-    return sendHtml(
-      reply,
-      authLayout(req.ctx, {
-        title: t('home.title'),
-        path: '/',
-        body: html`<h1>${t('home.title')}</h1>
-<p class="lead">${t('home.lead')}</p>
-${req.ctx.user
-  ? html`<a class="btn btn-primary btn-block" href="/panel">${t('home.go_panel')}</a>`
-  : html`<a class="btn btn-primary btn-block" href="/register">${t('auth.register_submit')}</a>
-         <p class="auth-alt"><a href="/login">${t('auth.login_link')}</a></p>`}`,
-      }),
-    )
+    const joined = (req.query as { joined?: string }).joined === '1'
+    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL }))
+  })
+
+  app.post('/waitlist', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {
+    const page = (error: string) =>
+      sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), error, sourceUrl: SOURCE_URL }), 422)
+    if (!powOk(deps, req.body)) return page('err.pow')
+    const email = field(req.body, 'email').trim().toLowerCase()
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return page('err.email')
+    deps.db.prepare('INSERT OR IGNORE INTO waitlist (email, locale, created_at) VALUES (?, ?, ?)').run(email, req.ctx.locale, deps.now())
+    return reply.redirect('/?joined=1', 303)
   })
 
   app.get('/lang/:locale', async (req, reply) => {

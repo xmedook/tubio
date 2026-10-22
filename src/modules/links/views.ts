@@ -1,5 +1,5 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { formatNumber } from '../../lib/i18n.ts'
+import { formatNumber, plural } from '../../lib/i18n.ts'
 import { UTM_KEYS } from '../../lib/urls.ts'
 import { panelLayout } from '../../views/layout.ts'
 import { checkbox, emptyState, input, postButton, select, textarea, type Errors, type Option } from '../../views/ui.ts'
@@ -75,7 +75,7 @@ ${opts.items.length === 0
       <button type="button" class="btn-link" data-copy="${url}" data-copied="${t('links.copied')}">${t('links.copy')}</button>
       ${l.kind === 'short' && l.target_url ? html` → ${l.target_url}` : ''}</div>
   </div>
-  <a class="num-link" href="/panel/links/${l.id}/stats" aria-label="${t('links.clicks_aria', { n: l.clicks })}"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${l.kind === 'bio' ? t('links.views') : t('links.clicks')}</span></a>
+  <a class="num-link" href="/panel/links/${l.id}/stats" aria-label="${t('links.clicks_aria', { n: l.clicks })}"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></a>
   <div class="btn-row">
     ${l.kind === 'bio' ? html`<a class="btn btn-sm" href="/panel/links/${l.id}/blocks">${t('links.edit_page')}</a>` : ''}
     <a class="btn btn-sm" href="/panel/links/${l.id}">${l.kind === 'bio' ? t('links.settings') : t('common.edit')}</a>
