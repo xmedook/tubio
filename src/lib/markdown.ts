@@ -11,7 +11,7 @@ import { esc } from './html.ts'
 function safeHref(url: string): string | null {
   // url llega escapada; se desescapa sólo &amp; para validar
   const u = url.replace(/&amp;/g, '&')
-  if (/^(https?:\/\/|mailto:)/i.test(u)) return esc(u)
+  if (/^(https?:\/\/|mailto:)/i.test(u) || /^\/(?![/\\])/.test(u)) return esc(u)
   return null
 }
 
@@ -24,7 +24,8 @@ function inline(s: string): string {
   })
   s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, text: string, url: string) => {
     const href = safeHref(url)
-    return href ? `<a href="${href}" rel="nofollow noopener" target="_blank">${text}</a>` : m
+    if (!href) return m
+    return href.startsWith('/') ? `<a href="${href}">${text}</a>` : `<a href="${href}" rel="nofollow noopener" target="_blank">${text}</a>`
   })
   s = s
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')

@@ -1,4 +1,4 @@
-import { html } from '../../lib/html.ts'
+import { html, raw } from '../../lib/html.ts'
 import { authLayout } from '../../views/layout.ts'
 import { csrfField, input, powAttr, powField, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
@@ -19,6 +19,11 @@ ${googleButton(ctx)}
   ${input({ ctx, name: 'name', label: t('auth.name'), value: values.name, error: errors.name, autocomplete: 'name', maxlength: 80 })}
   ${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: values.email, error: errors.email, required: true, autocomplete: 'email' })}
   ${input({ ctx, name: 'password', type: 'password', label: t('auth.password'), hint: t('auth.password_hint'), error: errors.password, required: true, autocomplete: 'new-password' })}
+  <div class="field field-check${errors.accept ? ' has-error' : ''}">
+    <input id="f-accept" type="checkbox" name="accept" value="1"${values.accept ? html` checked` : ''} required>
+    <label for="f-accept">${raw(t('auth.accept_terms_html'))}</label>
+    ${errors.accept ? html`<p class="error" role="alert">${t(errors.accept)}</p>` : ''}
+  </div>
   ${powField(ctx, pow)}
   <button class="btn btn-primary btn-block" type="submit">${t('auth.register_submit')}</button>
 </form>

@@ -6,7 +6,8 @@ import { translator, type Locale } from '../../lib/i18n.ts'
 import { matchTotp } from '../../lib/totp.ts'
 import { messagePage } from '../../views/layout.ts'
 import { cookieOpts, powOk, safeNext, sendHtml, setFlash } from '../../web/context.ts'
-import { field, parseForm } from '../../web/forms.ts'
+import { checked, field, parseForm } from '../../web/forms.ts'
+import { LEGAL_UPDATED } from '../legal/routes.ts'
 import { audit, getSetting } from '../settings/repo.ts'
 import { createUser, findUserByEmail, findUserById, updateUser, type User } from '../users/repo.ts'
 import { createSession, destroySession, destroyUserSessions, SESSION_COOKIE, SESSION_TTL_MS } from './sessions.ts'
@@ -73,6 +74,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     }
     const values = { name: field(req.body, 'name'), email: field(req.body, 'email') }
     if (!powOk(deps, req.body)) return sendHtml(reply, registerPage(req.ctx, values, { _form: 'err.pow' }), 422)
+    if (!checked(req.body, 'accept')) return sendHtml(reply, registerPage(req.ctx, values, { accept: 'err.accept_terms' }), 422)
     const r = parseForm(registerSchema, req.body)
     if (!r.ok) return sendHtml(reply, registerPage(req.ctx, values, r.errors), 422)
     if (findUserByEmail(db, r.data.email)) {
@@ -84,7 +86,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       passwordHash: await hashPassword(r.data.password),
       locale: req.ctx.locale,
     }, deps.now())
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.register' }, deps.now())
+    audit(db, { actorId: user.id, userId: user.id, action: 'user.register', meta: { terms: LEGAL_UPDATED } }, deps.now())
     await sendVerifyEmail(deps, user)
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })

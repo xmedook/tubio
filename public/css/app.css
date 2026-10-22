@@ -267,3 +267,7 @@ body.auth .auth-card:has(.public-stats) { max-width: 960px; }
 .btn-google { gap: .6rem; }
 .or { display: flex; align-items: center; gap: .75rem; color: var(--muted); font-size: .85rem; margin: 1rem 0; }
 .or::before, .or::after { content: ""; flex: 1; border-top: 1px solid var(--border); }
+
+.legal-text { max-width: 760px; line-height: 1.65; }
+.legal-text h1 { margin-top: 1rem; }
+.legal-text h2 { margin-top: 2rem; }

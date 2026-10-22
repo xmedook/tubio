@@ -700,5 +700,10 @@
   "admin.report_disable": "Desactivar enlace",
   "admin.report_dismiss": "Descartar",
   "admin.report_actioned": "Desactivado",
-  "admin.report_dismissed": "Descartado"
+  "admin.report_dismissed": "Descartado",
+  "legal.terms": "Términos",
+  "legal.privacy": "Privacidad",
+  "legal.aup": "Uso aceptable",
+  "auth.accept_terms_html": "Acepto los <a href=\"/terms\" target=\"_blank\">términos de uso</a> y el <a href=\"/privacy\" target=\"_blank\">aviso de privacidad</a>.",
+  "err.accept_terms": "Para crear la cuenta acepta los términos y el aviso de privacidad."
 }

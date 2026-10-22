@@ -700,5 +700,10 @@
   "admin.report_disable": "Disable link",
   "admin.report_dismiss": "Dismiss",
   "admin.report_actioned": "Disabled",
-  "admin.report_dismissed": "Dismissed"
+  "admin.report_dismissed": "Dismissed",
+  "legal.terms": "Terms",
+  "legal.privacy": "Privacy",
+  "legal.aup": "Acceptable use",
+  "auth.accept_terms_html": "I accept the <a href=\"/terms\" target=\"_blank\">terms of use</a> and the <a href=\"/privacy\" target=\"_blank\">privacy notice</a>.",
+  "err.accept_terms": "To create the account, accept the terms and privacy notice."
 }

@@ -66,7 +66,7 @@ ${user && !user.email_verified_at
 ${flashBox(ctx)}
 ${opts.body}
 </main>
-<footer class="foot"><a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> · <a href="/source">${t('foot.source')}</a></footer>
+<footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> · <a href="/source">${t('foot.source')}</a></footer>
 </body>
 </html>`
 }
@@ -79,7 +79,7 @@ ${head(ctx, opts.title)}
   <a class="brand brand-lg" href="/" aria-label="tubio">tu<span>bio</span></a>
   ${flashBox(ctx)}
   ${opts.body}
-  <p class="auth-foot">${langSwitch(ctx, opts.path)}</p>
+  <p class="auth-foot">${langSwitch(ctx, opts.path)} · <a href="/terms">${ctx.t('legal.terms')}</a> · <a href="/privacy">${ctx.t('legal.privacy')}</a></p>
 </main>
 </body>
 </html>`

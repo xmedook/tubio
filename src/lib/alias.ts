@@ -7,7 +7,7 @@ export const RESERVED_ALIASES = new Set([
   'mail', 'panel', 'precios', 'pricing', 'privacy', 'privacidad', 'qr', 'register', 'registro', 'reset',
   'root', 'settings', 'signup', 'source', 'static', 'stats', 'status', 'support', 'soporte', 'terms',
   'terminos', 'tubio', 'verify', 'www', 'robots.txt', 'favicon.ico', 'sitemap.xml', 'manifest.json',
-  'security.txt', '.well-known',
+  'security.txt', '.well-known', 'acceptable-use', 'uso-aceptable',
 ])
 
 export const ALIAS_MIN = 3

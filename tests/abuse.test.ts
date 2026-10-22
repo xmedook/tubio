@@ -40,3 +40,22 @@ describe('abuso', () => {
     t.clock.now += 86400_000 + 1
   })
 })
+
+describe('legales', () => {
+  it('páginas públicas con datos del responsable y aceptación obligatoria', async () => {
+    process.env.TUBIO_LEGAL_OWNER = 'Koode Pruebas'
+    const t = await makeApp()
+    const priv = await new Agent(t.app).get('/privacy')
+    expect(priv.statusCode).toBe(200)
+    expect(priv.body).toContain('Koode Pruebas')
+    expect(priv.body).toContain('No guardamos direcciones IP')
+    expect((await new Agent(t.app).get('/terms', { 'accept-language': 'en' })).body).toContain('Terms of use')
+    expect((await new Agent(t.app).get('/acceptable-use')).body).toContain('phishing')
+    const a = new Agent(t.app)
+    await a.get('/register')
+    const sin = await a.post('/register', { email: 'z@example.com', password: 'contrasena-segura' })
+    expect(sin.statusCode).toBe(422)
+    expect(sin.body).toContain('acepta los términos')
+    delete process.env.TUBIO_LEGAL_OWNER
+  })
+})
