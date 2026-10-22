@@ -38,6 +38,19 @@ describe('equipos', () => {
     // editor no toca dominios; su cuenta sigue siendo la suya
     expect((await b.post('/panel/domains', { host: 'x.mimarca.com' })).statusCode).toBe(403)
     expect((await b.get('/panel/account')).body).toContain('beto@example.com')
+    // rutas con %xx: Fastify las decodifica, los permisos también deben verlas
+    expect((await b.post('/panel/%64omains', { host: 'y.mimarca.com' })).statusCode).toBe(403)
+    expect((await b.get('/panel/%61ccount')).body).toContain('beto@example.com')
+    await b.post(`/panel/%74eam/${mid}/role`, { role: 'admin' })
+    expect(t.deps.db.prepare('SELECT role FROM team_members WHERE id = ?').pluck().get(mid)).toBe('editor')
+    await b.post('/panel/%61pi', { name: 'robada' })
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM api_keys WHERE user_id = ?').pluck().get(owner.id)).toBe(0)
+    expect((await b.get('/panel//%61ccount/export')).body).not.toContain('duena@example.com')
+    // aunque la dueña sea admin del sitio, desde su espacio nadie es admin
+    updateUser(t.deps.db, owner.id, { role: 'admin' })
+    expect((await b.get('/%61dmin')).statusCode).toBe(404)
+    expect((await b.get('/admin/users')).statusCode).toBe(404)
+    updateUser(t.deps.db, owner.id, { role: 'user' })
     // al quitarlo pierde el acceso
     await o.post(`/panel/team/${mid}/remove`)
     expect((await b.get('/panel')).body).not.toContain('del-equipo')

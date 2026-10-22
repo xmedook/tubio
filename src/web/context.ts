@@ -73,6 +73,25 @@ export function teamAllows(role: Ctx['teamRole'], method: string, url: string): 
   return !/^\/panel\/(domains|notifications|pixels|splashes|data\/delete)/.test(url)
 }
 
+/**
+ * Ruta contra la que se aplican los permisos: el patrón que Fastify ya resolvió
+ * (p. ej. `/panel/team/:id/role`), nunca `req.url` crudo — `/panel/%74eam` llega
+ * decodificado a la ruta de equipo y una regex sobre la URL cruda no lo ve.
+ * Sin ruta (404) cae al path decodificado y normalizado.
+ */
+export function routePath(req: FastifyRequest): string {
+  const pattern = req.routeOptions?.url
+  if (pattern) return pattern
+  const raw = req.url.split('?')[0] ?? '/'
+  let dec = raw
+  try {
+    dec = decodeURIComponent(raw)
+  } catch {
+    /* secuencia inválida: se queda cruda */
+  }
+  return dec.replace(/\/+/g, '/').toLowerCase()
+}
+
 export function registerContext(app: FastifyInstance, deps: AppDeps): void {
   app.decorateRequest('ctx', null as unknown as Ctx)
 
@@ -80,7 +99,8 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     const now = deps.now()
     // dominio propio: sólo lo público; el panel y la cuenta viven en el dominio principal
     const domainId = domainIdForHost(req.hostname) ?? 0
-    if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source)(\/|$|\?)/.test(req.url)) {
+    const path = routePath(req)
+    if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source|_\/caddy)(\/|$|\?)/.test(path)) {
       return reply.redirect(deps.config.baseUrl + req.url, 301)
     }
     let user: User | null = null
@@ -100,7 +120,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     let member: User | null = null
     let teamRole: Ctx['teamRole'] = null
     const wsId = (session as (Session & { workspace_id?: number | null }) | null)?.workspace_id
-    if (user && wsId && wsId !== user.id && !PERSONAL.test(req.url)) {
+    if (user && wsId && wsId !== user.id && !PERSONAL.test(path)) {
       const m = deps.db.prepare('SELECT role FROM team_members WHERE owner_id = ? AND user_id = ? AND accepted_at IS NOT NULL').get(wsId, user.id) as { role: Ctx['teamRole'] } | undefined
       const owner = m ? findUserById(deps.db, wsId) : undefined
       if (m && owner && owner.status === 'active') {
@@ -160,14 +180,14 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     }
     // mantenimiento: el panel se cierra a quien no es admin (los enlaces públicos siguen)
     const real = member ?? user
-    if (getSetting(deps.db, 'maintenance') && /^\/(panel|register)(\/|$|\?)/.test(req.url) && real?.role !== 'admin') {
+    if (getSetting(deps.db, 'maintenance') && /^\/(panel|register)(\/|$|\?)/.test(routePath(req)) && real?.role !== 'admin') {
       const t = req.ctx.t
       return reply.code(503).header('Retry-After', '1800').type('text/html; charset=utf-8').send(`<!doctype html><html lang="${locale}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>tubio</title><link rel="stylesheet" href="/_/static/css/app.css"><body class="auth"><main class="auth-card"><p class="brand brand-lg">tu<span>bio</span></p><h1>${t('site.maintenance_title')}</h1><p>${t('site.maintenance_body')}</p></main></body></html>`)
     }
   })
 
   app.addHook('preHandler', async (req, reply) => {
-    if (req.ctx?.teamRole && !teamAllows(req.ctx.teamRole, req.method, req.url)) {
+    if (req.ctx?.teamRole && !teamAllows(req.ctx.teamRole, req.method, routePath(req))) {
       return reply.code(403).type('text/plain').send(req.ctx.t('team.forbidden'))
     }
   })
@@ -226,7 +246,7 @@ export function requireUser(req: FastifyRequest, reply: FastifyReply): boolean {
 
 export function requireAdmin(req: FastifyRequest, reply: FastifyReply): boolean {
   if (!requireUser(req, reply)) return false
-  if (req.ctx.user?.role === 'admin') return true
+  if (req.ctx.user?.role === 'admin' && !req.ctx.member) return true
   reply.code(404).type('text/plain').send('Not found')
   return false
 }
