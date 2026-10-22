@@ -48,7 +48,7 @@ Simulacros en tubio.link: 2026-10-22 OK (copia de R2 → login admin correcto); 
 | Phishing / abuso en un enlace | Admin → Enlaces → desactivar; Admin → Hosts bloqueados para el dominio destino (aplica también a los enlaces ya creados); Admin → Usuarios → suspender. Contestar el reporte. |
 | Ola de registros basura | Admin → Ajustes → quitar «registro abierto» (queda la lista de espera). |
 | Vulnerabilidad reportada | Seguir `/security`: acusar recibo ≤3 días hábiles, arreglar con prueba de regresión, desplegar, avisar a quien reportó. |
-| Servidor caído | Alertas: `tubio-watch` (cron */5 en aws2, Telegram) y Uptime Kuma (monitores «tubio.link — healthz» y «— login»). Revisar `pm2 logs tubio` y espacio en disco; si el host no vuelve, restaurar en otro con la última copia. |
+| Servidor caído | Alerta: Uptime Kuma (monitores «tubio.link — healthz» y «— login», id 1143/1144). Revisar `pm2 logs tubio` y espacio en disco; si el host no vuelve, restaurar en otro con la última copia. (`tubio-watch.sh` se retiró del cron el 2026-10-22 por duplicar a Kuma; también vigilaba 5xx en el log y eso hoy no lo cubre nadie. Simulacro del script: ver su cabecera.) |
 
 ## Tareas periódicas
 Dentro del proceso cada 6 h: sesiones vencidas, retención de estadísticas, sales de visitantes, imágenes huérfanas.
