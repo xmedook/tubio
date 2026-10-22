@@ -173,7 +173,7 @@ export function linkFormPage(
 
   const body = html`
 ${isNew ? html`<h1>${t(`links.new_${kind}`)}</h1>` : ''}
-${hasErrors ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
+${hasErrors ? html`<p class="flash flash-error" role="alert">${t(e._form ?? 'err.form')}</p>` : ''}
 <form method="post" action="${action}" enctype="multipart/form-data" novalidate>
   <div class="card">
     ${kind !== 'bio' ? kindFields(ctx, kind, v, e, isNew) : ''}

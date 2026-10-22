@@ -13,6 +13,7 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/app.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
+<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 ${extra}
 </head>`
 }

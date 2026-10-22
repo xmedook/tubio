@@ -20,6 +20,8 @@ export type Config = {
   mailFrom: string
   /** Tamaño máximo de subida en bytes */
   maxUploadBytes: number
+  /** Dificultad de la prueba de trabajo (0 = desactivada) */
+  powMax: number
   /** Confiar en X-Forwarded-For (detrás de nginx) */
   trustProxy: boolean
 }
@@ -46,6 +48,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     googleClientSecret: e.TUBIO_GOOGLE_CLIENT_SECRET ?? '',
     mailFrom: e.TUBIO_MAIL_FROM ?? 'tubio <no-reply@tubio.link>',
     maxUploadBytes: num(e.TUBIO_MAX_UPLOAD_BYTES, 10 * 1024 * 1024),
+    powMax: num(e.TUBIO_POW_MAX, 100_000),
     trustProxy: e.TUBIO_TRUST_PROXY === '1',
     ...overrides,
   }

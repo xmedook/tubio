@@ -169,3 +169,15 @@ export function fromLocalInput(v: string | undefined, timeZone: string): number 
   }
   return ts
 }
+
+/** Campo y atributo de la prueba de trabajo para un <form data-pow> (ver lib/pow.ts) */
+export function powAttr(challenge: object | null): SafeHtml {
+  return challenge ? html` data-pow="${JSON.stringify(challenge)}"` : html``
+}
+
+export function powField(ctx: Ctx, challenge: object | null): SafeHtml {
+  if (!challenge) return html``
+  return html`<input type="hidden" name="_pow" value="">
+<p class="hint pow-status" data-pow-status data-wait="${ctx.t('pow.wait')}" data-ok="" aria-live="polite"></p>
+<noscript><p class="error">${ctx.t('pow.noscript')}</p></noscript>`
+}

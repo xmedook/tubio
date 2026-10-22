@@ -1,23 +1,25 @@
 import { html } from '../../lib/html.ts'
 import { authLayout } from '../../views/layout.ts'
-import { csrfField, input, type Errors } from '../../views/ui.ts'
+import { csrfField, input, powAttr, powField, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 
 type V = Record<string, string>
 
 export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}) {
   const { t } = ctx
+  const pow = ctx.pow()
   return authLayout(ctx, {
     title: t('auth.register_title'),
     path: '/register',
     body: html`<h1>${t('auth.register_title')}</h1>
 ${googleButton(ctx)}
-<form method="post" action="/register" novalidate>
+<form method="post" action="/register" novalidate${powAttr(pow)}>
   ${csrfField(ctx)}
   ${errors._form ? html`<p class="error" role="alert">${t(errors._form)}</p>` : ''}
   ${input({ ctx, name: 'name', label: t('auth.name'), value: values.name, error: errors.name, autocomplete: 'name', maxlength: 80 })}
   ${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: values.email, error: errors.email, required: true, autocomplete: 'email' })}
   ${input({ ctx, name: 'password', type: 'password', label: t('auth.password'), hint: t('auth.password_hint'), error: errors.password, required: true, autocomplete: 'new-password' })}
+  ${powField(ctx, pow)}
   <button class="btn btn-primary btn-block" type="submit">${t('auth.register_submit')}</button>
 </form>
 <p class="auth-alt">${t('auth.have_account')} <a href="/login">${t('auth.login_link')}</a></p>`,
@@ -69,6 +71,7 @@ export function twoFactorPage(ctx: Ctx, errors: Errors = {}, next = '') {
 
 export function forgotPage(ctx: Ctx, values: V = {}, errors: Errors = {}, sent = false) {
   const { t } = ctx
+  const pow = ctx.pow()
   return authLayout(ctx, {
     title: t('auth.forgot_title'),
     path: '/forgot',
@@ -76,9 +79,10 @@ export function forgotPage(ctx: Ctx, values: V = {}, errors: Errors = {}, sent =
 ${sent
   ? html`<p role="status">${t('auth.forgot_sent')}</p>`
   : html`<p>${t('auth.forgot_body')}</p>
-<form method="post" action="/forgot" novalidate>
+<form method="post" action="/forgot" novalidate${powAttr(pow)}>
   ${csrfField(ctx)}
   ${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: values.email, error: errors.email, required: true, autocomplete: 'email' })}
+  ${powField(ctx, pow)}
   <button class="btn btn-primary btn-block" type="submit">${t('auth.forgot_submit')}</button>
 </form>`}
 <p class="auth-alt"><a href="/login">${t('auth.login_link')}</a></p>`,

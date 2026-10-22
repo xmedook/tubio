@@ -21,6 +21,7 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['home', '/admin', t('admin.overview')],
     ['users', '/admin/users', t('admin.users')],
     ['links', '/admin/links', t('nav.links')],
+    ['reports', '/admin/reports', t('admin.reports')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
@@ -51,6 +52,7 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
   ${kpi(n('SELECT COUNT(*) FROM users WHERE created_at >= ?', since), t('admin.new_users_30d'))}
   ${kpi(n('SELECT COUNT(*) FROM links'), t('nav.links'))}
   ${kpi(n('SELECT COUNT(*) FROM qr_codes'), t('nav.qr'))}
+  ${kpi(n("SELECT COUNT(*) FROM abuse_reports WHERE status = 'open'"), t('admin.reports_open'))}
   ${kpi(n('SELECT COUNT(*) FROM stat_events WHERE ts >= ?', since), t('admin.events_30d'))}
   ${kpi(Math.round(n('SELECT COALESCE(SUM(size), 0) FROM files') / 1048576), t('admin.storage_mb'))}
 </div>
@@ -182,6 +184,47 @@ ${rows.map((l) => html`<tr><td><a href="${linkUrl(req.ctx.baseUrl, l)}" target="
     updateLink(db, l.id, { is_enabled: !l.is_enabled }, deps.now())
     audit(db, { actorId: me(req).id, userId: l.user_id, action: l.is_enabled ? 'admin.link_disable' : 'admin.link_enable', target: `link:${l.id}`, meta: { alias: l.alias } }, deps.now())
     return reply.redirect('/admin/links', 303)
+  })
+
+  app.get('/admin/reports', { preHandler: adminGuard }, async (req, reply) => {
+    const { t } = req.ctx
+    const ctx = req.ctx
+    const status = (req.query as { status?: string }).status === 'closed' ? 'closed' : 'open'
+    const rows = db
+      .prepare(
+        `SELECT r.*, l.id AS lid, l.is_enabled, l.kind, l.target_url, u.email AS owner, u.id AS owner_id
+         FROM abuse_reports r LEFT JOIN links l ON l.id = r.link_id LEFT JOIN users u ON u.id = l.user_id
+         WHERE ${status === 'open' ? "r.status = 'open'" : "r.status != 'open'"} ORDER BY r.created_at DESC LIMIT 200`,
+      )
+      .all() as { id: number; alias: string; reason: string; details: string; reporter_email: string; status: string; created_at: number; lid: number | null; is_enabled: number; kind: Link['kind']; target_url: string | null; owner: string | null; owner_id: number | null }[]
+    return sendHtml(reply, page(ctx, 'reports', t('admin.reports'), html`
+<nav class="btn-row" aria-label="${t('admin.reports')}"><a class="btn btn-sm" href="/admin/reports"${status === 'open' ? html` aria-current="page"` : ''}>${t('admin.reports_open')}</a><a class="btn btn-sm" href="/admin/reports?status=closed"${status === 'closed' ? html` aria-current="page"` : ''}>${t('admin.reports_closed')}</a></nav>
+${rows.length === 0 ? emptyState(t('admin.no_reports'), '') : html`<ul class="list">${rows.map((r) => html`<li>
+  <div class="grow"><div class="title"><a href="${linkUrl(ctx.baseUrl, { alias: r.alias })}" target="_blank" rel="noopener noreferrer">/${r.alias}</a> <span class="tag">${t(`abuse.r_${r.reason}`)}</span>${r.lid && !r.is_enabled ? html` <span class="tag tag-off">${t('links.disabled')}</span>` : ''}${r.status !== 'open' ? html` <span class="tag">${t(`admin.report_${r.status}`)}</span>` : ''}</div>
+    <div class="sub">${when(req, r.created_at)} · ${t('admin.owner')}: ${r.owner_id ? html`<a href="/admin/users/${r.owner_id}">${r.owner}</a>` : '—'}${r.target_url ? html` · → <span class="mono">${r.target_url}</span>` : ''}${r.reporter_email ? html` · ${r.reporter_email}` : ''}</div>
+    ${r.details ? html`<p class="sub">${r.details}</p>` : ''}</div>
+  ${r.status === 'open'
+    ? html`<div class="btn-row">${r.lid ? postButton(ctx, `/admin/reports/${r.id}`, t('admin.report_disable'), { cls: 'btn btn-sm btn-danger', hidden: { action: 'disable' } }) : ''}${postButton(ctx, `/admin/reports/${r.id}`, t('admin.report_dismiss'), { cls: 'btn btn-sm', hidden: { action: 'dismiss' } })}</div>`
+    : ''}
+</li>`)}</ul>`}`, '/admin/reports'))
+  })
+
+  app.post('/admin/reports/:id', { preHandler: adminGuard }, async (req, reply) => {
+    const r = db.prepare('SELECT * FROM abuse_reports WHERE id = ?').get(Number((req.params as { id: string }).id)) as { id: number; link_id: number | null } | undefined
+    if (!r) return reply.callNotFound()
+    const action = field(req.body, 'action')
+    const now = deps.now()
+    if (action === 'disable' && r.link_id) {
+      const l = getLink(db, r.link_id)
+      if (l) updateLink(db, l.id, { is_enabled: false }, now)
+      // todos los reportes abiertos del mismo enlace quedan resueltos
+      db.prepare("UPDATE abuse_reports SET status = 'actioned', resolved_at = ?, resolved_by = ? WHERE link_id = ? AND status = 'open'").run(now, me(req).id, r.link_id)
+      audit(db, { actorId: me(req).id, userId: l?.user_id, action: 'admin.report_disable', target: `link:${r.link_id}` }, now)
+    } else {
+      db.prepare("UPDATE abuse_reports SET status = 'dismissed', resolved_at = ?, resolved_by = ? WHERE id = ?").run(now, me(req).id, r.id)
+      audit(db, { actorId: me(req).id, action: 'admin.report_dismiss', target: `report:${r.id}` }, now)
+    }
+    return reply.redirect('/admin/reports', 303)
   })
 
   app.get('/admin/blocked-hosts', { preHandler: adminGuard }, async (req, reply) => {

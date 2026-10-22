@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../app.ts'
 import { randomToken, safeEqual } from '../lib/crypto.ts'
+import { createChallenge, verifySolution, type PowChallenge } from '../lib/pow.ts'
 import type { SafeHtml } from '../lib/html.ts'
 import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '../lib/i18n.ts'
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
@@ -23,6 +24,8 @@ export type Ctx = {
   baseUrl: string
   /** hay credenciales de Google configuradas */
   googleEnabled: boolean
+  /** reto nuevo de prueba de trabajo, o null si está desactivada */
+  pow: () => PowChallenge | null
 }
 
 declare module 'fastify' {
@@ -105,6 +108,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       now,
       baseUrl: deps.config.baseUrl,
       googleEnabled: !!(deps.config.googleClientId && deps.config.googleClientSecret),
+      pow: () => (deps.config.powMax > 0 ? createChallenge(deps.config.secret, now, deps.config.powMax) : null),
     }
   })
 
@@ -174,4 +178,11 @@ export async function userGuard(req: FastifyRequest, reply: FastifyReply): Promi
 
 export async function adminGuard(req: FastifyRequest, reply: FastifyReply): Promise<void> {
   if (!requireAdmin(req, reply)) return reply
+}
+
+/** ¿Trae una solución válida de la prueba de trabajo? (siempre true si está desactivada) */
+export function powOk(deps: AppDeps, body: unknown): boolean {
+  if (deps.config.powMax <= 0) return true
+  const v = (body as Record<string, unknown> | undefined)?._pow
+  return typeof v === 'string' && v.length < 2000 && verifySolution(deps.config.secret, v, deps.now())
 }

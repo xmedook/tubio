@@ -13,6 +13,8 @@ import { defaultBioData } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
 
 const PER_PAGE = 30
+export const DAILY_CAP_UNVERIFIED = 20
+export const DAILY_CAP_VERIFIED = 300
 
 function asKind(v: unknown): LinkKind | undefined {
   return typeof v === 'string' && (LINK_KINDS as readonly string[]).includes(v) ? (v as LinkKind) : undefined
@@ -61,6 +63,12 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const kind = asKind((req.query as { kind?: string }).kind)
     if (!kind) return reply.code(400).send('kind')
     const user = req.ctx.user as User
+    // tope diario anti-abuso: cuentas sin verificar crean pocos enlaces
+    const cap = user.email_verified_at ? DAILY_CAP_VERIFIED : DAILY_CAP_UNVERIFIED
+    const today = db.prepare('SELECT COUNT(*) FROM links WHERE user_id = ? AND created_at > ?').pluck().get(user.id, deps.now() - 86400_000) as number
+    if (today >= cap && user.role !== 'admin') {
+      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: user.email_verified_at ? 'err.daily_cap' : 'err.daily_cap_unverified' }, projects: listProjects(db, user.id) }), 429)
+    }
     let mp
     try {
       mp = await readMultipart(req)

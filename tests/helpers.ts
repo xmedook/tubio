@@ -20,7 +20,7 @@ export async function makeApp(overrides: Partial<AppDeps> = {}): Promise<TestApp
   const mailer = new MemoryMailer()
   const clock = { now: Date.UTC(2026, 9, 22, 18, 0, 0) }
   const deps: AppDeps = {
-    config: loadConfig({ env: 'test', dbPath: ':memory:', baseUrl: 'http://tubio.test', dataDir: '/tmp/tubio-test' }),
+    config: loadConfig({ env: 'test', dbPath: ':memory:', baseUrl: 'http://tubio.test', dataDir: '/tmp/tubio-test', powMax: 0 }),
     db,
     mailer,
     geo: noGeo,

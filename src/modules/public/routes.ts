@@ -40,7 +40,8 @@ function gatePage(ctx: Ctx, link: Link, mode: 'password' | 'sensitive', error?: 
   ${csrfField(ctx)}<input type="hidden" name="_action" value="confirm">
   <button class="btn btn-primary btn-block" type="submit">${t('public.sensitive_continue')}</button>
 </form>
-<p class="auth-alt"><a href="/">${t('public.sensitive_back')}</a></p>`,
+<p class="auth-alt"><a href="/">${t('public.sensitive_back')}</a></p>
+<p class="auth-alt"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a></p>`,
   })
 }
 

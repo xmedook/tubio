@@ -137,6 +137,7 @@ ${showBrand
       ? web(d.brand_url) ? html`<a href="${d.brand_url}">${d.brand_text}</a>` : d.brand_text
       : html`<a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>tubio</b></a>`}</footer>`
   : ''}
+<p class="report"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a></p>
 </main>
 ${d.announce_position === 'bottom' ? announce : ''}
 </body>
