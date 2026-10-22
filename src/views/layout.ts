@@ -2,7 +2,7 @@ import { html, type HtmlValue, type SafeHtml } from '../lib/html.ts'
 import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 
-export const ASSET_VERSION = '4'
+export const ASSET_VERSION = '5'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>

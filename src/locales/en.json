@@ -812,7 +812,6 @@
   "bio.cd_m": "min",
   "bio.cd_s": "sec",
   "bio.cd_done": "The moment has arrived!",
-  "bio.copy_code": "Copy code {code}",
   "bio.product_cta": "I want it",
   "bio.carousel": "carousel",
   "bio.before": "Before",
@@ -1325,5 +1324,7 @@
   "help.send": "Send",
   "help.sent": "Done, we got your message. We will reply by email.",
   "help.back": "Back to help",
-  "help.too_short": "Tell us a bit more (at least 10 characters)."
+  "help.too_short": "Tell us a bit more (at least 10 characters).",
+  "bio.gallery_photo": "{alt} ({n} of {total})",
+  "bio.gallery_default": "Photo"
 }

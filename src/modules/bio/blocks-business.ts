@@ -180,7 +180,7 @@ export const BUSINESS_BLOCKS: BlockDef[] = [
       { name: 'description', kind: 'text', label: 'bio.f.description', max: 200 },
     ],
     render: (rc, b) => html`<div class="coupon">${b.data.title ? html`<p class="coupon-title">${s(b.data.title)}</p>` : ''}${b.data.description ? html`<p class="coupon-desc">${s(b.data.description)}</p>` : ''}
-  <button type="button" class="coupon-code" data-copy="${s(b.data.code)}" data-copied="${rc.t('links.copied')}" aria-label="${rc.t('bio.copy_code', { code: s(b.data.code) })}"><code>${s(b.data.code)}</code><span>${rc.t('links.copy')}</span></button></div>`,
+  <button type="button" class="coupon-code" data-copy="${s(b.data.code)}" data-copied="${rc.t('links.copied')}"><code>${s(b.data.code)}</code><span>${rc.t('links.copy')}</span></button></div>`,
     summary: (b) => s(b.data.code),
   },
   {
@@ -212,7 +212,7 @@ export const BUSINESS_BLOCKS: BlockDef[] = [
       { name: 'columns', kind: 'select', label: 'bio.f.columns', options: ['2', '3'], default: '2' },
       { name: 'alt', kind: 'text', label: 'bio.f.alt', max: 200 },
     ],
-    render: (_rc, b) => html`<div class="gallery cols-${s(b.data.columns) === '3' ? '3' : '2'}">${keys(b, 'images').map((k) => html`<a href="${imageUrl(k)}" target="_blank" rel="noopener"><img src="${imageUrl(k)}" alt="${s(b.data.alt)}" loading="lazy" decoding="async"></a>`)}</div>`,
+    render: (rc, b) => html`<div class="gallery cols-${s(b.data.columns) === '3' ? '3' : '2'}">${keys(b, 'images').map((k, i, all) => html`<a href="${imageUrl(k)}" target="_blank" rel="noopener"><img src="${imageUrl(k)}" alt="${rc.t('bio.gallery_photo', { alt: s(b.data.alt) || rc.t('bio.gallery_default'), n: i + 1, total: all.length })}" loading="lazy" decoding="async"></a>`)}</div>`,
     summary: (b) => `${keys(b, 'images').length} imágenes`,
   },
   {

@@ -12,6 +12,8 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | fastify | MIT | servidor HTTP |
 | @fastify/cookie | MIT | cookies firmadas |
 | fflate | MIT | descomprimir los ZIP de sitios estáticos |
+| playwright (dev) | Apache-2.0 | navegador para la auditoría de accesibilidad |
+| @axe-core/playwright, axe-core (dev) | MPL-2.0 | reglas WCAG de la auditoría |
 | @fastify/formbody | MIT | formularios urlencoded |
 | @fastify/multipart | MIT | subida de archivos |
 | @fastify/static | MIT | css/js/imágenes estáticas |
