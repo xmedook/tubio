@@ -159,3 +159,6 @@ body.auth { display: grid; place-items: center; min-height: 100vh; padding: 1.25
   .auth-card { padding: 1.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.qr-figure { margin: 1rem 0; display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap; }
+.qr-figure svg { width: 220px; height: auto; border-radius: 8px; background: #fff; }
+.qr-figure figcaption { flex: 1 1 200px; color: var(--muted); }

@@ -32,6 +32,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 |---|---|
 | typescript | Apache-2.0 |
 | vitest | MIT |
+| zxing-wasm (tests: leer los QR generados) | MIT |
 | @types/node, @types/better-sqlite3, @types/qrcode, @types/nodemailer | MIT |
 
 ## Datos y assets
