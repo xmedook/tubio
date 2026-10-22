@@ -36,6 +36,11 @@ ${req.ctx.user
     return reply.redirect(next, 303)
   })
 
+  app.get('/robots.txt', async (_req, reply) =>
+    reply.type('text/plain').send('User-agent: *\nDisallow: /panel\nDisallow: /admin\nDisallow: /_/c/\nDisallow: /_/stats/\n'),
+  )
+  app.get('/favicon.ico', async (_req, reply) => reply.redirect('/_/static/img/favicon.svg', 301))
+
   // AGPL §13: quien usa el servicio por red puede obtener el código fuente
   app.get('/source', async (_req, reply) => reply.redirect(SOURCE_URL, 302))
 }

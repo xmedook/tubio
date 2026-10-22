@@ -656,5 +656,8 @@
   "admin.retention_hint": "Los eventos más viejos se borran solos.",
   "admin.registration_open": "Registro abierto",
   "admin.branding_forced": "Forzar «Hecho con tubio» en todas las páginas",
-  "admin.branding_forced_hint": "Ignora la opción de cada usuario y la marca propia."
+  "admin.branding_forced_hint": "Ignora la opción de cada usuario y la marca propia.",
+  "err.2fa_too_many": "Demasiados códigos incorrectos. Vuelve a entrar con tu contraseña.",
+  "err.password_wrong_email": "Para cambiar el correo escribe tu contraseña actual.",
+  "account.email_password_hint": "Sólo hace falta si cambias el correo."
 }

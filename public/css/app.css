@@ -262,3 +262,5 @@ body.auth .auth-card:has(.public-stats) { max-width: 960px; }
 .qr-thumb img { width: 100%; height: auto; display: block; }
 .qr-grid .title { font-weight: 650; }
 .qr-grid .sub { color: var(--muted); font-size: .88rem; }
+.h3, h2.h3 { font-size: 1rem; margin: 0 0 .5rem; }
+.stat-table h2.h3 { margin-top: 0; }

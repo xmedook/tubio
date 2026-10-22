@@ -55,12 +55,12 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
   ${kpi(Math.round(n('SELECT COALESCE(SUM(size), 0) FROM files') / 1048576), t('admin.storage_mb'))}
 </div>
 <div class="stat-grid">
-  <section class="card"><h3>${t('admin.links_by_kind')}</h3><table class="data"><tbody>${kinds.map((k) => html`<tr><td>${kindLabel(req.ctx, k.kind)}</td><td class="num">${formatNumber(locale, k.n)}</td></tr>`)}</tbody></table></section>
-  <section class="card"><h3>${t('admin.jobs')}</h3>${js.at
+  <section class="card"><h2 class="h3">${t('admin.links_by_kind')}</h2><table class="data"><tbody>${kinds.map((k) => html`<tr><td>${kindLabel(req.ctx, k.kind)}</td><td class="num">${formatNumber(locale, k.n)}</td></tr>`)}</tbody></table></section>
+  <section class="card"><h2 class="h3">${t('admin.jobs')}</h2>${js.at
     ? html`<p>${t('admin.jobs_last', { when: when(req, js.at) })}</p>${js.error ? html`<p class="error">${js.error}</p>` : html`<p class="mono small">${JSON.stringify(js.result)}</p>`}`
     : html`<p class="muted">${t('admin.jobs_never')}</p>`}</section>
 </div>
-<section class="card"><h3>${t('admin.audit')}</h3><div class="table-scroll"><table class="data"><thead><tr><th>${t('admin.when')}</th><th>${t('admin.who')}</th><th>${t('admin.action')}</th><th>${t('admin.target')}</th></tr></thead><tbody>
+<section class="card"><h2 class="h3">${t('admin.audit')}</h2><div class="table-scroll"><table class="data"><thead><tr><th>${t('admin.when')}</th><th>${t('admin.who')}</th><th>${t('admin.action')}</th><th>${t('admin.target')}</th></tr></thead><tbody>
 ${log.map((l) => html`<tr><td class="nowrap">${when(req, l.ts)}</td><td>${l.actor ?? (l.user_id ? `#${l.user_id}` : '—')}</td><td class="mono">${l.action}</td><td class="mono">${l.target}</td></tr>`)}
 </tbody></table></div></section>`, '/admin'))
   })

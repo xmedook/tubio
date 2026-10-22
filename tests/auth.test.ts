@@ -101,6 +101,19 @@ describe('login', () => {
     expect((await a.get('/panel')).statusCode).toBe(200)
   })
 
+  it('cinco códigos 2FA malos cierran la sesión pendiente', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    updateUser(t.deps.db, u.id, { totp_secret: generateSecret(), totp_enabled_at: 1 })
+    const a = new Agent(t.app)
+    await a.get('/login')
+    await a.post('/login', { email: 'ana@example.com', password: 'contrasena-segura' })
+    await a.get('/login/2fa')
+    for (let i = 0; i < 4; i++) expect((await a.post('/login/2fa', { code: '000000' })).statusCode).toBe(401)
+    expect((await a.post('/login/2fa', { code: '000000' })).headers.location).toBe('/login')
+    expect((await a.get('/login/2fa')).headers.location).toBe('/login')
+  })
+
   it('next sólo acepta rutas internas', async () => {
     const t = await makeApp()
     await seedUser(t)

@@ -47,6 +47,7 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
       ${select({ ctx, name: 'locale', label: t('account.language'), value: user.locale, options: [{ value: 'es-MX', label: 'Español (México)' }, { value: 'en', label: 'English' }] })}
       ${select({ ctx, name: 'timezone', label: t('account.timezone'), value: user.timezone, error: e('profile').timezone, options: TIMEZONES.map((z) => ({ value: z, label: z.replace(/_/g, ' ') })) })}
     </div>
+    ${input({ ctx, name: 'current', type: 'password', label: t('account.current_password'), error: e('profile').current, autocomplete: 'current-password', hint: t('account.email_password_hint') })}
     <button class="btn btn-primary" type="submit">${t('common.save')}</button>
   </form>
 </section>
@@ -134,6 +135,9 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     if (!r.ok) return sendHtml(reply, accountPage(req.ctx, user, { profile: r.errors }, values), 422)
     const email = normalizeEmail(r.data.email)
     const changedEmail = email !== user.email
+    if (changedEmail && !req.ctx.session?.impersonator_id && !(await verifyPassword(field(req.body, 'current'), user.password_hash))) {
+      return sendHtml(reply, accountPage(req.ctx, user, { profile: { current: 'err.password_wrong_email' } }, values), 422)
+    }
     if (changedEmail && findUserByEmail(db, email)) {
       return sendHtml(reply, accountPage(req.ctx, user, { profile: { email: 'err.email_taken' } }, values), 422)
     }

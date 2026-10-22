@@ -66,7 +66,7 @@ function label(ctx: Ctx, dim: Dimension, key: string | null): string {
 
 function table(ctx: Ctx, dim: Dimension, rows: Row[], total: number): SafeHtml {
   const { t, locale } = ctx
-  return html`<section class="card stat-table"><h3>${t(`stats.dim_${dim}`)}</h3>
+  return html`<section class="card stat-table"><h2 class="h3">${t(`stats.dim_${dim}`)}</h2>
 ${rows.length === 0
   ? html`<p class="muted">${t('stats.no_data')}</p>`
   : html`<table class="data"><thead><tr><th scope="col">${t(`stats.dim_${dim}`)}</th><th scope="col" class="num">${t('stats.total')}</th><th scope="col" class="num">%</th></tr></thead><tbody>
@@ -99,14 +99,14 @@ export function reportBody(ctx: Ctx, r: Report, opts: { exportBase?: string; blo
 </div>
 <div class="card">${chartSvg(ctx, r)}</div>
 ${opts.links && r.links.length
-  ? html`<section class="card"><h3>${t('stats.top_links')}</h3><table class="data"><thead><tr><th scope="col">${t('nav.links')}</th><th class="num" scope="col">${t('stats.views')}</th><th class="num" scope="col">${t('stats.clicks')}</th></tr></thead><tbody>
+  ? html`<section class="card"><h2 class="h3">${t('stats.top_links')}</h2><table class="data"><thead><tr><th scope="col">${t('nav.links')}</th><th class="num" scope="col">${t('stats.views')}</th><th class="num" scope="col">${t('stats.clicks')}</th></tr></thead><tbody>
     ${r.links.map((l) => {
       const link = opts.links?.get(l.link_id)
       return html`<tr><td>${link ? html`<a href="/panel/links/${link.id}/stats">${link.title || link.alias}</a>` : `#${l.link_id}`}</td><td class="num">${formatNumber(locale, l.views)}</td><td class="num">${formatNumber(locale, l.clicks)}</td></tr>`
     })}</tbody></table></section>`
   : ''}
 ${opts.blocks
-  ? html`<section class="card"><h3>${t('stats.block_clicks')}</h3>${r.blocks.length === 0
+  ? html`<section class="card"><h2 class="h3">${t('stats.block_clicks')}</h2>${r.blocks.length === 0
       ? html`<p class="muted">${t('stats.no_data')}</p>`
       : html`<table class="data"><thead><tr><th scope="col">${t('bio.blocks')}</th><th class="num" scope="col">${t('stats.clicks')}</th></tr></thead><tbody>
         ${r.blocks.map((b) => {
@@ -117,7 +117,7 @@ ${opts.blocks
   : ''}
 <div class="stat-grid">
   ${(['country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign'] as const).map((d) => table(ctx, d, r.breakdowns[d], total))}
-  <section class="card stat-table"><h3>${t('stats.hours')}</h3>
+  <section class="card stat-table"><h2 class="h3">${t('stats.hours')}</h2>
     <div class="hours" role="img" aria-label="${t('stats.hours')}">${r.hours.map((n, h) => html`<span class="hour" title="${h}:00 · ${formatNumber(locale, n)}"><span class="hour-bar" style="height:${Math.round((n / hourMax) * 100)}%"></span><span class="hour-l">${h % 3 === 0 ? h : ''}</span></span>`)}</div>
   </section>
 </div>

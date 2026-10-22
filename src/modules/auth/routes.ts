@@ -26,6 +26,9 @@ const loginSchema = z.object({ email: z.string().trim().min(1, 'err.required'), 
 /** scrypt de relleno para que "usuario no existe" tarde lo mismo que "contraseña mala" */
 let dummyHash: Promise<string> | null = null
 
+/** Códigos 2FA fallidos permitidos por inicio de sesión */
+const MAX_2FA_ATTEMPTS = 5
+
 const AUTH_LIMIT = { rateLimit: { max: 10, timeWindow: '1 minute' } }
 
 export function startSession(req: FastifyRequest, reply: FastifyReply, deps: AppDeps, userId: number, pending2fa = false, impersonatorId: number | null = null) {
@@ -119,6 +122,13 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     const next = safeNext(field(req.body, 'next'), '')
     const user = findUserById(db, session.user_id)
     if (!user?.totp_secret || !verifyTotp(user.totp_secret, field(req.body, 'code'), deps.now())) {
+      db.prepare('UPDATE sessions SET failed_2fa = failed_2fa + 1 WHERE id_hash = ?').run(session.id_hash)
+      if ((session.failed_2fa ?? 0) + 1 >= MAX_2FA_ATTEMPTS) {
+        destroySession(db, session.id_hash)
+        reply.clearCookie(SESSION_COOKIE, { path: '/' })
+        setFlash(reply, deps, { type: 'error', key: 'err.2fa_too_many' })
+        return reply.redirect('/login', 303)
+      }
       return sendHtml(reply, twoFactorPage(req.ctx, { code: 'err.2fa_invalid' }, next), 401)
     }
     startSession(req, reply, deps, user.id)

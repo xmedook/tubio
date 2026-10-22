@@ -13,6 +13,7 @@ export type Session = {
   user_id: number
   csrf: string
   pending_2fa: number
+  failed_2fa?: number
   impersonator_id: number | null
   created_at: number
   expires_at: number

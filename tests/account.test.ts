@@ -20,7 +20,9 @@ describe('cuenta', () => {
     const t = await makeApp()
     await seedUser(t)
     const a = await loginAgent(t)
-    await a.post('/panel/account/profile', { name: 'Ana', email: 'nuevo@example.com', locale: 'es-MX', timezone: 'America/Mexico_City' })
+    const sinClave = await a.post('/panel/account/profile', { name: 'Ana', email: 'nuevo@example.com', locale: 'es-MX', timezone: 'America/Mexico_City' })
+    expect(sinClave.statusCode).toBe(422)
+    await a.post('/panel/account/profile', { name: 'Ana', email: 'nuevo@example.com', locale: 'es-MX', timezone: 'America/Mexico_City', current: 'contrasena-segura' })
     const u = findUserByEmail(t.deps.db, 'nuevo@example.com')!
     expect(u.email_verified_at).toBeNull()
     expect(t.mailer.sent.at(-1)!.to).toBe('nuevo@example.com')
