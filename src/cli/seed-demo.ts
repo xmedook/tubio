@@ -31,7 +31,7 @@ const theme = process.argv[3] ?? 'nube'
 const link = createLink(db, user.id, {
   project_id: null, alias, kind: 'bio', title: 'Ana Demo', target_url: null, redirect_code: 302,
   data: { ...defaultBioData('Ana Demo · diseño y fotografía', ''), theme, seo_description: 'Diseñadora y fotógrafa en CDMX' },
-  is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false,
+  is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false,
 }, now)
 const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs><rect width="400" height="400" fill="url(#g)"/><circle cx="200" cy="160" r="70" fill="#fde68a"/><rect x="95" y="250" width="210" height="150" rx="100" fill="#fde68a"/></svg>`)
 const avatar = await storeImage(deps, user.id, await sharp(svg).png().toBuffer(), 'avatar.png', { maxDim: 400, square: true })

@@ -42,6 +42,7 @@ export function dashboardPage(
   <div class="btn-row" role="group" aria-label="${t('links.new')}">
     <a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>
     <a class="btn" href="/panel/links/new?kind=short">${t('links.new_short')}</a>
+    <a class="btn" href="/panel/stats">${t('stats.title')}</a>
     <details class="menu"><summary class="btn">${t('links.more')}</summary>
       <div class="menu-body">
         <a href="/panel/links/new?kind=file">${t('links.kind_file')}</a>
@@ -188,6 +189,7 @@ ${hasErrors ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p
       ${select({ ctx, name: 'project_id', label: t('nav.projects'), value: v.project_id, options: projectOptions(ctx, opts.projects) })}
     </div>
     ${checkbox({ name: 'is_enabled', label: t('links.enabled'), checked: !!v.is_enabled, hint: t('links.enabled_hint') })}
+    ${checkbox({ name: 'public_stats', label: t('links.public_stats'), checked: !!v.public_stats, hint: t('links.public_stats_hint') })}
   </div>
 
   <h2>${t('links.options')}</h2>

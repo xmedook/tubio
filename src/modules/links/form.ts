@@ -33,6 +33,7 @@ export function valuesFromLink(link: Link, tz: string): FormValues {
     has_password: link.password_hash ? '1' : '',
     is_sensitive: link.is_sensitive ? '1' : '',
     forward_query: link.forward_query ? '1' : '',
+    public_stats: link.public_stats ? '1' : '',
   }
   for (const k of UTM_KEYS) v[k] = link.utm[k] ?? ''
   const d = link.data
@@ -221,6 +222,7 @@ export async function parseLinkForm(
       is_sensitive: checked(body, 'is_sensitive'),
       utm,
       forward_query: checked(body, 'forward_query'),
+      public_stats: checked(body, 'public_stats'),
     },
   }
 }

@@ -26,6 +26,7 @@ type Row = {
   is_sensitive: number
   utm: string
   forward_query: number
+  public_stats: number
   clicks: number
   created_at: number
   updated_at: number
@@ -66,13 +67,14 @@ export type LinkInput = {
   is_sensitive: boolean
   utm: Utm
   forward_query: boolean
+  public_stats: boolean
 }
 
 function toParams(input: Partial<LinkInput>): Record<string, unknown> {
   const p: Record<string, unknown> = { ...input }
   if (input.data) p.data = JSON.stringify(input.data)
   if (input.utm) p.utm = JSON.stringify(input.utm)
-  for (const k of ['is_enabled', 'is_sensitive', 'forward_query'] as const) if (k in input) p[k] = input[k] ? 1 : 0
+  for (const k of ['is_enabled', 'is_sensitive', 'forward_query', 'public_stats'] as const) if (k in input) p[k] = input[k] ? 1 : 0
   return p
 }
 
@@ -85,7 +87,7 @@ export function createLink(db: DB, userId: number, input: LinkInput, now: number
 
 const UPDATABLE = new Set([
   'project_id', 'alias', 'title', 'target_url', 'redirect_code', 'data', 'is_enabled', 'starts_at', 'ends_at',
-  'expired_url', 'click_limit', 'limit_url', 'password_hash', 'is_sensitive', 'utm', 'forward_query',
+  'expired_url', 'click_limit', 'limit_url', 'password_hash', 'is_sensitive', 'utm', 'forward_query', 'public_stats',
 ])
 
 export function updateLink(db: DB, id: number, patch: Partial<LinkInput>, now: number): void {

@@ -5,6 +5,8 @@ export type GeoResult = { country: string | null; city: string | null }
 
 export interface Geo {
   lookup(ip: string): GeoResult
+  /** true si hay base cargada (hay que mostrar su atribución) */
+  attribution?: boolean
 }
 
 export const noGeo: Geo = { lookup: () => ({ country: null, city: null }) }
@@ -17,6 +19,7 @@ export async function openGeo(path: string): Promise<Geo> {
   if (!existsSync(path)) return noGeo
   const reader: Reader<CityResponse> = await maxmind.open<CityResponse>(path)
   return {
+    attribution: true,
     lookup(ip) {
       try {
         const r = reader.get(ip)
