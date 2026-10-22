@@ -26,6 +26,7 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['reports', '/admin/reports', t('admin.reports')],
     ['payments', '/admin/payments', t('admin.payments')],
     ['pages', '/admin/pages', t('site.admin')],
+    ['referrals', '/admin/referrals', t('ref.title')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
@@ -188,7 +189,7 @@ ${self ? '' : html`<div class="card danger-zone"><h3>${t('admin.delete_user')}</
 <div class="table-scroll"><table class="data"><thead><tr><th>${t('links.alias')}</th><th>${t('admin.owner')}</th><th>${t('links.kind')}</th><th>${t('links.target_url')}</th><th class="num">${t('links.clicks')}</th><th></th></tr></thead><tbody>
 ${rows.map((l) => html`<tr><td><a href="${linkUrl(req.ctx.baseUrl, l)}" target="_blank" rel="noopener">/${l.alias}</a>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}</td>
   <td><a href="/admin/users/${l.user_id}">${l.owner}</a></td><td>${kindLabel(req.ctx, l.kind)}</td><td class="mono small">${l.target_url ?? ''}</td><td class="num">${formatNumber(locale, l.clicks)}</td>
-  <td>${postButton(req.ctx, `/admin/links/${l.id}/toggle`, l.is_enabled ? t('admin.disable') : t('admin.enable'), { cls: 'btn btn-sm' })}</td></tr>`)}
+  <td>${postButton(req.ctx, `/admin/links/${l.id}/toggle`, l.is_enabled ? t('admin.disable') : t('admin.enable'), { cls: 'btn btn-sm' })}${l.kind === 'bio' ? postButton(req.ctx, `/admin/links/${l.id}/dir-hide`, (l as Link & { dir_hidden?: number }).dir_hidden ? t('dir.show') : t('dir.hide'), { cls: 'btn btn-sm' }) : ''}</td></tr>`)}
 </tbody></table></div>`, '/admin/links'))
   })
 

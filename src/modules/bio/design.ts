@@ -119,6 +119,8 @@ export const designSchema = z.object({
   brand_url: text(2048),
   share_button: z.boolean().default(true),
   pwa: z.boolean().default(false),
+  directory: z.boolean().default(false),
+  category: z.enum(['', 'creator', 'business', 'music', 'art', 'food', 'education', 'tech', 'health', 'nonprofit', 'other']).default(''),
   leap_url: text(2048),
 })
 export type Design = z.infer<typeof designSchema>

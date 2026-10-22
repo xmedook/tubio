@@ -87,7 +87,10 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       passwordHash: await hashPassword(r.data.password),
       locale: req.ctx.locale,
     }, deps.now())
-    audit(db, { actorId: user.id, userId: user.id, action: 'user.register', meta: { terms: LEGAL_UPDATED } }, deps.now())
+    const ref = req.cookies.tb_ref ? req.unsignCookie(req.cookies.tb_ref) : null
+    const referrer = ref?.valid && ref.value ? (db.prepare('SELECT id FROM users WHERE ref_code = ?').pluck().get(ref.value) as number | undefined) : undefined
+    if (referrer && referrer !== user.id) updateUser(db, user.id, { referred_by: referrer }, deps.now())
+    audit(db, { actorId: user.id, userId: user.id, action: 'user.register', meta: { terms: LEGAL_UPDATED, ref: referrer ?? null } }, deps.now())
     await sendVerifyEmail(deps, user)
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })

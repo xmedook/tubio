@@ -14,6 +14,7 @@ import { findUserById, updateUser, type User } from '../users/repo.ts'
 import { activatePayment, checkCoupon, newReference, PERIODS, priceOf, quote, type Coupon, type Payment, type Period } from './billing.ts'
 import { getPlan, getPlanBySlug, listPlans, planOf, type Plan } from './limits.ts'
 import { receiptPdf } from './receipt.ts'
+import { creditReferral } from '../growth/routes.ts'
 import { money } from './routes.ts'
 
 const env = process.env
@@ -305,6 +306,7 @@ ${postButton(ctx, '/admin/coupons/delete', t('common.delete'), { cls: 'btn btn-s
     if (!p || p.status !== 'pending') return reply.callNotFound()
     const now = deps.now()
     const expires = activatePayment(db, p, now)
+    creditReferral(deps, p)
     db.prepare('UPDATE payments SET reviewed_by = ? WHERE id = ?').run(actorOf(req), p.id)
     audit(db, { actorId: actorOf(req), userId: p.user_id, action: 'pay.approved', target: `payment:${p.id}`, meta: { reference: p.reference } }, now)
     const u = findUserById(db, p.user_id)

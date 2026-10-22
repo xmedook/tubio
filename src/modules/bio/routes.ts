@@ -48,13 +48,13 @@ async function parseDesign(deps: AppDeps, user: User, mp: MultipartData, current
   const raw: Record<string, unknown> = {}
   for (const k of Object.keys(designSchema.shape)) {
     if (k in IMAGE_FIELDS) continue
-    const isCheck = ['noindex', 'show_branding', 'share_button', 'pwa'].includes(k)
+    const isCheck = ['noindex', 'show_branding', 'share_button', 'pwa', 'directory'].includes(k)
     // campo que no vino en el formulario: se conserva el valor actual
     if (!isCheck && b[k] === undefined && b[`${k}__theme`] === undefined) {
       raw[k] = current[k as keyof Design]
       continue
     }
-    if (['noindex', 'show_branding', 'share_button', 'pwa'].includes(k)) raw[k] = checked(b, k)
+    if (['noindex', 'show_branding', 'share_button', 'pwa', 'directory'].includes(k)) raw[k] = checked(b, k)
     else if (['text_color', 'btn_bg', 'btn_text', 'btn_border_color'].includes(k)) raw[k] = checked(b, `${k}__theme`) ? null : f(k).toLowerCase()
     else if (['btn_border_width', 'btn_radius'].includes(k)) raw[k] = f(k).trim() === '' ? null : f(k)
     else raw[k] = f(k)

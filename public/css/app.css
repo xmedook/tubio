@@ -323,3 +323,9 @@ table.plans .price { display: block; font-size: 1.3rem; font-weight: 800; margin
 table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok); font-weight: 800; }
 .domain-pick { margin-bottom: .4rem; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
 .post-item { border-bottom: 1px solid var(--border); padding: .5rem 0 1rem; } .post-item h2 { margin-bottom: .2rem; }
+.dir-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.dir-card { display: flex; flex-direction: column; align-items: center; gap: .4rem; text-align: center; padding: 1.2rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; text-decoration: none; color: var(--text); box-shadow: var(--shadow); height: 100%; }
+.dir-card:hover { border-color: var(--accent); }
+.dir-card img, .dir-ph { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+.dir-ph { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 1.5rem; }
+.dir-t { font-weight: 700; } .dir-d { color: var(--muted); font-size: .88rem; }
