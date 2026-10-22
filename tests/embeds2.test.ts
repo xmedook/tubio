@@ -51,6 +51,10 @@ describe('embeds de redes y herramientas', () => {
     const file = await new Agent(t.app).get(`/_/pdf/${pdf.id}`, ua)
     expect(file.headers['content-type']).toBe('application/pdf')
     expect(file.headers['x-frame-options']).toBe('SAMEORIGIN')
+    // abierto como página suelta se descarga, no se muestra en tubio.link
+    const top = await new Agent(t.app).get(`/_/pdf/${pdf.id}`, { ...ua, 'sec-fetch-dest': 'document' })
+    expect(top.headers.location).toBe(`/_/pdf/${pdf.id}?download=1`)
+    expect((await new Agent(t.app).get(`/_/pdf/${pdf.id}`, { ...ua, 'sec-fetch-dest': 'iframe' })).headers['content-disposition']).toContain('inline')
   })
 })
 

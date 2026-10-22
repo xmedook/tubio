@@ -85,7 +85,7 @@ ${b
     let coupon: Coupon | null = null
     let err: string | undefined
     if (code) {
-      const c = checkCoupon(db, code, pp.plan, deps.now())
+      const c = checkCoupon(db, code, pp.plan, deps.now(), me(req).id)
       if ('error' in c) err = c.error
       else coupon = c.coupon
     }
@@ -97,10 +97,16 @@ ${b
     const pp = payPlan(req)
     if (!pp || !bank()) return reply.redirect('/panel/plan', 303)
     const user = me(req)
+    // pagar un plan menor mientras el mayor sigue vigente le recortaría el tiempo ya pagado
+    const cur = planOf(db, user, deps.now())
+    if (cur.slug !== 'free' && cur.slug !== 'admin' && cur.id !== pp.plan.id && cur.sort > pp.plan.sort) {
+      setFlash(reply, deps, { type: 'error', key: 'err.plan_downgrade', vars: { plan: cur.name } })
+      return reply.redirect('/panel/plan', 303)
+    }
     const code = field(req.body, 'coupon').trim()
     let coupon: Coupon | null = null
     if (code) {
-      const c = checkCoupon(db, code, pp.plan, deps.now())
+      const c = checkCoupon(db, code, pp.plan, deps.now(), me(req).id)
       if ('error' in c) return sendHtml(reply, checkoutPage(req.ctx, user, pp.plan, pp.period, null, c.error), 422)
       coupon = c.coupon
     }

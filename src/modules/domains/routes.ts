@@ -111,6 +111,8 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
 
   /** Caddy (on_demand_tls → ask) pregunta si emite certificado para un host. Sólo desde la máquina. */
   app.get('/_/caddy/ask', async (req, reply) => {
+    // detrás del proxy público (nginx) todo llega desde 127.0.0.1: si trae cabeceras de reenvío, no es Caddy
+    if (req.headers['x-forwarded-for'] || req.headers['x-real-ip']) return reply.code(403).send('no')
     const ip = req.socket.remoteAddress ?? ''
     if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip) && !(process.env.TUBIO_CADDY_IPS ?? '').split(',').includes(ip)) return reply.code(403).send('no')
     const host = normalizeHost(String((req.query as { domain?: string }).domain ?? ''))

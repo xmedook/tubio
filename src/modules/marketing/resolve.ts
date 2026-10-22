@@ -114,7 +114,8 @@ export function respondShort(deps: AppDeps, req: FastifyRequest, reply: FastifyR
     }
   }
 
-  if (link.cloak) {
+  // ocultar el destino muestra contenido ajeno bajo tubio.link: sólo cuentas verificadas
+  if (link.cloak && owner.email_verified_at) {
     let origin = ''
     try {
       origin = new URL(dest).origin

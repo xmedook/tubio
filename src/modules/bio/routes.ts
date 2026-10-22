@@ -370,6 +370,9 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     const p = uploadPath(deps, f.key)
     if (!existsSync(p)) return reply.callNotFound()
     const download = (req.query as { download?: string }).download === '1'
+    // en línea sólo dentro de la página (un PDF suelto en tubio.link serviría de anzuelo); suelto, se descarga
+    const dest = req.headers['sec-fetch-dest']
+    if (!download && dest && !['iframe', 'embed', 'object'].includes(String(dest))) return reply.redirect(`/_/pdf/${r.b.id}?download=1`, 302)
     const ascii = f.original_name.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_')
     reply.header('Content-Disposition', `${download ? 'attachment' : 'inline'}; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(f.original_name)}`)
     reply.header('X-Frame-Options', 'SAMEORIGIN')

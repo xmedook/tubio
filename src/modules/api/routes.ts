@@ -293,7 +293,7 @@ ${postButton(ctx, `/panel/api/${k.id}/delete`, t('api.revoke'), { cls: 'btn btn-
     const since = Date.parse(q.since ?? '') || 0
     const rows = db
       .prepare("SELECT c.id, c.kind, c.data, c.created_at, l.alias FROM collected c JOIN links l ON l.id = c.link_id WHERE c.user_id = ? AND c.kind != 'poll' AND c.created_at > ? ORDER BY c.created_at LIMIT ?")
-      .all(U(req).id, since, Math.min(500, Number(q.limit) || 100)) as { id: number; kind: string; data: string; created_at: number; alias: string }[]
+      .all(U(req).id, since, Math.min(500, Math.max(1, Number(q.limit) || 100))) as { id: number; kind: string; data: string; created_at: number; alias: string }[]
     return { items: rows.map((r) => ({ id: r.id, kind: r.kind, page: r.alias, data: JSON.parse(r.data), created_at: new Date(r.created_at).toISOString() })) }
   })
 

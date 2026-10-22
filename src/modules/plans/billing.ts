@@ -34,11 +34,15 @@ export function priceOf(plan: Plan, period: Period): number | null {
 export type Coupon = { code: string; percent_off: number; max_uses: number | null; used: number; expires_at: number | null; plans: string }
 
 /** Cupón aplicable o la clave del error */
-export function checkCoupon(db: DB, code: string, plan: Plan, now: number): { coupon: Coupon } | { error: string } {
+export function checkCoupon(db: DB, code: string, plan: Plan, now: number, userId: number): { coupon: Coupon } | { error: string } {
   const c = db.prepare('SELECT * FROM coupons WHERE code = ?').get(code.trim().toUpperCase()) as Coupon | undefined
   if (!c) return { error: 'err.coupon_invalid' }
   if (c.expires_at && c.expires_at < now) return { error: 'err.coupon_expired' }
-  if (c.max_uses !== null && c.used >= c.max_uses) return { error: 'err.coupon_used' }
+  // los pagos pendientes de otras personas ya apartan su uso (se cuenta al aprobar)
+  const reserved = db.prepare("SELECT COUNT(*) FROM payments WHERE coupon_code = ? AND status = 'pending' AND user_id != ?").pluck().get(c.code, userId) as number
+  if (c.max_uses !== null && c.used + reserved >= c.max_uses) return { error: 'err.coupon_used' }
+  // una vez por persona
+  if (db.prepare("SELECT 1 FROM payments WHERE coupon_code = ? AND user_id = ? AND (status = 'paid' OR (status = 'pending' AND proof_file_id IS NOT NULL))").get(c.code, userId)) return { error: 'err.coupon_used' }
   let plans: string[] = []
   try {
     plans = JSON.parse(c.plans)

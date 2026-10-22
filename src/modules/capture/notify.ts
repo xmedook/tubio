@@ -67,6 +67,13 @@ export function validateTarget(kind: TargetKind, raw: Record<string, string>): {
 
 export type Notice = { title: string; lines: [string, string][]; url: string; at: number; payload: Record<string, unknown> }
 
+/** Lo que escribió el visitante no debe volverse enlace ni formato en Slack/Discord */
+export const slackEsc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+export const discordEsc = (s: string) => s.replace(/([\\`*_~|>\[\]()#@])/g, '\\$1')
+function escNotice(n: Notice, esc: (s: string) => string): Notice {
+  return { ...n, lines: n.lines.map(([k, v]) => [k, esc(v)] as [string, string]) }
+}
+
 function plain(n: Notice): string {
   return [n.title, '', ...n.lines.map(([k, v]) => `${k}: ${v}`), '', n.url].join('\n')
 }
@@ -95,12 +102,12 @@ export async function deliver(deps: AppDeps, t: Target, n: Notice): Promise<void
       return
     }
     case 'slack': {
-      const r = await safeFetch(t.config.url as string, json({ text: plain(n) }))
+      const r = await safeFetch(t.config.url as string, json({ text: plain(escNotice(n, slackEsc)) }))
       ok(r.status)
       return
     }
     case 'discord': {
-      const r = await safeFetch(t.config.url as string, json({ content: plain(n).slice(0, 1900), allowed_mentions: { parse: [] } }))
+      const r = await safeFetch(t.config.url as string, json({ content: plain(escNotice(n, discordEsc)).slice(0, 1900), allowed_mentions: { parse: [] }, flags: 4 }))
       ok(r.status)
       return
     }

@@ -1291,5 +1291,6 @@
   "ref.none": "No hay comisiones pendientes",
   "ref.mark_paid": "Marcar pagada",
   "ref.void": "Anular",
-  "err.verify_first": "Primero confirma tu correo: te mandamos un enlace al registrarte (puedes pedir otro desde Cuenta)."
+  "err.verify_first": "Primero confirma tu correo: te mandamos un enlace al registrarte (puedes pedir otro desde Cuenta).",
+  "err.plan_downgrade": "Tu plan {plan} sigue vigente: podrás cambiar a uno menor cuando termine. Si lo necesitas antes, escríbenos."
 }

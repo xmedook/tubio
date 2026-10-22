@@ -1291,5 +1291,6 @@
   "ref.none": "No pending commissions",
   "ref.mark_paid": "Mark paid",
   "ref.void": "Void",
-  "err.verify_first": "Confirm your email first: we sent you a link when you signed up (you can request another from Account)."
+  "err.verify_first": "Confirm your email first: we sent you a link when you signed up (you can request another from Account).",
+  "err.plan_downgrade": "Your {plan} plan is still active: you can switch to a lower one when it ends. Write to us if you need it sooner."
 }

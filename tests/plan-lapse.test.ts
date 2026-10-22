@@ -87,3 +87,39 @@ describe('al vencer el plan', () => {
     await expect(deliver(t.deps, target as never, { title: 'x', lines: [], url: '', at: 0, payload: {} })).rejects.toThrow('plan_lapsed')
   })
 })
+
+describe('avisos y Caddy', () => {
+  it('escapa texto del visitante para Slack y Discord', async () => {
+    const { slackEsc, discordEsc } = await import('../src/modules/capture/notify.ts')
+    expect(slackEsc('<https://evil.mx|Tu banco>')).toBe('&lt;https://evil.mx|Tu banco&gt;')
+    expect(discordEsc('[Banco](https://evil.mx) **x**')).toBe('\\[Banco\\]\\(https://evil.mx\\) \\*\\*x\\*\\*')
+  })
+  it('ask de Caddy no responde a lo que llega por el proxy público', async () => {
+    const t = await makeApp()
+    const r = await t.app.inject({ method: 'GET', url: '/_/caddy/ask?domain=x.com', remoteAddress: '127.0.0.1', headers: { 'x-forwarded-for': '8.8.8.8' } })
+    expect(r.statusCode).toBe(403)
+  })
+})
+
+describe('cupones', () => {
+  it('pendientes ajenos apartan usos; una vez por persona; no se baja de plan vigente', async () => {
+    process.env.TUBIO_BANK_CLABE = '012345678901234567'
+    const t = await makeApp()
+    const a1 = await seedUser(t)
+    const a2 = await seedUser(t, 'beto@example.com')
+    t.deps.db.prepare("INSERT INTO coupons (code, percent_off, max_uses, plans, created_at) VALUES ('UNO', 50, 1, '[]', 0)").run()
+    const a = await loginAgent(t)
+    await a.get('/panel/checkout?plan=pro&period=month')
+    expect((await a.post('/panel/checkout?plan=pro&period=month', { coupon: 'UNO' })).statusCode).toBe(303)
+    const b = await loginAgent(t, 'beto@example.com')
+    await b.get('/panel/checkout?plan=pro&period=month')
+    expect((await b.post('/panel/checkout?plan=pro&period=month', { coupon: 'UNO' })).statusCode).toBe(422)
+    // mismo usuario puede rehacer su pago pendiente sin comprobante
+    expect((await a.post('/panel/checkout?plan=pro&period=month', { coupon: 'UNO' })).statusCode).toBe(303)
+    setPlan(t, a2.id, 'business', t.clock.now + 300 * 86400_000)
+    const down = await b.post('/panel/checkout?plan=pro&period=month', {})
+    expect(down.headers.location).toBe('/panel/plan')
+    void a1
+    delete process.env.TUBIO_BANK_CLABE
+  })
+})

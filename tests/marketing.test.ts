@@ -70,6 +70,9 @@ describe('marketing en enlaces', () => {
     const { t, a } = await setup()
     await a.get('/panel/links/new?kind=short')
     await a.postMultipart('/panel/links?kind=short', { alias: 'oculto', target_url: 'https://sitio.mx/pagina', is_enabled: '1', cloak: '1' })
+    // sin correo verificado: redirect normal
+    expect((await new Agent(t.app).get('/oculto', { 'user-agent': MAC })).statusCode).toBe(302)
+    t.deps.db.prepare('UPDATE users SET email_verified_at = 1').run()
     const page = await new Agent(t.app).get('/oculto', { 'user-agent': MAC })
     expect(page.body).toContain('<iframe class="cloak" src="https://sitio.mx/pagina"')
     expect(String(page.headers['content-security-policy'])).toContain('frame-src https://sitio.mx')
