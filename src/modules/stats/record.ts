@@ -1,3 +1,4 @@
+import { addEvent } from './buffer.ts'
 import Bowser from 'bowser'
 import type { FastifyRequest } from 'fastify'
 import { isbot } from 'isbot'
@@ -88,31 +89,26 @@ export function recordEvent(
   } catch {
     /* sin baseUrl válida */
   }
-  deps.db
-    .prepare(
-      `INSERT INTO stat_events (link_id, block_id, kind, ts, day, hour, visitor, country, city, device, os, browser, lang, referrer, utm_source, utm_medium, utm_campaign, variant)
-       VALUES (@link_id, @block_id, @kind, @ts, @day, @hour, @visitor, @country, @city, @device, @os, @browser, @lang, @referrer, @utm_source, @utm_medium, @utm_campaign, @variant)`,
-    )
-    .run({
-      link_id: e.linkId,
-      block_id: e.blockId ?? null,
-      kind: e.kind,
-      ts,
-      day,
-      hour: new Date(ts).getUTCHours(),
-      visitor,
-      country: geo.country,
-      city: geo.city,
-      device: dev.device,
-      os: dev.os,
-      browser: dev.browser,
-      lang: visit.lang,
-      referrer: referrerHost(visit.referrer, ownHost),
-      utm_source: visit.utm.source,
-      utm_medium: visit.utm.medium,
-      utm_campaign: visit.utm.campaign,
-      variant: e.variant ?? null,
-    })
+  addEvent(deps.db, {
+    link_id: e.linkId,
+    block_id: e.blockId ?? null,
+    kind: e.kind,
+    ts,
+    day,
+    hour: new Date(ts).getUTCHours(),
+    visitor,
+    country: geo.country,
+    city: geo.city,
+    device: dev.device,
+    os: dev.os,
+    browser: dev.browser,
+    lang: visit.lang,
+    referrer: referrerHost(visit.referrer, ownHost),
+    utm_source: visit.utm.source,
+    utm_medium: visit.utm.medium,
+    utm_campaign: visit.utm.campaign,
+    variant: e.variant ?? null,
+  })
   return true
 }
 

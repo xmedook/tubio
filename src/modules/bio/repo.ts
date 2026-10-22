@@ -1,3 +1,4 @@
+import { addBlockClick } from '../stats/buffer.ts'
 import type { DB } from '../../db/index.ts'
 import type { BlockRow, BlockStyle } from './blocks.ts'
 
@@ -99,7 +100,7 @@ export function moveBlock(db: DB, linkId: number, id: number, dir: -1 | 1): void
 }
 
 export function incrementBlockClicks(db: DB, id: number): void {
-  db.prepare('UPDATE bio_blocks SET clicks = clicks + 1 WHERE id = ?').run(id)
+  addBlockClick(db, id)
 }
 
 /** Llaves de imágenes que usa una página (bloques + diseño), para limpiar huérfanas */

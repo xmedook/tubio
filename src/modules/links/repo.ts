@@ -1,3 +1,4 @@
+import { addLinkHit } from '../stats/buffer.ts'
 import { domainHost } from '../domains/repo.ts'
 import type { DB } from '../../db/index.ts'
 import type { Utm } from '../../lib/urls.ts'
@@ -173,7 +174,7 @@ export function deleteLink(db: DB, id: number): void {
 
 /** hits = toda entrega (tope de clics); clicks = sólo visitas humanas */
 export function incrementClicks(db: DB, id: number, human = true): void {
-  db.prepare('UPDATE links SET hits = hits + 1, clicks = clicks + ? WHERE id = ?').run(human ? 1 : 0, id)
+  addLinkHit(db, id, human)
 }
 
 export function linkUrl(baseUrl: string, link: Pick<Link, 'alias'> & { domain_id?: number }): string {

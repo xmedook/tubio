@@ -11,7 +11,7 @@ tus usuarios: la ruta `/source` del pie de página apunta a `TUBIO_SOURCE_URL`.
 - Plan y estado de la fase 1: [`docs/PLAN-F1.md`](docs/PLAN-F1.md)
 - Dependencias y licencias: [`docs/DEPENDENCIAS.md`](docs/DEPENDENCIAS.md)
 - Hoja de ruta: [`docs/ROADMAP.md`](docs/ROADMAP.md) · Cambios: [`CHANGELOG.md`](CHANGELOG.md)
-- Operar una instalación (desplegar, respaldar, restaurar, incidentes): [`docs/OPERACION.md`](docs/OPERACION.md)
+- Operar una instalación (desplegar, respaldar, restaurar, incidentes): [`docs/OPERACION.md`](docs/OPERACION.md) · Escala: [`docs/ESCALA.md`](docs/ESCALA.md) · Accesibilidad: [`docs/ACCESIBILIDAD.md`](docs/ACCESIBILIDAD.md)
 - API: [`docs/API.md`](docs/API.md) · Dominios propios: [`docs/DOMINIOS.md`](docs/DOMINIOS.md)
 - Contribuir: [`CONTRIBUTING.md`](CONTRIBUTING.md) · Seguridad: [`SECURITY.md`](SECURITY.md)
 
