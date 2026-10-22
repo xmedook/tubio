@@ -20,11 +20,11 @@ function preview(ctx: Ctx, link: Link): SafeHtml {
 </aside>`
 }
 
-export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[]): SafeHtml {
+export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: string[] = [], maxBlocks = MAX_BLOCKS_PER_PAGE): SafeHtml {
   const { t } = ctx
   const now = ctx.now
   const scheduled = (b: BlockRow) => (b.starts_at && now < b.starts_at) || (b.ends_at && now >= b.ends_at)
-  const full = blocks.length >= MAX_BLOCKS_PER_PAGE
+  const full = blocks.length >= maxBlocks
   return panelLayout(ctx, {
     title: t('bio.blocks'),
     active: 'links',
@@ -36,9 +36,9 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[]): SafeHtml {
   <section class="editor-main">
     <details class="card add-block"${blocks.length === 0 ? html` open` : ''}>
       <summary class="btn btn-primary">+ ${t('bio.add_block')}</summary>
-      ${full ? html`<p class="error">${t('bio.max_blocks', { n: MAX_BLOCKS_PER_PAGE })}</p>` : GROUPS.map(
+      ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : GROUPS.map(
         (g) => html`<h3>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
-          (b) => html`<a class="pick" href="/panel/links/${link.id}/blocks/new?type=${b.type}"><span class="pick-ico pi-${b.type}" aria-hidden="true"></span>${t(`bio.type_${b.type}`)}</a>`,
+          (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="pick-ico pi-${b.type}" aria-hidden="true"></span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
         )}</div>`,
       )}
     </details>

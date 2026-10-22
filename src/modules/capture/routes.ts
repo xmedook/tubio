@@ -14,6 +14,7 @@ import { availability, isConfirmed, isUnlocked } from '../public/gate.ts'
 import { dailySalt } from '../stats/record.ts'
 import { csvCell } from '../stats/query.ts'
 import type { User } from '../users/repo.ts'
+import { limitsOf } from '../plans/limits.ts'
 import { deliver, enqueue, getOwnTarget, listTargets, TARGET_KINDS, validateTarget, type Notice, type TargetKind } from './notify.ts'
 
 const KIND_OF: Record<string, 'email' | 'phone' | 'contact' | 'subscribe' | 'poll'> = {
@@ -236,6 +237,10 @@ ${list.length === 0
     const name = field(req.body, 'name').trim().slice(0, 60)
     if (!name) return sendHtml(reply, targetsPage(req.ctx, user, kind, { name: 'err.required' }, { ...raw, name }), 422)
     if (listTargets(deps, user.id).length >= 20) return sendHtml(reply, targetsPage(req.ctx, user, kind, { name: 'err.too_many_targets' }, { ...raw, name }), 422)
+    if (!limitsOf(db, user, deps.now()).capture_targets.includes(kind)) {
+      setFlash(reply, deps, { type: 'error', key: 'err.plan_feature' })
+      return reply.redirect('/panel/plan', 303)
+    }
     const v = validateTarget(kind, raw)
     if ('error' in v) return sendHtml(reply, targetsPage(req.ctx, user, kind, { [v.field]: v.error }, { ...raw, name }), 422)
     const id = Number(db.prepare('INSERT INTO notify_targets (user_id, kind, name, config, created_at) VALUES (?, ?, ?, ?, ?)').run(user.id, kind, name, JSON.stringify(v.config), deps.now()).lastInsertRowid)

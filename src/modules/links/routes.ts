@@ -11,6 +11,7 @@ import { dashboardPage, linkFormPage } from './views.ts'
 import { actorOf } from '../auth/routes.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
+import { limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 
 const PER_PAGE = 30
 export const DAILY_CAP_UNVERIFIED = 20
@@ -68,6 +69,12 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const today = db.prepare('SELECT COUNT(*) FROM links WHERE user_id = ? AND created_at > ?').pluck().get(user.id, deps.now() - 86400_000) as number
     if (today >= cap && user.role !== 'admin') {
       return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: user.email_verified_at ? 'err.daily_cap' : 'err.daily_cap_unverified' }, projects: listProjects(db, user.id) }), 429)
+    }
+    // límite del plan: páginas bio por un lado, el resto de enlaces por otro
+    const lim = limitsOf(db, user, deps.now())
+    const used = usageOf(db, user.id)
+    if (kind === 'bio' ? !withinLimit(lim.bio_pages, used.bio_pages) : !withinLimit(lim.links, used.links)) {
+      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: kind === 'bio' ? 'err.plan_bio_pages' : 'err.plan_links' }, projects: listProjects(db, user.id) }), 402)
     }
     let mp
     try {

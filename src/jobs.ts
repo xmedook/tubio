@@ -6,6 +6,7 @@ import { imageKeysInUse } from './modules/bio/repo.ts'
 import { getSetting } from './modules/settings/repo.ts'
 import { purgeStats } from './modules/stats/record.ts'
 import { runQueue } from './modules/capture/notify.ts'
+import { listPlans } from './modules/plans/limits.ts'
 
 /** Imágenes que ya nadie usa (bloque borrado, imagen reemplazada) y con más de un día */
 export function purgeOrphanImages(deps: AppDeps): number {
@@ -25,6 +26,24 @@ export function purgeOrphanImages(deps: AppDeps): number {
   return n
 }
 
+/** Retención por plan: borra eventos más viejos que los días del plan vigente de cada dueño */
+export function purgeStatsByPlan(deps: AppDeps): number {
+  const now = deps.now()
+  let n = 0
+  for (const p of listPlans(deps.db)) {
+    if (p.limits.stats_days < 0) continue
+    const cutoff = now - p.limits.stats_days * 86400_000
+    const cond =
+      p.slug === 'free'
+        ? '(u.plan_id IS NULL OR (u.plan_expires_at IS NOT NULL AND u.plan_expires_at <= @now))'
+        : 'u.plan_id = @plan AND (u.plan_expires_at IS NULL OR u.plan_expires_at > @now)'
+    n += deps.db
+      .prepare(`DELETE FROM stat_events WHERE ts < @cutoff AND link_id IN (SELECT l.id FROM links l JOIN users u ON u.id = l.user_id WHERE u.role != 'admin' AND ${cond})`)
+      .run({ cutoff, now, plan: p.id }).changes
+  }
+  return n
+}
+
 /** Tareas periódicas dentro del proceso (un solo host) */
 export function runJobs(deps: AppDeps): Record<string, number> {
   const stats = purgeStats(deps, getSetting(deps.db, 'stats_retention_days'))
@@ -32,6 +51,7 @@ export function runJobs(deps: AppDeps): Record<string, number> {
     sessions: purgeExpiredSessions(deps.db, deps.now()),
     stat_events: stats.events,
     stat_salts: stats.salts,
+    stat_events_plan: purgeStatsByPlan(deps),
     orphan_images: purgeOrphanImages(deps),
   }
 }

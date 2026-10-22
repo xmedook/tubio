@@ -36,6 +36,7 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
     active: 'account',
     path: '/panel/account',
     body: html`<h1>${t('account.title')}</h1>
+<p><a class="btn" href="/panel/plan">${t('plan.title')}</a></p>
 
 <section class="card" aria-labelledby="h-profile">
   <h2 id="h-profile">${t('account.profile')}</h2>

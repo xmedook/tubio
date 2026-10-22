@@ -5,8 +5,6 @@ export const SETTING_DEFAULTS = {
   site_name: 'tubio',
   registration_open: true,
   stats_retention_days: 365,
-  /** Espacio máximo de archivos por usuario (MB) */
-  upload_quota_mb: 200,
   /** Muestra "hecho con tubio" en las páginas bio (el usuario puede ocultarlo si esto es false) */
   branding_forced: false,
 }

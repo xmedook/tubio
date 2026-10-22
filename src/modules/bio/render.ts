@@ -8,6 +8,7 @@ import { ASSET_VERSION } from '../../views/layout.ts'
 import { sendHtml } from '../../web/context.ts'
 import { linkUrl, type Link } from '../links/repo.ts'
 import { getSetting } from '../settings/repo.ts'
+import { limitsOf } from '../plans/limits.ts'
 import { findUserById } from '../users/repo.ts'
 import { BLOCK_BY_TYPE, type BlockRow, type RenderCtx } from './blocks.ts'
 import { FONTS, fontFaceCss, readDesign, themeById, type Design } from './design.ts'
@@ -105,7 +106,8 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const title = d.seo_title || link.title || link.alias
   const ogImage = d.seo_image ? `${deps.config.baseUrl}${imageUrl(d.seo_image)}` : null
   const nonce = req.ctx.nonce
-  const forced = getSetting(deps.db, 'branding_forced')
+  // la marca sólo se puede quitar o cambiar en planes que lo incluyen
+  const forced = getSetting(deps.db, 'branding_forced') || !(owner && limitsOf(deps.db, owner, deps.now()).remove_branding)
   const showBrand = forced || d.show_branding
   const announce = d.announce_text
     ? html`<div class="announce pos-${d.announce_position}">${web(d.announce_url) ? html`<a href="${d.announce_url}">${d.announce_text}</a>` : d.announce_text}</div>`

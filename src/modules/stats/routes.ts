@@ -10,6 +10,7 @@ import { ownLinkOr404 } from '../links/routes.ts'
 import { linkTabs } from '../links/views.ts'
 import { availability } from '../public/gate.ts'
 import type { User } from '../users/repo.ts'
+import { limitsOf } from '../plans/limits.ts'
 import { buildReport, csvCell, iterateEvents, parseRange, type Range, type Scope } from './query.ts'
 import { reportBody } from './views.ts'
 
@@ -29,6 +30,14 @@ function exportReply(deps: AppDeps, reply: FastifyReply, scope: Scope, range: Ra
   return reply.type('text/csv; charset=utf-8').send(out)
 }
 
+/** El plan limita cuántos días atrás se ven las estadísticas */
+function clampToPlan(deps: AppDeps, user: User, r: Range): Range {
+  const days = limitsOf(deps.db, user, deps.now()).stats_days
+  if (days < 0 || r.days.length <= days) return r
+  const from = r.days[r.days.length - days] as string
+  return parseRange(from, r.to, user.timezone, deps.now())
+}
+
 export function registerStats(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
   const geoAttribution = () => deps.geo.attribution === true
@@ -38,7 +47,7 @@ export function registerStats(app: FastifyInstance, deps: AppDeps): void {
     if (!link) return
     const user = req.ctx.user as User
     const q = req.query as { from?: string; to?: string; format?: string }
-    const range = parseRange(q.from, q.to, user.timezone, deps.now())
+    const range = clampToPlan(deps, user, parseRange(q.from, q.to, user.timezone, deps.now()))
     if (q.format === 'csv' || q.format === 'json') return exportReply(deps, reply, { linkId: link.id }, range, q.format, link.alias)
     const report = buildReport(db, { linkId: link.id }, range)
     const { t } = req.ctx
@@ -56,7 +65,7 @@ ${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blo
   app.get('/panel/stats', { preHandler: userGuard }, async (req, reply) => {
     const user = req.ctx.user as User
     const q = req.query as { from?: string; to?: string; format?: string }
-    const range = parseRange(q.from, q.to, user.timezone, deps.now())
+    const range = clampToPlan(deps, user, parseRange(q.from, q.to, user.timezone, deps.now()))
     if (q.format === 'csv' || q.format === 'json') return exportReply(deps, reply, { userId: user.id }, range, q.format, 'todo')
     const report = buildReport(db, { userId: user.id }, range)
     const links = new Map<number, Link>(listLinks(db, user.id, { limit: 10000 }).items.map((l) => [l.id, l]))

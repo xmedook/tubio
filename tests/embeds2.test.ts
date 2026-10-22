@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { blueskyEmbed, calendlyEmbed, canvaEmbed, discordEmbed, facebookEmbed, googleDocsEmbed, googleFormsEmbed, iframeEmbed, instagramEmbed, mapEmbed, pinterestEmbed, redditEmbed, snapchatEmbed, srcOf, telegramEmbed, threadsEmbed, typeformEmbed, xEmbed } from '../src/modules/bio/blocks-embeds.ts'
 import { listBlocks } from '../src/modules/bio/repo.ts'
 import { findByAlias } from '../src/modules/links/repo.ts'
-import { Agent, loginAgent, makeApp, seedUser } from './helpers.ts'
+import { Agent, loginAgent, makeApp, seedUser, setPlan } from './helpers.ts'
 
 describe('embeds de redes y herramientas', () => {
   it('reconocen URLs válidas y rechazan hosts ajenos', () => {
@@ -31,7 +31,7 @@ describe('embeds de redes y herramientas', () => {
 
   it('la CSP de la página sólo deja los orígenes que usan sus bloques; iframe respeta la lista de bloqueo', async () => {
     const t = await makeApp()
-    await seedUser(t)
+    setPlan(t, (await seedUser(t)).id, 'business')
     t.deps.db.prepare("INSERT INTO blocked_hosts (host, created_at) VALUES ('malo.com', 0)").run()
     const a = await loginAgent(t)
     await a.get('/panel/links/new?kind=bio')
@@ -57,7 +57,7 @@ describe('embeds de redes y herramientas', () => {
 describe('HTML propio', () => {
   it('se sirve aparte con CSP sandbox (origen opaco) y nunca dentro de la página', async () => {
     const t = await makeApp()
-    await seedUser(t)
+    setPlan(t, (await seedUser(t)).id, 'business')
     const a = await loginAgent(t)
     await a.get('/panel/links/new?kind=bio')
     await a.postMultipart('/panel/links?kind=bio', { alias: 'conhtml', is_enabled: '1' })

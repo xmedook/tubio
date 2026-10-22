@@ -17,6 +17,8 @@ export type User = {
   locked_until: number | null
   totp_last_counter: number | null
   google_sub: string | null
+  plan_id: number | null
+  plan_expires_at: number | null
   created_at: number
   updated_at: number
 }
@@ -67,6 +69,8 @@ const UPDATABLE = [
   'locked_until',
   'totp_last_counter',
   'google_sub',
+  'plan_id',
+  'plan_expires_at',
 ] as const
 type Updatable = Partial<Pick<User, (typeof UPDATABLE)[number]>>
 

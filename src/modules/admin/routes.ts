@@ -5,7 +5,7 @@ import { formatDateTime, formatNumber } from '../../lib/i18n.ts'
 import { deleteUserFiles } from '../../lib/uploads.ts'
 import { jobStatus } from '../../jobs.ts'
 import { panelLayout } from '../../views/layout.ts'
-import { checkbox, csrfField, emptyState, input, postButton } from '../../views/ui.ts'
+import { checkbox, csrfField, emptyState, input, postButton, select } from '../../views/ui.ts'
 import { adminGuard, sendHtml, setFlash, type Ctx } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
 import { startSession } from '../auth/routes.ts'
@@ -14,6 +14,7 @@ import { getLink, linkUrl, updateLink, type Link } from '../links/repo.ts'
 import { kindLabel } from '../links/views.ts'
 import { audit, getSettings, setSetting } from '../settings/repo.ts'
 import { csvCell } from '../stats/query.ts'
+import { listPlans } from '../plans/limits.ts'
 import { deleteUser, findUserById, searchUsers, updateUser, type User } from '../users/repo.ts'
 
 function adminNav(ctx: Ctx, active: string): SafeHtml {
@@ -107,6 +108,10 @@ ${users.length === 0 ? emptyState(t('admin.no_users'), '') : html`<ul class="lis
     ${checkbox({ name: 'email_verified', label: t('admin.email_verified'), checked: !!u.email_verified_at })}
     ${self ? '' : checkbox({ name: 'is_admin', label: t('admin.is_admin'), checked: u.role === 'admin' })}
     ${self ? '' : checkbox({ name: 'suspended', label: t('admin.suspend'), checked: u.status === 'suspended', hint: t('admin.suspend_hint') })}
+    <div class="grid-2">
+      ${select({ ctx, name: 'plan_id', label: t('plan.title'), value: u.plan_id ?? '', options: [{ value: '', label: t('plan.none') }, ...listPlans(db).map((p) => ({ value: String(p.id), label: p.name }))] })}
+      ${input({ ctx, name: 'plan_expires', type: 'date', label: t('plan.expires_label'), value: u.plan_expires_at ? new Date(u.plan_expires_at).toISOString().slice(0, 10) : '', hint: t('plan.expires_hint') })}
+    </div>
     <button class="btn btn-primary" type="submit">${t('common.save')}</button>
   </form>
 </div>
@@ -121,13 +126,17 @@ ${self ? '' : html`<div class="card danger-zone"><h3>${t('admin.delete_user')}</
     const self = u.id === me(req).id
     const now = deps.now()
     const suspended = !self && checked(req.body, 'suspended')
+    const planId = Number(field(req.body, 'plan_id')) || null
+    const exp = field(req.body, 'plan_expires')
     updateUser(db, u.id, {
+      plan_id: planId && listPlans(db).some((p) => p.id === planId) ? planId : null,
+      plan_expires_at: /^\d{4}-\d{2}-\d{2}$/.test(exp) ? Date.parse(exp + 'T23:59:59Z') : null,
       is_verified: checked(req.body, 'is_verified') ? 1 : 0,
       email_verified_at: checked(req.body, 'email_verified') ? (u.email_verified_at ?? now) : null,
       ...(self ? {} : { role: checked(req.body, 'is_admin') ? 'admin' : 'user', status: suspended ? 'suspended' : 'active' }),
     }, now)
     if (suspended && u.status !== 'suspended') destroyUserSessions(db, u.id)
-    audit(db, { actorId: me(req).id, userId: u.id, action: 'admin.user_update', target: `user:${u.id}`, meta: { suspended, verified: checked(req.body, 'is_verified') } }, now)
+    audit(db, { actorId: me(req).id, userId: u.id, action: 'admin.user_update', target: `user:${u.id}`, meta: { suspended, verified: checked(req.body, 'is_verified'), plan: field(req.body, 'plan_id'), until: exp } }, now)
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect(`/admin/users/${u.id}`, 303)
   })
@@ -280,7 +289,6 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
 <form class="card" method="post" action="/admin/settings" novalidate>${csrfField(ctx)}
   ${input({ ctx, name: 'site_name', label: t('admin.site_name'), value: s.site_name, maxlength: 60 })}
   ${input({ ctx, name: 'stats_retention_days', type: 'number', label: t('admin.retention'), value: s.stats_retention_days, min: 7, max: 3650, hint: t('admin.retention_hint') })}
-  ${input({ ctx, name: 'upload_quota_mb', type: 'number', label: t('admin.upload_quota'), value: s.upload_quota_mb, min: 1, max: 100000 })}
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
   ${checkbox({ name: 'branding_forced', label: t('admin.branding_forced'), checked: s.branding_forced, hint: t('admin.branding_forced_hint') })}
   <button class="btn btn-primary" type="submit">${t('common.save')}</button>
@@ -294,8 +302,6 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
     if (name) setSetting(db, 'site_name', name)
     const days = Number(field(b, 'stats_retention_days'))
     if (Number.isInteger(days) && days >= 7 && days <= 3650) setSetting(db, 'stats_retention_days', days)
-    const quota = Number(field(b, 'upload_quota_mb'))
-    if (Number.isInteger(quota) && quota >= 1 && quota <= 100000) setSetting(db, 'upload_quota_mb', quota)
     setSetting(db, 'registration_open', checked(b, 'registration_open'))
     setSetting(db, 'branding_forced', checked(b, 'branding_forced'))
     audit(db, { actorId: me(req).id, action: 'admin.settings' }, deps.now())

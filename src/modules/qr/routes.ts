@@ -12,6 +12,7 @@ import { checked, field } from '../../web/forms.ts'
 import { getOwnLink, linkUrl, listLinks } from '../links/repo.ts'
 import { listProjects, getOwnProject, type Project } from '../projects/repo.ts'
 import type { User } from '../users/repo.ts'
+import { limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { buildPayload, payloadText, QR_FIELDS, QR_KINDS, type QrKind } from './payload.ts'
 
 export type QrRow = {
@@ -286,6 +287,13 @@ ${rows.length === 0
     const user = req.ctx.user as User
     const kind = current?.kind ?? ((req.query as { kind?: string }).kind as QrKind)
     if (!isKind(kind)) return reply.code(400).send('kind')
+    if (!current) {
+      const lim = limitsOf(db, user, deps.now())
+      if (!withinLimit(lim.qr, usageOf(db, user.id).qr)) {
+        setFlash(reply, deps, { type: 'error', key: 'err.plan_qr', vars: { n: lim.qr } })
+        return reply.redirect('/panel/plan', 303)
+      }
+    }
     let mp: MultipartData
     try {
       mp = await readMultipart(req)

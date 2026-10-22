@@ -314,3 +314,10 @@ body.home { background: radial-gradient(900px 500px at 85% -10%, var(--accent-so
 .thumbs .field-check { margin: .25rem 0 0; font-size: .82rem; }
 .list > li.unread { background: color-mix(in srgb, var(--accent-soft) 60%, var(--surface)); }
 .list .msg { margin: .3rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pick.locked { opacity: .6; }
+.usage { margin: .8rem 0; } .usage-h { display: flex; justify-content: space-between; font-size: .92rem; font-weight: 600; margin-bottom: .25rem; }
+.usage progress { width: 100%; height: .6rem; accent-color: var(--accent); } .usage progress.hi { accent-color: var(--danger); }
+table.plans th, table.plans td { text-align: center; } table.plans tbody th { text-align: left; color: var(--text); text-transform: none; letter-spacing: 0; font-size: .9rem; }
+table.plans thead th { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--text); vertical-align: top; }
+table.plans .price { display: block; font-size: 1.3rem; font-weight: 800; margin-top: .25rem; } table.plans .price small { font-size: .8rem; font-weight: 500; color: var(--muted); }
+table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok); font-weight: 800; }

@@ -129,3 +129,9 @@ export async function loginAgent(t: TestApp, email = 'ana@example.com', password
   await a.get('/panel')
   return a
 }
+
+/** Asigna un plan por slug (free | pro | business) */
+export function setPlan(t: TestApp, userId: number, slug: string, expiresAt: number | null = null): void {
+  const id = t.deps.db.prepare('SELECT id FROM plans WHERE slug = ?').pluck().get(slug) as number
+  t.deps.db.prepare('UPDATE users SET plan_id = ?, plan_expires_at = ? WHERE id = ?').run(id, expiresAt, userId)
+}

@@ -6,7 +6,8 @@ import { fileTypeFromBuffer } from 'file-type'
 import sharp from 'sharp'
 import type { AppDeps } from '../app.ts'
 import { randomToken } from './crypto.ts'
-import { getSetting } from '../modules/settings/repo.ts'
+import { limitsOf } from '../modules/plans/limits.ts'
+import { findUserById } from '../modules/users/repo.ts'
 
 export type StoredFile = {
   id: number
@@ -43,7 +44,9 @@ function save(deps: AppDeps, key: string, buf: Buffer): void {
 /** Lanza err.upload_quota si el usuario se pasaría de su espacio */
 export function assertQuota(deps: AppDeps, userId: number, extra: number): void {
   const used = deps.db.prepare('SELECT COALESCE(SUM(size), 0) FROM files WHERE user_id = ?').pluck().get(userId) as number
-  if (used + extra > getSetting(deps.db, 'upload_quota_mb') * 1024 * 1024) throw new UploadError('err.upload_quota')
+  const user = findUserById(deps.db, userId)
+  const mb = user ? limitsOf(deps.db, user, deps.now()).storage_mb : 0
+  if (mb >= 0 && used + extra > mb * 1024 * 1024) throw new UploadError('err.upload_quota')
 }
 
 function insert(deps: AppDeps, f: Omit<StoredFile, 'id'>): StoredFile {

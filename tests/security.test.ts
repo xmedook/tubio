@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { generateSecret, totp } from '../src/lib/totp.ts'
 import { listBlocks } from '../src/modules/bio/repo.ts'
 import { findByAlias } from '../src/modules/links/repo.ts'
-import { setSetting } from '../src/modules/settings/repo.ts'
 import { findUserByEmail, findUserById, updateUser } from '../src/modules/users/repo.ts'
 import { safeNext } from '../src/web/context.ts'
 import { Agent, loginAgent, makeApp, seedUser } from './helpers.ts'
@@ -113,7 +112,7 @@ describe('regresiones de la revisión de seguridad', () => {
   it('cuota de archivos por usuario', async () => {
     const t = await makeApp()
     await seedUser(t)
-    setSetting(t.deps.db, 'upload_quota_mb', 1)
+    t.deps.db.prepare("UPDATE plans SET limits = json_set(limits, '$.storage_mb', 1) WHERE slug = 'free'").run()
     const a = await loginAgent(t)
     await a.get('/panel/links/new?kind=file')
     const mb = Buffer.alloc(700 * 1024, 1)
