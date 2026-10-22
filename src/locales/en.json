@@ -47,9 +47,9 @@
   "auth.reset_invalid": "The link is invalid or has expired. Request a new one.",
   "auth.reset_done": "Password updated. You can log in now.",
   "mail.verify_subject": "Verify your email on tubio",
-  "mail.verify_body": "Hi,\n\nTo verify your email open this link:\n{link}\n\nIf you didn't create a tubio account, ignore this message.",
+  "mail.verify_body": "Hi,\n\nTo verify your email open this link:\n\n{link}\n\nIf you didn't create a tubio account, ignore this message.",
   "mail.reset_subject": "Reset your tubio password",
-  "mail.reset_body": "Hi,\n\nTo set a new password open this link (it expires in one hour):\n{link}\n\nIf you didn't ask for this, ignore this message: your password stays the same.",
+  "mail.reset_body": "Hi,\n\nTo set a new password open this link (it expires in one hour):\n\n{link}\n\nIf you didn't ask for this, ignore this message: your password stays the same.",
   "admin.impersonating": "You are viewing the account of {email}.",
   "admin.stop_impersonating": "Back to my account",
   "err.csrf": "The form session expired. Reload the page and try again.",
@@ -690,7 +690,7 @@
   "abuse.submit": "Send report",
   "abuse.thanks": "Thank you. We review every report; if action is needed, the link is disabled.",
   "mail.abuse_subject": "tubio: {n} pending abuse report(s)",
-  "mail.abuse_body": "There are {n} unreviewed abuse report(s):\n{link}",
+  "mail.abuse_body": "There are {n} unreviewed abuse report(s):\n\n{link}",
   "err.daily_cap": "You reached the maximum of new links per day. Try again tomorrow.",
   "err.daily_cap_unverified": "Verify your email to create more than 20 links a day.",
   "admin.reports": "Reports",
@@ -713,5 +713,7 @@
   "bio.font_playfair": "Playfair Display",
   "bio.font_lora": "Lora",
   "bio.font_caveat": "Caveat (manuscrita)",
-  "bio.font_jetbrains": "JetBrains Mono"
+  "bio.font_jetbrains": "JetBrains Mono",
+  "mail.verify_button": "Verify my email",
+  "mail.reset_button": "Set a new password"
 }

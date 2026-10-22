@@ -89,3 +89,13 @@ describe('utilidades web', () => {
     expect(fromLocalInput('', tz)).toBeNull()
   })
 })
+
+describe('correo HTML', async () => {
+  const { mailHtml } = await import('../src/lib/mail.ts')
+  it('escapa el texto y convierte la URL sola en botón', () => {
+    const h = mailHtml({ to: 'a@b.c', subject: 's', text: 'Hola <b>Ana</b>:\n\nhttps://tubio.link/verify/abc\n\nGracias', button: 'Verificar' })
+    expect(h).toContain('Hola &lt;b&gt;Ana&lt;/b&gt;:')
+    expect(h).toContain('href="https://tubio.link/verify/abc"')
+    expect(h).toContain('>Verificar</a>')
+  })
+})

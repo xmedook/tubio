@@ -53,6 +53,7 @@ export async function sendVerifyEmail(deps: AppDeps, user: User): Promise<void> 
     to: user.email,
     subject: t('mail.verify_subject'),
     text: t('mail.verify_body', { link: `${deps.config.baseUrl}/verify/${token}` }),
+    button: t('mail.verify_button'),
   })
 }
 
@@ -205,6 +206,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
         to: user.email,
         subject: t('mail.reset_subject'),
         text: t('mail.reset_body', { link: `${deps.config.baseUrl}/reset/${token}` }),
+        button: t('mail.reset_button'),
       })
     }
     // misma respuesta exista o no la cuenta

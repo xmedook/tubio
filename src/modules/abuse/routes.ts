@@ -71,7 +71,7 @@ export function registerAbuse(app: FastifyInstance, deps: AppDeps): void {
       const admins = db.prepare("SELECT email, locale FROM users WHERE role = 'admin' AND status = 'active'").all() as { email: string; locale: string }[]
       for (const a of admins) {
         const t = translator(a.locale as Locale)
-        await deps.mailer.send({ to: a.email, subject: t('mail.abuse_subject', { n: open }), text: t('mail.abuse_body', { n: open, link: `${deps.config.baseUrl}/admin/reports` }) })
+        await deps.mailer.send({ to: a.email, subject: t('mail.abuse_subject', { n: open }), text: t('mail.abuse_body', { n: open, link: `${deps.config.baseUrl}/admin/reports` }), button: t('admin.reports') })
       }
       audit(db, { action: 'abuse.notify', meta: { open } }, now)
     }

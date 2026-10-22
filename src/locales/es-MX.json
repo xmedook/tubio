@@ -47,9 +47,9 @@
   "auth.reset_invalid": "El enlace no es válido o ya venció. Pide uno nuevo.",
   "auth.reset_done": "Contraseña actualizada. Ya puedes entrar.",
   "mail.verify_subject": "Verifica tu correo en tubio",
-  "mail.verify_body": "Hola:\n\nPara verificar tu correo abre este enlace:\n{link}\n\nSi no creaste una cuenta en tubio, ignora este mensaje.",
+  "mail.verify_body": "Hola:\n\nPara verificar tu correo abre este enlace:\n\n{link}\n\nSi no creaste una cuenta en tubio, ignora este mensaje.",
   "mail.reset_subject": "Restablece tu contraseña de tubio",
-  "mail.reset_body": "Hola:\n\nPara poner una contraseña nueva abre este enlace (vence en una hora):\n{link}\n\nSi no lo pediste, ignora este mensaje: tu contraseña no cambia.",
+  "mail.reset_body": "Hola:\n\nPara poner una contraseña nueva abre este enlace (vence en una hora):\n\n{link}\n\nSi no lo pediste, ignora este mensaje: tu contraseña no cambia.",
   "admin.impersonating": "Estás viendo la cuenta de {email}.",
   "admin.stop_impersonating": "Volver a mi cuenta",
   "err.csrf": "La sesión del formulario venció. Recarga la página e inténtalo otra vez.",
@@ -690,7 +690,7 @@
   "abuse.submit": "Enviar reporte",
   "abuse.thanks": "Gracias. Revisamos cada reporte; si hay que actuar, el enlace se desactiva.",
   "mail.abuse_subject": "tubio: {n} reporte(s) de abuso pendientes",
-  "mail.abuse_body": "Hay {n} reporte(s) de abuso sin revisar:\n{link}",
+  "mail.abuse_body": "Hay {n} reporte(s) de abuso sin revisar:\n\n{link}",
   "err.daily_cap": "Llegaste al máximo de enlaces nuevos por día. Inténtalo mañana.",
   "err.daily_cap_unverified": "Verifica tu correo para crear más de 20 enlaces al día.",
   "admin.reports": "Reportes",
@@ -713,5 +713,7 @@
   "bio.font_playfair": "Playfair Display",
   "bio.font_lora": "Lora",
   "bio.font_caveat": "Caveat (manuscrita)",
-  "bio.font_jetbrains": "JetBrains Mono"
+  "bio.font_jetbrains": "JetBrains Mono",
+  "mail.verify_button": "Verificar mi correo",
+  "mail.reset_button": "Poner contraseña nueva"
 }

@@ -2,7 +2,33 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import nodemailer, { type Transporter } from 'nodemailer'
 
-export type Mail = { to: string; subject: string; text: string }
+import { esc } from './html.ts'
+
+/** button: texto del botón para la línea que sea sólo una URL */
+export type Mail = { to: string; subject: string; text: string; button?: string }
+
+/**
+ * Versión HTML a partir del texto: párrafos escapados y la línea que sea sólo una URL se vuelve botón.
+ * Estilos en línea y tabla: lo que entienden los clientes de correo.
+ */
+export function mailHtml(mail: Mail): string {
+  const blocks = mail.text.split(/\n{2,}/).map((para) => {
+    const lines = para.split('\n')
+    if (lines.length === 1 && /^https?:\/\/\S+$/.test(lines[0] ?? '')) {
+      const url = esc(lines[0])
+      return `<p style="margin:24px 0"><a href="${url}" style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:8px">${esc(mail.button ?? 'Abrir')}</a></p><p style="margin:0 0 16px;font-size:12px;color:#5b6472;word-break:break-all">${url}</p>`
+    }
+    return `<p style="margin:0 0 16px">${lines.map((l) => (/^https?:\/\/\S+$/.test(l) ? `<a href="${esc(l)}" style="color:#1d4ed8">${esc(l)}</a>` : esc(l))).join('<br>')}</p>`
+  })
+  return `<!doctype html><html><body style="margin:0;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#14181f">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7f9;padding:24px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #dde1e7;border-radius:12px">
+<tr><td style="padding:28px 28px 8px;font-size:22px;font-weight:800;letter-spacing:-0.03em">tu<span style="color:#1d4ed8">bio</span></td></tr>
+<tr><td style="padding:8px 28px 20px;font-size:15px;line-height:1.55">${blocks.join('')}</td></tr>
+</table>
+<p style="font-size:12px;color:#5b6472;margin:16px 0 0">tubio.link</p>
+</td></tr></table></body></html>`
+}
 
 export interface Mailer {
   send(mail: Mail): Promise<void>
@@ -40,6 +66,6 @@ export class SmtpMailer implements Mailer {
     this.from = from
   }
   async send(mail: Mail): Promise<void> {
-    await this.transport.sendMail({ from: this.from, to: mail.to, subject: mail.subject, text: mail.text })
+    await this.transport.sendMail({ from: this.from, to: mail.to, subject: mail.subject, text: mail.text, html: mailHtml(mail) })
   }
 }
