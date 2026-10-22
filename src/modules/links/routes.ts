@@ -43,6 +43,7 @@ export function ownLinkOr404(deps: AppDeps, req: FastifyRequest, reply: FastifyR
 
 export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
+  const activeDomains = (user: User) => db.prepare("SELECT id, host FROM domains WHERE user_id = ? AND status = 'active' ORDER BY host").all(user.id) as { id: number; host: string }[]
   const marketingOpts = (user: User) => ({
     enabled: limitsOf(db, user, deps.now()).marketing,
     pixels: listPixels(db, user.id),
@@ -63,7 +64,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
   app.get('/panel/links/new', { preHandler: userGuard }, async (req, reply) => {
     const kind = asKind((req.query as { kind?: string }).kind) ?? 'short'
     const user = req.ctx.user as User
-    return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user) }))
+    return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
   })
 
   app.post('/panel/links', { preHandler: userGuard }, async (req, reply) => {
@@ -74,25 +75,25 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const cap = user.email_verified_at ? DAILY_CAP_VERIFIED : DAILY_CAP_UNVERIFIED
     const today = db.prepare('SELECT COUNT(*) FROM links WHERE user_id = ? AND created_at > ?').pluck().get(user.id, deps.now() - 86400_000) as number
     if (today >= cap && user.role !== 'admin') {
-      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: user.email_verified_at ? 'err.daily_cap' : 'err.daily_cap_unverified' }, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 429)
+      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: user.email_verified_at ? 'err.daily_cap' : 'err.daily_cap_unverified' }, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 429)
     }
     // límite del plan: páginas bio por un lado, el resto de enlaces por otro
     const lim = limitsOf(db, user, deps.now())
     const used = usageOf(db, user.id)
     if (kind === 'bio' ? !withinLimit(lim.bio_pages, used.bio_pages) : !withinLimit(lim.links, used.links)) {
-      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: kind === 'bio' ? 'err.plan_bio_pages' : 'err.plan_links' }, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 402)
+      return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { _form: kind === 'bio' ? 'err.plan_bio_pages' : 'err.plan_links' }, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 402)
     }
     let mp
     try {
       mp = await readMultipart(req)
     } catch (e) {
       if (e instanceof UploadError) {
-        return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { file: e.key }, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 413)
+        return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: { file: e.key }, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 413)
       }
       throw e
     }
     const r = await parseLinkForm(deps, user, kind, mp, undefined, limitsOf(db, user, deps.now()).marketing)
-    if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind, values: r.values, errors: r.errors, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 422)
+    if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind, values: r.values, errors: r.errors, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 422)
     if (kind === 'bio') r.input.data = defaultBioData(r.input.title || r.input.alias, user.name)
     const link = createLink(db, user.id, r.input, deps.now())
     if (kind === 'bio') {
@@ -107,7 +108,7 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const link = ownLinkOr404(deps, req, reply)
     if (!link) return
     const user = req.ctx.user as User
-    return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: valuesFromLink(link, user.timezone), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user) }))
+    return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: valuesFromLink(link, user.timezone), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
   })
 
   app.post('/panel/links/:id', { preHandler: userGuard }, async (req, reply) => {
@@ -119,12 +120,12 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
       mp = await readMultipart(req)
     } catch (e) {
       if (e instanceof UploadError) {
-        return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: valuesFromLink(link, user.timezone), errors: { file: e.key }, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 413)
+        return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: valuesFromLink(link, user.timezone), errors: { file: e.key }, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 413)
       }
       throw e
     }
     const r = await parseLinkForm(deps, user, link.kind, mp, link, limitsOf(db, user, deps.now()).marketing)
-    if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: r.values, errors: r.errors, projects: listProjects(db, user.id), marketing: marketingOpts(user) }), 422)
+    if (!r.ok) return sendHtml(reply, linkFormPage(req.ctx, { kind: link.kind, link, values: r.values, errors: r.errors, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }), 422)
     const { kind: _k, ...patch } = r.input
     updateLink(db, link.id, patch, deps.now())
     dropOldFile(deps, link, r.input.data)

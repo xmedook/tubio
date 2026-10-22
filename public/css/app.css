@@ -321,3 +321,4 @@ table.plans th, table.plans td { text-align: center; } table.plans tbody th { te
 table.plans thead th { font-size: 1rem; text-transform: none; letter-spacing: 0; color: var(--text); vertical-align: top; }
 table.plans .price { display: block; font-size: 1.3rem; font-weight: 800; margin-top: .25rem; } table.plans .price small { font-size: .8rem; font-weight: 500; color: var(--muted); }
 table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok); font-weight: 800; }
+.domain-pick { margin-bottom: .4rem; padding: .45rem .6rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }

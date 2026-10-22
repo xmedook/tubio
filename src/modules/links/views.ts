@@ -49,6 +49,7 @@ export function dashboardPage(
         <a href="/panel/links/new?kind=vcard">${t('links.kind_vcard')}</a>
         <a href="/panel/links/new?kind=event">${t('links.kind_event')}</a>
         <a href="/panel/pixels">${t('mk.title')}</a>
+        <a href="/panel/domains">${t('domains.title')}</a>
       </div>
     </details>
   </div>
@@ -195,6 +196,7 @@ export function linkFormPage(
     errors: Errors
     projects: Project[]
     marketing?: { enabled: boolean; pixels: { id: number; name: string; kind: string }[]; splashes: { id: number; name: string }[] }
+    domains?: { id: number; host: string }[]
   },
 ): SafeHtml {
   const { t } = ctx
@@ -215,7 +217,10 @@ ${hasErrors ? html`<p class="flash flash-error" role="alert">${t(e._form ?? 'err
     ${kind !== 'bio' ? kindFields(ctx, kind, v, e, isNew) : ''}
     <div class="field${e.alias ? ' has-error' : ''}">
       <label for="f-alias">${t('links.alias')}</label>
-      <div class="prefixed"><span class="prefix" aria-hidden="true">${ctx.baseUrl.replace(/^https?:\/\//, '')}/</span>
+      ${opts.domains?.length ? html`<label class="sr-only" for="f-domain">${t('domains.domain')}</label><select id="f-domain" name="domain_id" class="domain-pick">
+        <option value="0"${v.domain_id && v.domain_id !== '0' ? '' : html` selected`}>${ctx.baseUrl.replace(/^https?:\/\//, '')}</option>
+        ${opts.domains.map((d) => html`<option value="${d.id}"${String(d.id) === v.domain_id ? html` selected` : ''}>${d.host}</option>`)}</select>` : ''}
+      <div class="prefixed"><span class="prefix" aria-hidden="true">${opts.domains?.length ? '/' : `${ctx.baseUrl.replace(/^https?:\/\//, '')}/`}</span>
         <input id="f-alias" name="alias" value="${v.alias ?? ''}" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="f-alias-hint${e.alias ? ' f-alias-err' : ''}"${e.alias ? html` aria-invalid="true"` : ''}></div>
       <p class="hint" id="f-alias-hint">${isNew ? t('links.alias_hint_new') : t('links.alias_hint')}</p>
       ${e.alias ? html`<p class="error" id="f-alias-err" role="alert">${t(e.alias)}</p>` : ''}

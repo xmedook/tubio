@@ -6,6 +6,7 @@ import { createChallenge, verifySolution, type PowChallenge } from '../lib/pow.t
 import type { SafeHtml } from '../lib/html.ts'
 import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '../lib/i18n.ts'
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
+import { domainIdForHost } from '../modules/domains/repo.ts'
 import type { User } from '../modules/users/repo.ts'
 
 export type Flash = { type: 'ok' | 'error' | 'info'; key: string; vars?: Record<string, string | number> }
@@ -26,6 +27,8 @@ export type Ctx = {
   googleEnabled: boolean
   /** reto nuevo de prueba de trabajo, o null si está desactivada */
   pow: () => PowChallenge | null
+  /** 0 = dominio principal; >0 = dominio propio de un usuario */
+  domainId: number
 }
 
 declare module 'fastify' {
@@ -57,6 +60,11 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
 
   app.addHook('onRequest', async (req, reply) => {
     const now = deps.now()
+    // dominio propio: sólo lo público; el panel y la cuenta viven en el dominio principal
+    const domainId = domainIdForHost(req.hostname) ?? 0
+    if (domainId && /^\/(panel|admin|login|register|logout|forgot|reset|verify|lang|api|waitlist|terms|privacy|acceptable-use|source)(\/|$|\?)/.test(req.url)) {
+      return reply.redirect(deps.config.baseUrl + req.url, 301)
+    }
     let user: User | null = null
     let session: Session | null = null
     const sid = req.cookies[SESSION_COOKIE]
@@ -109,6 +117,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       baseUrl: deps.config.baseUrl,
       googleEnabled: !!(deps.config.googleClientId && deps.config.googleClientSecret),
       pow: () => (deps.config.powMax > 0 ? createChallenge(deps.config.secret, now, deps.config.powMax) : null),
+      domainId,
     }
   })
 

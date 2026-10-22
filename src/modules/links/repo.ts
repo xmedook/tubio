@@ -1,3 +1,4 @@
+import { domainHost } from '../domains/repo.ts'
 import type { DB } from '../../db/index.ts'
 import type { Utm } from '../../lib/urls.ts'
 
@@ -82,6 +83,7 @@ export type LinkInput = {
   utm: Utm
   forward_query: boolean
   public_stats: boolean
+  domain_id?: number
   pixel_ids?: number[]
   splash_id?: number | null
   targeting?: Targeting
@@ -99,7 +101,7 @@ function toParams(input: Partial<LinkInput>): Record<string, unknown> {
 }
 
 export function createLink(db: DB, userId: number, input: LinkInput, now: number): Link {
-  const p = { password_hash: null, ...toParams(input), user_id: userId, domain_id: MAIN_DOMAIN, created_at: now, updated_at: now }
+  const p = { password_hash: null, domain_id: MAIN_DOMAIN, ...toParams(input), user_id: userId, created_at: now, updated_at: now }
   const cols = Object.keys(p)
   const info = db.prepare(`INSERT INTO links (${cols.join(', ')}) VALUES (${cols.map((c) => '@' + c).join(', ')})`).run(p)
   return getLink(db, Number(info.lastInsertRowid)) as Link
@@ -108,7 +110,7 @@ export function createLink(db: DB, userId: number, input: LinkInput, now: number
 const UPDATABLE = new Set([
   'project_id', 'alias', 'title', 'target_url', 'redirect_code', 'data', 'is_enabled', 'starts_at', 'ends_at',
   'expired_url', 'click_limit', 'limit_url', 'password_hash', 'is_sensitive', 'utm', 'forward_query', 'public_stats',
-  'pixel_ids', 'splash_id', 'targeting', 'cloak',
+  'pixel_ids', 'splash_id', 'targeting', 'cloak', 'domain_id',
 ])
 
 export function updateLink(db: DB, id: number, patch: Partial<LinkInput>, now: number): void {
@@ -174,6 +176,7 @@ export function incrementClicks(db: DB, id: number, human = true): void {
   db.prepare('UPDATE links SET hits = hits + 1, clicks = clicks + ? WHERE id = ?').run(human ? 1 : 0, id)
 }
 
-export function linkUrl(baseUrl: string, link: Pick<Link, 'alias'>): string {
-  return `${baseUrl}/${link.alias}`
+export function linkUrl(baseUrl: string, link: Pick<Link, 'alias'> & { domain_id?: number }): string {
+  const host = link.domain_id ? domainHost(link.domain_id) : undefined
+  return host ? `https://${host}/${link.alias}` : `${baseUrl}/${link.alias}`
 }

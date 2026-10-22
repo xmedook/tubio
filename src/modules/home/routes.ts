@@ -11,6 +11,12 @@ export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xm
 
 export function registerHome(app: FastifyInstance, deps: AppDeps): void {
   app.get('/', async (req, reply) => {
+    if (req.ctx.domainId) {
+      // raíz de un dominio propio: su página de inicio elegida, o nada
+      const d = deps.db.prepare('SELECT home_link_id FROM domains WHERE id = ?').get(req.ctx.domainId) as { home_link_id: number | null } | undefined
+      const l = d?.home_link_id ? (deps.db.prepare('SELECT alias, domain_id FROM links WHERE id = ?').get(d.home_link_id) as { alias: string; domain_id: number } | undefined) : undefined
+      return l && l.domain_id === req.ctx.domainId ? reply.redirect(`/${l.alias}`, 302) : reply.callNotFound()
+    }
     const joined = (req.query as { joined?: string }).joined === '1'
     return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL }))
   })

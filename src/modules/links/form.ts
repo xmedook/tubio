@@ -34,6 +34,7 @@ export function valuesFromLink(link: Link, tz: string): FormValues {
     is_sensitive: link.is_sensitive ? '1' : '',
     forward_query: link.forward_query ? '1' : '',
     public_stats: link.public_stats ? '1' : '',
+    domain_id: String(link.domain_id),
     pixel_ids: link.pixel_ids.join(','),
     splash_id: link.splash_id ? String(link.splash_id) : '',
     cloak: link.cloak ? '1' : '',
@@ -100,15 +101,23 @@ export async function parseLinkForm(
   if (existing?.password_hash) values.has_password = '1'
   const tz = user.timezone
 
+  // dominio: el principal o uno propio activo
+  let domainId = existing?.domain_id ?? 0
+  if (f('domain_id') !== '') {
+    const d = Number(f('domain_id'))
+    domainId = d && deps.db.prepare("SELECT 1 FROM domains WHERE id = ? AND user_id = ? AND status = 'active'").get(d, user.id) ? d : 0
+  }
+  values.domain_id = String(domainId)
+
   // alias
   let alias = normalizeAlias(f('alias'))
   if (!alias && !existing) {
     do alias = randomAlias()
-    while (aliasTaken(deps.db, alias))
+    while (aliasTaken(deps.db, alias, undefined, domainId))
   } else {
     const err = aliasError(alias)
     if (err) errors.alias = err
-    else if (aliasTaken(deps.db, alias, existing?.id)) errors.alias = 'err.alias_taken'
+    else if (aliasTaken(deps.db, alias, existing?.id, domainId)) errors.alias = 'err.alias_taken'
   }
   values.alias = alias
 
@@ -271,6 +280,7 @@ export async function parseLinkForm(
       utm,
       forward_query: checked(body, 'forward_query'),
       public_stats: checked(body, 'public_stats'),
+      domain_id: domainId,
       ...mk,
     },
   }

@@ -113,7 +113,7 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
 
   app.get('/:alias', async (req, reply) => {
     const { alias } = req.params as { alias: string }
-    const link = findByAlias(db, alias)
+    const link = findByAlias(db, alias, req.ctx.domainId)
     if (!link) return reply.callNotFound()
     if (!(await gate(req, reply, link))) return reply
     reply.header('Cache-Control', 'private, no-store')
@@ -166,7 +166,7 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
 
   app.post('/:alias', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { alias } = req.params as { alias: string }
-    const link = findByAlias(db, alias)
+    const link = findByAlias(db, alias, req.ctx.domainId)
     if (!link) return reply.callNotFound()
     const action = field(req.body, '_action')
     if (action === 'password' && link.password_hash) {

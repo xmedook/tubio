@@ -23,6 +23,8 @@ export type AppDeps = {
   now: () => number
   /** HTTP saliente (OAuth); los tests lo reemplazan */
   fetch?: typeof fetch
+  /** pruebas: resolver DNS para verificar dominios */
+  dnsResolver?: { txt: (h: string) => Promise<string[][]>; cname: (h: string) => Promise<string[]> }
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')

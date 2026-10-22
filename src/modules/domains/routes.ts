@@ -1,0 +1,116 @@
+import { randomBytes } from 'node:crypto'
+import type { FastifyInstance, FastifyRequest } from 'fastify'
+import type { AppDeps } from '../../app.ts'
+import { html } from '../../lib/html.ts'
+import { panelLayout } from '../../views/layout.ts'
+import { csrfField, emptyState, input, postButton, select } from '../../views/ui.ts'
+import { sendHtml, setFlash, userGuard, type Ctx } from '../../web/context.ts'
+import { field } from '../../web/forms.ts'
+import { listLinks } from '../links/repo.ts'
+import { limitsOf } from '../plans/limits.ts'
+import { audit } from '../settings/repo.ts'
+import type { User } from '../users/repo.ts'
+import { getOwnDomain, listDomains, normalizeHost, refreshDomainCache, verifyDomain } from './repo.ts'
+
+/** A dónde apuntan los clientes su CNAME (lo atiende Caddy con TLS bajo demanda) */
+export const CNAME_TARGET = process.env.TUBIO_CNAME_TARGET ?? 'custom.tubio.link'
+
+export function registerDomains(app: FastifyInstance, deps: AppDeps, resolver?: Parameters<typeof verifyDomain>[2]): void {
+  const { db } = deps
+  refreshDomainCache(db)
+  const me = (req: FastifyRequest) => req.ctx.user as User
+
+  function page(ctx: Ctx, user: User, error?: string, value = '') {
+    const { t } = ctx
+    const lim = limitsOf(db, user, deps.now())
+    const list = listDomains(db, user.id)
+    const pages = listLinks(db, user.id, { kind: 'bio', limit: 500 }).items
+    return panelLayout(ctx, {
+      title: t('domains.title'),
+      active: 'links',
+      path: '/panel/domains',
+      body: html`<h1>${t('domains.title')}</h1>
+${lim.custom_domains === 0
+  ? emptyState(t('domains.locked'), html`<a class="btn btn-primary" href="/panel/plan">${t('plan.see_plans')}</a>`)
+  : html`<p class="muted">${t('domains.intro', { n: lim.custom_domains })}</p>
+${list.map((d) => html`<div class="card"><h2 class="mono">${d.host} <span class="tag${d.status === 'active' ? '' : ' tag-off'}">${t(`domains.status_${d.status}`)}</span></h2>
+  ${d.status === 'pending'
+    ? html`<p>${t('domains.howto')}</p>
+      <table class="data"><thead><tr><th>${t('domains.type')}</th><th>${t('domains.name')}</th><th>${t('domains.value')}</th></tr></thead><tbody>
+        <tr><td>CNAME</td><td class="mono">${d.host}</td><td class="mono">${CNAME_TARGET}</td></tr>
+        <tr><td>TXT</td><td class="mono">_tubio.${d.host}</td><td class="mono">tubio-verify=${d.verify_token}</td></tr></tbody></table>
+      <p class="hint">${t('domains.howto_hint')}</p>
+      ${postButton(ctx, `/panel/domains/${d.id}/verify`, t('domains.verify'), { cls: 'btn btn-primary' })}`
+    : html`<form method="post" action="/panel/domains/${d.id}/home" class="toolbar">${csrfField(ctx)}
+      ${select({ ctx, name: 'home_link_id', label: t('domains.home'), value: d.home_link_id ?? '', options: [{ value: '', label: t('domains.home_none') }, ...pages.filter((p) => p.domain_id === d.id).map((p) => ({ value: String(p.id), label: p.title || p.alias }))] })}
+      <button class="btn" type="submit">${t('common.save')}</button></form><p class="hint">${t('domains.home_hint')}</p>`}
+  ${postButton(ctx, `/panel/domains/${d.id}/delete`, t('common.delete'), { cls: 'btn btn-sm btn-danger', confirm: t('domains.delete_confirm') })}
+</div>`)}
+${list.length < lim.custom_domains || lim.custom_domains < 0
+  ? html`<form class="card" method="post" action="/panel/domains" novalidate>${csrfField(ctx)}
+    ${input({ ctx, name: 'host', label: t('domains.add'), value, error, required: true, placeholder: 'links.tumarca.com', hint: t('domains.add_hint') })}
+    <button class="btn btn-primary" type="submit">${t('domains.add_btn')}</button></form>`
+  : ''}`}`,
+    })
+  }
+
+  app.get('/panel/domains', { preHandler: userGuard }, async (req, reply) => sendHtml(reply, page(req.ctx, me(req))))
+
+  app.post('/panel/domains', { preHandler: userGuard }, async (req, reply) => {
+    const user = me(req)
+    const lim = limitsOf(db, user, deps.now()).custom_domains
+    const raw = field(req.body, 'host')
+    const host = normalizeHost(raw)
+    const mainHost = new URL(deps.config.baseUrl).hostname
+    if (!host || host === mainHost || host.endsWith(`.${mainHost}`)) return sendHtml(reply, page(req.ctx, user, 'err.domain', raw), 422)
+    if (lim >= 0 && listDomains(db, user.id).length >= lim) return reply.redirect('/panel/plan', 303)
+    if (db.prepare('SELECT 1 FROM domains WHERE host = ?').get(host)) return sendHtml(reply, page(req.ctx, user, 'err.domain_taken', raw), 422)
+    db.prepare('INSERT INTO domains (user_id, host, verify_token, created_at) VALUES (?, ?, ?, ?)').run(user.id, host, randomBytes(12).toString('hex'), deps.now())
+    audit(db, { actorId: user.id, userId: user.id, action: 'domain.add', target: host }, deps.now())
+    return reply.redirect('/panel/domains', 303)
+  })
+
+  app.post('/panel/domains/:id/verify', { preHandler: userGuard, config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } }, async (req, reply) => {
+    const d = getOwnDomain(db, Number((req.params as { id: string }).id), me(req).id)
+    if (!d) return reply.callNotFound()
+    if (await verifyDomain(d, CNAME_TARGET, resolver)) {
+      db.prepare("UPDATE domains SET status = 'active', verified_at = ? WHERE id = ?").run(deps.now(), d.id)
+      refreshDomainCache(db)
+      setFlash(reply, deps, { type: 'ok', key: 'domains.verified' })
+    } else setFlash(reply, deps, { type: 'error', key: 'domains.not_yet' })
+    return reply.redirect('/panel/domains', 303)
+  })
+
+  app.post('/panel/domains/:id/home', { preHandler: userGuard }, async (req, reply) => {
+    const d = getOwnDomain(db, Number((req.params as { id: string }).id), me(req).id)
+    if (!d) return reply.callNotFound()
+    const lid = Number(field(req.body, 'home_link_id')) || null
+    const ok = lid && db.prepare('SELECT 1 FROM links WHERE id = ? AND user_id = ? AND domain_id = ?').get(lid, me(req).id, d.id)
+    db.prepare('UPDATE domains SET home_link_id = ? WHERE id = ?').run(ok ? lid : null, d.id)
+    return reply.redirect('/panel/domains', 303)
+  })
+
+  app.post('/panel/domains/:id/delete', { preHandler: userGuard }, async (req, reply) => {
+    const d = getOwnDomain(db, Number((req.params as { id: string }).id), me(req).id)
+    if (!d) return reply.callNotFound()
+    // los enlaces de ese dominio vuelven al principal si su alias está libre; si no, quedan pausados
+    for (const l of db.prepare('SELECT id, alias FROM links WHERE domain_id = ?').all(d.id) as { id: number; alias: string }[]) {
+      const taken = db.prepare('SELECT 1 FROM links WHERE domain_id = 0 AND alias = ?').get(l.alias)
+      if (taken) db.prepare("UPDATE links SET domain_id = 0, alias = alias || '-' || id, is_enabled = 0 WHERE id = ?").run(l.id)
+      else db.prepare('UPDATE links SET domain_id = 0 WHERE id = ?').run(l.id)
+    }
+    db.prepare('DELETE FROM domains WHERE id = ?').run(d.id)
+    refreshDomainCache(db)
+    audit(db, { actorId: me(req).id, userId: me(req).id, action: 'domain.delete', target: d.host }, deps.now())
+    return reply.redirect('/panel/domains', 303)
+  })
+
+  /** Caddy (on_demand_tls → ask) pregunta si emite certificado para un host. Sólo desde la máquina. */
+  app.get('/_/caddy/ask', async (req, reply) => {
+    const ip = req.socket.remoteAddress ?? ''
+    if (!['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ip) && !(process.env.TUBIO_CADDY_IPS ?? '').split(',').includes(ip)) return reply.code(403).send('no')
+    const host = normalizeHost(String((req.query as { domain?: string }).domain ?? ''))
+    const ok = host && db.prepare("SELECT 1 FROM domains WHERE host = ? AND status = 'active'").get(host)
+    return reply.code(ok ? 200 : 404).send(ok ? 'ok' : 'no')
+  })
+}
