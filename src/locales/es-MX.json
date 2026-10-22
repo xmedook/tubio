@@ -1178,5 +1178,8 @@
   "api.revoke": "Revocar",
   "api.revoke_confirm": "¿Revocar esta llave? Lo que la use dejará de funcionar.",
   "api.key_name": "Nombre de la llave",
-  "api.create": "Crear llave"
+  "api.create": "Crear llave",
+  "bio.pwa_install": "Instalar como app",
+  "bio.d.pwa": "Permitir instalar la página como app",
+  "bio.d.pwa_hint": "Los visitantes podrán añadirla a su pantalla de inicio con tu foto como ícono."
 }

@@ -84,6 +84,7 @@ export function bioCsp(nonce: string, preview: boolean, frameOrigins: string[] =
     "form-action 'self'",
     "base-uri 'none'",
     "manifest-src 'self'",
+    "worker-src 'none'",
     `frame-ancestors ${preview ? "'self'" : "'none'"}`,
   ].join('; ')
 }
@@ -132,6 +133,7 @@ ${d.seo_description ? html`<meta property="og:description" content="${d.seo_desc
 ${ogImage ? html`<meta property="og:image" content="${ogImage}"><meta name="twitter:card" content="summary_large_image">` : html`<meta name="twitter:card" content="summary">`}
 <link rel="icon" href="${d.favicon ? imageUrl(d.favicon) : '/_/static/img/favicon.svg'}">
 <link rel="stylesheet" href="/_/static/css/bio.css?v=${ASSET_VERSION}">
+${d.pwa && !link.password_hash ? html`<link rel="manifest" href="/_/pwa/${link.alias}/manifest.webmanifest"><link rel="apple-touch-icon" href="/_/pwa/${link.alias}/icon-192.png"><meta name="theme-color" content="${d.btn_bg ?? '#1d4ed8'}">` : ''}
 <style nonce="${nonce}">${raw(pageCss(d, blocks))}</style>
 <script type="module" src="/_/static/js/bio.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>
 ${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
@@ -142,6 +144,7 @@ ${d.announce_position === 'top' ? announce : ''}
 ${d.share_button ? html`<button type="button" class="share-fab" data-share aria-label="${t('bio.share')}" title="${t('bio.share')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l4 4-1.4 1.4L13 6.8V15h-2V6.8L9.4 8.4 8 7zM5 11h3v2H6v6h12v-6h-2v-2h3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/></svg></button>` : ''}
 <main class="col" data-title="${title}" data-url="${url}" data-copied="${t('links.copied')}">
 ${blocks.length === 0 ? html`<p class="para empty">${t('bio.empty_public')}</p>` : ''}
+${d.pwa ? html`<button type="button" class="btn pwa-install" data-pwa hidden>${t('bio.pwa_install')}</button>` : ''}
 ${blocks.map((b, i) => html`<div class="blk blk-${b.type}" id="b${b.id}" data-i="${Math.min(i, 15)}">${(BLOCK_BY_TYPE.get(b.type) as NonNullable<ReturnType<typeof BLOCK_BY_TYPE.get>>).render(rc, b)}</div>`)}
 ${showBrand
   ? html`<footer class="made">${!forced && d.brand_text

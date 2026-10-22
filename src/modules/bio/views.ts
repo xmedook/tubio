@@ -205,6 +205,7 @@ export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {})
 
       <details class="opt"${d.leap_url ? html` open` : ''}><summary>${t('bio.d.extras')}</summary><div class="opt-body">
         ${checkbox({ name: 'share_button', label: t('bio.d.share_button'), checked: d.share_button })}
+        ${checkbox({ name: 'pwa', label: t('bio.d.pwa'), checked: d.pwa, hint: t('bio.d.pwa_hint') })}
         ${checkbox({ name: 'show_branding', label: t('bio.d.show_branding'), checked: d.show_branding, hint: t('bio.d.branding_hint') })}
         <div class="grid-2">
           ${input({ ctx, name: 'brand_text', label: t('bio.d.brand_text'), value: d.brand_text, maxlength: 60 })}

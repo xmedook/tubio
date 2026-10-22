@@ -118,6 +118,7 @@ export const designSchema = z.object({
   brand_text: text(60),
   brand_url: text(2048),
   share_button: z.boolean().default(true),
+  pwa: z.boolean().default(false),
   leap_url: text(2048),
 })
 export type Design = z.infer<typeof designSchema>

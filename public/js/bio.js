@@ -53,3 +53,9 @@ for (const fig of document.querySelectorAll('[data-ba]')) {
   const r = fig.querySelector('.ba-range')
   r?.addEventListener('input', () => fig.style.setProperty('--pos', `${r.value}%`))
 }
+
+// instalar como app (PWA): el navegador avisa que se puede; mostramos el botón
+let deferred = null
+const pwaBtn = document.querySelector('[data-pwa]')
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; if (pwaBtn) pwaBtn.hidden = false })
+pwaBtn?.addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice.catch(() => null); deferred = null; pwaBtn.hidden = true })

@@ -1178,5 +1178,8 @@
   "api.revoke": "Revoke",
   "api.revoke_confirm": "Revoke this key? Anything using it will stop working.",
   "api.key_name": "Key name",
-  "api.create": "Create key"
+  "api.create": "Create key",
+  "bio.pwa_install": "Install as app",
+  "bio.d.pwa": "Allow installing the page as an app",
+  "bio.d.pwa_hint": "Visitors can add it to their home screen with your photo as the icon."
 }

@@ -264,3 +264,19 @@ describe('fuentes web', () => {
     expect((await new Agent(t.app).get('/_/fonts/..%2Fpackage.json')).statusCode).toBe(404)
   })
 })
+
+describe('PWA', () => {
+  it('manifiesto e íconos sólo si el dueño lo activa', async () => {
+    const { t, a, id } = await bioPage()
+    expect((await new Agent(t.app).get('/_/pwa/ana/manifest.webmanifest')).statusCode).toBe(404)
+    await a.get(`/panel/links/${id}/design`)
+    await a.postMultipart(`/panel/links/${id}/design`, { theme: 'nube', pwa: '1', share_button: '1', show_branding: '1' })
+    const page = (await new Agent(t.app).get('/ana', UA)).body
+    expect(page).toContain('rel="manifest" href="/_/pwa/ana/manifest.webmanifest"')
+    const m = await new Agent(t.app).get('/_/pwa/ana/manifest.webmanifest')
+    expect(m.json()).toMatchObject({ start_url: '/ana?utm_source=pwa', display: 'standalone' })
+    const icon = await new Agent(t.app).get('/_/pwa/ana/icon-192.png')
+    expect(icon.headers['content-type']).toBe('image/png')
+    expect((await sharp(icon.rawPayload).metadata()).width).toBe(192)
+  })
+})

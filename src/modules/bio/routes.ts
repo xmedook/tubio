@@ -1,12 +1,12 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { findFile, readMultipart, storeImage, uploadPath, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { findFile, findFileByKey, readMultipart, storeImage, uploadPath, UploadError, type MultipartData } from '../../lib/uploads.ts'
 import { buildVCard, vcardFileName, vcardSchema } from '../../lib/vcard.ts'
 import { checkTarget, redirectAllowed } from '../../lib/urls.ts'
 import { sendHtml, setFlash, userGuard } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
 import type { Errors } from '../../views/ui.ts'
-import { getLink, updateLink, type Link } from '../links/repo.ts'
+import { findByAlias, getLink, updateLink, type Link } from '../links/repo.ts'
 import { availability, isConfirmed, isUnlocked } from '../public/gate.ts'
 import { ownLinkOr404 } from '../links/routes.ts'
 import { recordEvent, visitFromRequest } from '../stats/record.ts'
@@ -16,7 +16,10 @@ import { limitsOf, PLAN_GATED_BLOCKS } from '../plans/limits.ts'
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
-import { designSchema, readDesign, WEB_FONTS, type Design } from './design.ts'
+import { designSchema, readDesign, themeById, WEB_FONTS, type Design } from './design.ts'
+import sharp from 'sharp'
+import { esc } from '../../lib/html.ts'
+import { contrastInk } from '../../lib/qr.ts'
 import { createReadStream, existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
@@ -45,13 +48,13 @@ async function parseDesign(deps: AppDeps, user: User, mp: MultipartData, current
   const raw: Record<string, unknown> = {}
   for (const k of Object.keys(designSchema.shape)) {
     if (k in IMAGE_FIELDS) continue
-    const isCheck = ['noindex', 'show_branding', 'share_button'].includes(k)
+    const isCheck = ['noindex', 'show_branding', 'share_button', 'pwa'].includes(k)
     // campo que no vino en el formulario: se conserva el valor actual
     if (!isCheck && b[k] === undefined && b[`${k}__theme`] === undefined) {
       raw[k] = current[k as keyof Design]
       continue
     }
-    if (['noindex', 'show_branding', 'share_button'].includes(k)) raw[k] = checked(b, k)
+    if (['noindex', 'show_branding', 'share_button', 'pwa'].includes(k)) raw[k] = checked(b, k)
     else if (['text_color', 'btn_bg', 'btn_text', 'btn_border_color'].includes(k)) raw[k] = checked(b, `${k}__theme`) ? null : f(k).toLowerCase()
     else if (['btn_border_width', 'btn_radius'].includes(k)) raw[k] = f(k).trim() === '' ? null : f(k)
     else raw[k] = f(k)
@@ -113,6 +116,52 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     reply.header('Cache-Control', 'public, max-age=31536000, immutable')
     reply.header('Access-Control-Allow-Origin', '*')
     return reply.type('font/woff2').send(createReadStream(path))
+  })
+
+  // PWA: manifiesto e iconos de una página bio (si su dueño lo activó)
+  const pwaLink = (alias: string) => {
+    const l = findByAlias(db, alias)
+    return l && l.kind === 'bio' && readDesign(l.data).pwa && availability(deps, l) === 'ok' && !l.password_hash ? l : null
+  }
+  app.get('/_/pwa/:alias/manifest.webmanifest', async (req, reply) => {
+    const l = pwaLink((req.params as { alias: string }).alias)
+    if (!l) return reply.callNotFound()
+    const d = readDesign(l.data)
+    const th = themeById(d.theme)
+    const color = d.btn_bg ?? (/^#/.test(th.btnBg) ? th.btnBg : '#1d4ed8')
+    const bg = d.bg_type === 'color' ? d.bg_color : /^#/.test(th.bg) ? th.bg : '#ffffff'
+    reply.header('Cache-Control', 'public, max-age=3600')
+    return reply.type('application/manifest+json').send(JSON.stringify({
+      name: (d.seo_title || l.title || l.alias).slice(0, 45),
+      short_name: (l.title || l.alias).slice(0, 12),
+      start_url: `/${l.alias}?utm_source=pwa`,
+      scope: `/${l.alias}`,
+      display: 'standalone',
+      background_color: bg,
+      theme_color: color,
+      icons: [192, 512].map((n) => ({ src: `/_/pwa/${l.alias}/icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'any maskable' })),
+    }))
+  })
+  app.get('/_/pwa/:alias/icon-:size.png', async (req, reply) => {
+    const { alias, size } = req.params as { alias: string; size: string }
+    const l = pwaLink(alias)
+    const n = size === '512' ? 512 : size === '192' ? 192 : 0
+    if (!l || !n) return reply.callNotFound()
+    const d = readDesign(l.data)
+    // ícono: favicon propio, si no el avatar, si no una inicial sobre el color del tema
+    const avatar = listBlocks(db, l.id).find((b) => b.type === 'avatar' && b.is_enabled)
+    const key = d.favicon ?? (typeof avatar?.data.image === 'string' ? avatar.data.image : null)
+    let png: Buffer
+    const f = key ? findFileByKey(deps, key) : undefined
+    if (f && existsSync(uploadPath(deps, f.key))) png = await sharp(uploadPath(deps, f.key)).resize(n, n, { fit: 'cover' }).png().toBuffer()
+    else {
+      const th = themeById(d.theme)
+      const fill = d.btn_bg ?? (/^#/.test(th.btnBg) ? th.btnBg : '#1d4ed8')
+      const letter = esc((l.title || l.alias).trim().charAt(0).toUpperCase() || 't')
+      png = await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${n}" height="${n}"><rect width="100%" height="100%" fill="${fill}"/><text x="50%" y="54%" font-family="DejaVu Sans, Arial" font-weight="700" font-size="${n * 0.55}" fill="${contrastInk(fill)}" text-anchor="middle" dominant-baseline="middle">${letter}</text></svg>`)).png().toBuffer()
+    }
+    reply.header('Cache-Control', 'public, max-age=86400')
+    return reply.type('image/png').send(png)
   })
 
   app.get('/_/themes.css', async (_req, reply) => {
