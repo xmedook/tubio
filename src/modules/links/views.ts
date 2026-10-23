@@ -246,6 +246,7 @@ export function linkFormPage(
 
   const body = html`
 ${isNew ? html`<h1>${t(`links.new_${kind}`)}</h1>` : ''}
+${isNew && kind === 'bio' ? html`<p class="card tpl-cta"><a class="btn" href="/panel/templates">${t('tpl.start_with')} →</a> <span class="muted">${t('create.tpl')}</span></p>` : ''}
 ${hasErrors ? html`<p class="flash flash-error" role="alert">${t(e._form ?? 'err.form')}</p>` : ''}
 <form method="post" action="${action}" enctype="multipart/form-data" novalidate>
   <div class="card">

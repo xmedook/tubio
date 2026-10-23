@@ -72,6 +72,48 @@ export async function remindExpiring(deps: AppDeps): Promise<number> {
   return n
 }
 
+/** Lunes (en la zona de cada quien): resumen de la semana por correo a quien tuvo visitas */
+export async function weeklyReports(deps: AppDeps): Promise<number> {
+  const now = deps.now()
+  const WEEK = 7 * 86400_000
+  let n = 0
+  const users = deps.db.prepare("SELECT id, email, locale, timezone FROM users WHERE report_weekly = 1 AND status = 'active' AND email_verified_at IS NOT NULL").all() as { id: number; email: string; locale: string; timezone: string }[]
+  for (const u of users) {
+    const tz = u.timezone || 'America/Mexico_City'
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short', hour: 'numeric', hourCycle: 'h23' }).formatToParts(now)
+    if (parts.find((p) => p.type === 'weekday')?.value !== 'Mon' || Number(parts.find((p) => p.type === 'hour')?.value) < 8) continue
+    const week = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(now)
+    if (deps.db.prepare("SELECT 1 FROM audit_log WHERE user_id = ? AND action = 'report.weekly' AND target = ?").get(u.id, week)) continue
+    const tot = (from: number, to: number) => deps.db.prepare("SELECT SUM(e.kind = 'view') AS v, SUM(e.kind = 'click') AS c FROM stat_events e JOIN links l ON l.id = e.link_id WHERE l.user_id = ? AND e.ts >= ? AND e.ts < ?").get(u.id, from, to) as { v: number | null; c: number | null }
+    const cur = tot(now - WEEK, now)
+    const prev = tot(now - 2 * WEEK, now - WEEK)
+    deps.db.prepare("INSERT INTO audit_log (user_id, action, target, meta, ts) VALUES (?, 'report.weekly', ?, '{}', ?)").run(u.id, week, now)
+    if (!cur.v && !cur.c) continue // semana sin movimiento: no se escribe
+    const top = deps.db.prepare("SELECT COALESCE(NULLIF(l.title, ''), l.alias) AS name, COUNT(*) AS n FROM stat_events e JOIN links l ON l.id = e.link_id WHERE l.user_id = ? AND e.ts >= ? GROUP BY l.id ORDER BY n DESC LIMIT 3").all(u.id, now - WEEK) as { name: string; n: number }[]
+    const t = translator(u.locale as Locale)
+    const fmt = (x: number | null) => new Intl.NumberFormat(u.locale).format(x ?? 0)
+    const delta = prev.v ? Math.round((((cur.v ?? 0) - prev.v) / prev.v) * 100) : null
+    await deps.mailer.send({
+      to: u.email,
+      subject: t('mail.weekly_subject', { views: fmt(cur.v) }),
+      text: [
+        t('mail.weekly_intro'),
+        '',
+        `${t('stats.views')}: ${fmt(cur.v)}${delta === null ? '' : ` (${delta >= 0 ? '+' : ''}${delta} %)`}`,
+        `${t('stats.clicks')}: ${fmt(cur.c)}`,
+        ...(top.length ? ['', t('mail.weekly_top'), ...top.map((x, i) => `${i + 1}. ${x.name} — ${fmt(x.n)}`)] : []),
+        '',
+        `${deps.config.baseUrl}/panel/stats`,
+        '',
+        t('mail.weekly_off'),
+      ].join('\n'),
+      button: t('stats.title'),
+    })
+    n++
+  }
+  return n
+}
+
 /** Tareas periódicas dentro del proceso (un solo host) */
 export function runJobs(deps: AppDeps): Record<string, number> {
   const stats = purgeStats(deps, getSetting(deps.db, 'stats_retention_days'))
@@ -95,6 +137,7 @@ export function startJobs(deps: AppDeps, log: FastifyBaseLogger): () => void {
     try {
       const result = runJobs(deps)
       void remindExpiring(deps).catch((err) => log.error(err, 'recordatorios de plan fallaron'))
+      void weeklyReports(deps).catch((err) => log.error(err, 'reportes semanales fallaron'))
       last = { at: deps.now(), result, error: null }
       log.info({ jobs: result }, 'tareas periódicas')
     } catch (err) {
@@ -103,7 +146,8 @@ export function startJobs(deps: AppDeps, log: FastifyBaseLogger): () => void {
     }
   }
   const first = setTimeout(tick, 10_000)
-  const every = setInterval(tick, 6 * 3600 * 1000)
+  // cada hora: el reporte semanal sale el lunes desde las 8:00 de cada zona
+  const every = setInterval(tick, 3600 * 1000)
   // cola de avisos: cada 10 s
   let busy = false
   const queue = setInterval(() => {

@@ -70,7 +70,11 @@ describe('reporte', () => {
 
     const page = await a.get(`/panel/links/${link.id}/stats?from=2026-10-01&to=2026-10-31`)
     expect(page.statusCode).toBe(200)
-    expect(page.body).toContain('<svg viewBox="0 0 720 220"')
+    expect(page.body).toContain('<svg viewBox="0 0 720 200"')
+    // cascada: tocar un país filtra (se ven sus ciudades) y el filtro se puede quitar
+    const mx = await a.get(`/panel/links/${link.id}/stats?from=2026-10-01&to=2026-10-31&f_country=MX`)
+    expect(mx.statusCode).toBe(200)
+    expect(mx.body).toContain('Quitar filtro')
     expect(page.body).toContain('Celular')
     expect(page.body).toContain('instagram.com')
     const csv = await a.get(`/panel/links/${link.id}/stats?format=csv&from=2026-10-01&to=2026-10-31`)

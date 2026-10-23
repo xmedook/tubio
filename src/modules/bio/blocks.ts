@@ -14,6 +14,7 @@ import {
   type Embed,
 } from './embeds.ts'
 import { NETWORK_BY_ID, NETWORKS } from './socials.ts'
+import { V2_BLOCKS } from './blocks-v2.ts'
 import { BUSINESS_BLOCKS } from './blocks-business.ts'
 import { embedDef } from './embed-block.ts'
 import { FEED_BLOCKS } from './blocks-feeds.ts'
@@ -295,7 +296,7 @@ export const BLOCKS: BlockDef[] = [
   },
 ]
 
-BLOCKS.push(...BUSINESS_BLOCKS, ...FEED_BLOCKS, ...EMBED_BLOCKS, ...CAPTURE_BLOCKS)
+BLOCKS.push(...V2_BLOCKS, ...BUSINESS_BLOCKS, ...FEED_BLOCKS, ...EMBED_BLOCKS, ...CAPTURE_BLOCKS)
 
 export const BLOCK_BY_TYPE = new Map(BLOCKS.map((b) => [b.type, b]))
 export const MAX_BLOCKS_PER_PAGE = 100

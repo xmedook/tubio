@@ -17,7 +17,8 @@ const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', '
 export function blockIcon(type: string, group?: string): string {
   if (/link|button|cta/.test(type)) return 'links'
   if (/heading|paragraph|text|marquee|list|alert|divider|faq|timeline/.test(type)) return 'text'
-  if (/image|gallery|carousel|avatar|before_after/.test(type)) return 'image'
+  if (/image|gallery|carousel|avatar|before_after|cover/.test(type)) return 'image'
+  if (/article/.test(type)) return 'links'
   if (/map|location/.test(type)) return 'pin'
   if (/social|share/.test(type)) return 'share'
   if (/hours|countdown|calendar|event/.test(type)) return 'clock'
@@ -99,6 +100,13 @@ ${viewToggle(ctx)}
       </li>`
       })}
     </ol>`}
+    <details class="opt save-tpl"><summary>${t('tpl.save')}</summary><div class="opt-body">
+      <form method="post" action="/panel/links/${link.id}/save-template">${csrfField(ctx)}
+        ${input({ ctx, name: 'name', label: t('links.title'), value: link.title || link.alias, maxlength: 80 })}
+        ${ctx.user?.role === 'admin' && !ctx.member ? checkbox({ name: 'general', label: t('tpl.save_general') }) : ''}
+        <button class="btn" type="submit">${t('tpl.save')}</button>
+      </form>
+    </div></details>
   </section>
   ${preview(ctx, link)}
 </div>`,
