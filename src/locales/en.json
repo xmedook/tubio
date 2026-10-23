@@ -1502,5 +1502,11 @@
   "tpl.save": "Save as template",
   "tpl.save_general": "General template (for all accounts)",
   "tpl.start_with": "Start with a template",
-  "create.tpl": "Restaurant, clinic, shop…"
+  "create.tpl": "Restaurant, clinic, shop…",
+  "bio.type_cover_header": "Cover header",
+  "bio.type_article_card": "Article card",
+  "bio.type_cta": "Call to action",
+  "bio.f.cover": "Cover image",
+  "bio.f.avatar_optional": "Photo or logo (optional)",
+  "bio.f.button": "Button text"
 }

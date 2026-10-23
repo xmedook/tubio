@@ -1502,5 +1502,11 @@
   "tpl.save": "Guardar como plantilla",
   "tpl.save_general": "Plantilla general (para todas las cuentas)",
   "tpl.start_with": "Empezar con una plantilla",
-  "create.tpl": "Restaurante, consultorio, tienda…"
+  "create.tpl": "Restaurante, consultorio, tienda…",
+  "bio.type_cover_header": "Cabecera con portada",
+  "bio.type_article_card": "Tarjeta de artículo",
+  "bio.type_cta": "Llamada a la acción",
+  "bio.f.cover": "Imagen de portada",
+  "bio.f.avatar_optional": "Foto o logo (opcional)",
+  "bio.f.button": "Texto del botón"
 }
