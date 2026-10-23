@@ -1,3 +1,4 @@
+import { notifyUser, purgeNotifications } from './modules/inbox/repo.ts'
 import type { FastifyBaseLogger } from 'fastify'
 import type { AppDeps } from './app.ts'
 import { deleteStoredFile, type StoredFile } from './lib/uploads.ts'
@@ -66,6 +67,7 @@ export async function remindExpiring(deps: AppDeps): Promise<number> {
         button: t('plan.title'),
       })
       deps.db.prepare("INSERT INTO audit_log (user_id, action, target, meta, ts) VALUES (?, ?, ?, '{}', ?)").run(r.id, `plan.${key}`, String(r.plan_expires_at), now)
+      notifyUser(deps.db, r.id, { kind: 'plan', title: t('mail.plan_expiring_subject', { plan: r.name, n: days }), url: '/panel/plan' }, now)
       n++
     }
   }
@@ -123,6 +125,7 @@ export function runJobs(deps: AppDeps): Record<string, number> {
     stat_salts: stats.salts,
     stat_events_plan: purgeStatsByPlan(deps),
     orphan_images: purgeOrphanImages(deps),
+    notifications: purgeNotifications(deps.db, deps.now()),
   }
 }
 

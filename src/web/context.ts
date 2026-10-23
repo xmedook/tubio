@@ -8,6 +8,7 @@ import { fromAcceptLanguage, isLocale, translator, type Locale, type T } from '.
 import { loadSession, SESSION_COOKIE, type Session } from '../modules/auth/sessions.ts'
 import { domainIdForHost, domainOwner } from '../modules/domains/repo.ts'
 import { limitsOf, ownerLimits } from '../modules/plans/limits.ts'
+import { unreadCount } from '../modules/inbox/repo.ts'
 import { findUserById } from '../modules/users/repo.ts'
 import { getSetting } from '../modules/settings/repo.ts'
 import type { User } from '../modules/users/repo.ts'
@@ -38,6 +39,8 @@ export type Ctx = {
   announcement: { text: string; level: 'info' | 'warn' } | null
   /** este dispositivo no cuenta en las estadísticas (cookie tb_self) */
   selfExcluded: boolean
+  /** avisos sin leer de la campanita (sólo en rutas del panel) */
+  unread: number
 }
 
 declare module 'fastify' {
@@ -181,6 +184,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       member,
       teamRole,
       selfExcluded: req.cookies.tb_self === '1',
+      unread: user && /^\/(panel|admin)(\/|$)/.test(path) ? unreadCount(deps.db, user.id) : 0,
       announcement: (() => {
         const text = getSetting(deps.db, 'announcement')
         return text ? { text, level: getSetting(deps.db, 'announcement_level') === 'warn' ? 'warn' : 'info' } : null

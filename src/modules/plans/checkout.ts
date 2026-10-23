@@ -16,6 +16,7 @@ import { getPlan, getPlanBySlug, listPlans, planOf, type Plan } from './limits.t
 import { receiptPdf } from './receipt.ts'
 import { creditReferral } from '../growth/routes.ts'
 import { money } from './routes.ts'
+import { notifyUser } from '../inbox/repo.ts'
 import { stripeApi, stripeOn, verifyStripeSignature } from './stripe.ts'
 
 const env = process.env
@@ -324,6 +325,7 @@ ${postButton(ctx, '/admin/coupons/delete', t('common.delete'), { cls: 'btn btn-s
     audit(db, { actorId, userId: p.user_id, action: 'pay.approved', target: `payment:${p.id}`, meta: { reference: p.reference, method: p.method } }, now)
     const u = findUserById(db, p.user_id)
     const plan = getPlan(db, p.plan_id)
+    if (plan) notifyUser(db, p.user_id, { kind: 'payment', title: `Pago recibido: plan ${plan.name}`, body: p.reference, url: `/panel/payments/${p.id}` }, now)
     if (u && plan) {
       const t = translator(u.locale as Locale)
       await deps.mailer.send({

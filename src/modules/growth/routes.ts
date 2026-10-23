@@ -1,3 +1,4 @@
+import { notifyUser } from '../inbox/repo.ts'
 import { randomInt } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
@@ -35,7 +36,8 @@ export function creditReferral(deps: AppDeps, payment: { id: number; user_id: nu
   const pct = getSetting(deps.db, 'referral_percent')
   const amount = Math.round(((payment.amount - payment.discount) * pct) / 100)
   if (amount <= 0) return
-  deps.db.prepare('INSERT OR IGNORE INTO referral_earnings (affiliate_id, referred_id, payment_id, amount, currency, created_at) VALUES (?, ?, ?, ?, ?, ?)').run(u.referred_by, u.id, payment.id, amount, payment.currency, deps.now())
+  const r = deps.db.prepare('INSERT OR IGNORE INTO referral_earnings (affiliate_id, referred_id, payment_id, amount, currency, created_at) VALUES (?, ?, ?, ?, ?, ?)').run(u.referred_by, u.id, payment.id, amount, payment.currency, deps.now())
+  if (r.changes) notifyUser(deps.db, u.referred_by, { kind: 'referral', title: 'Ganaste una comisión de afiliado', body: `${(amount / 100).toFixed(2)} ${payment.currency}`, url: '/panel/referrals' }, deps.now())
 }
 
 export function registerGrowth(app: FastifyInstance, deps: AppDeps): void {

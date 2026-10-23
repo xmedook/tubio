@@ -153,7 +153,8 @@ function kindFields(ctx: Ctx, kind: LinkKind, v: FormValues, e: Errors, isNew: b
     return html`${input({ ctx, name: 'target_url', type: 'url', label: t('links.target_url'), value: v.target_url, error: e.target_url, required: true, placeholder: 'https://', inputmode: 'url' })}
 ${select({ ctx, name: 'redirect_code', label: t('links.redirect_code'), value: v.redirect_code ?? '302', hint: t('links.redirect_hint'), options: [
   { value: '302', label: t('links.redirect_302') }, { value: '301', label: t('links.redirect_301') },
-  { value: '307', label: t('links.redirect_307') }, { value: '308', label: t('links.redirect_308') }] })}`
+  { value: '307', label: t('links.redirect_307') }, { value: '308', label: t('links.redirect_308') }] })}
+${checkbox({ name: 'open_app', label: t('links.open_app'), checked: isNew ? true : v.open_app === '1', hint: t('links.open_app_hint') })}`
   }
   if (kind === 'file') {
     return html`${v.file_name ? html`<p>${t('links.current_file')}: <strong>${v.file_name}</strong></p>` : ''}

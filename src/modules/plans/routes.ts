@@ -3,6 +3,7 @@ import type { AppDeps } from '../../app.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
 import { formatDateTime, formatNumber } from '../../lib/i18n.ts'
 import { panelLayout } from '../../views/layout.ts'
+import { csrfField, input } from '../../views/ui.ts'
 import { sendHtml, userGuard, type Ctx } from '../../web/context.ts'
 import type { User } from '../users/repo.ts'
 import { listPlans, planOf, usageOf, type Limits, type Plan } from './limits.ts'
@@ -69,6 +70,9 @@ export function registerPlans(app: FastifyInstance, deps: AppDeps): void {
 </div>
 <h2>${t('plan.compare')}</h2>
 ${plansTable(ctx, listPlans(db, true), plan.slug)}
+<form class="card redeem-form" method="post" action="/panel/plan/redeem">${csrfField(ctx)}
+  <div class="search-bar">${input({ ctx, name: 'code', label: t('redeem.have_code'), placeholder: t('redeem.placeholder'), autocomplete: 'off', maxlength: 40 })}<button class="btn" type="submit">${t('redeem.go')}</button></div>
+</form>
 <p><a href="/panel/payments">${t('pay.history')}</a></p>`,
     }))
   })
