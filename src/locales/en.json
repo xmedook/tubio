@@ -1371,5 +1371,10 @@
   "bulk.no_room": "You have no links left on your plan or for today.",
   "bulk.too_many": "Only the first 100 lines are processed.",
   "bulk.copy_all": "Copy all",
-  "bulk.see_links": "See my links"
+  "bulk.see_links": "See my links",
+  "self.title": "Your own visits",
+  "self.body": "When you open your pages while signed in, they do not count in your stats. To also skip visits from this phone or computer when signed out, exclude it.",
+  "self.turn_on": "Do not count visits from this device",
+  "self.turn_off": "Count them again",
+  "self.on": "This device is excluded from stats."
 }

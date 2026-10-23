@@ -1371,5 +1371,10 @@
   "bulk.no_room": "Ya no te alcanzan los enlaces de tu plan o de hoy.",
   "bulk.too_many": "Sólo se procesan los primeros 100 renglones.",
   "bulk.copy_all": "Copiar todos",
-  "bulk.see_links": "Ver mis enlaces"
+  "bulk.see_links": "Ver mis enlaces",
+  "self.title": "Tus propias visitas",
+  "self.body": "Cuando entras a tus páginas con tu sesión iniciada, no cuentan en las estadísticas. Para que tampoco cuenten desde este teléfono o computadora sin sesión, exclúyelo.",
+  "self.turn_on": "No contar las visitas de este dispositivo",
+  "self.turn_off": "Volver a contarlas",
+  "self.on": "Este dispositivo está excluido de las estadísticas."
 }

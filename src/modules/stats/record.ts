@@ -11,6 +11,10 @@ export type Visit = {
   referrer: string | null
   lang: string | null
   utm: { source: string | null; medium: string | null; campaign: string | null }
+  /** quien mira con sesión iniciada (sus propias visitas no cuentan) */
+  viewerId?: number | null
+  /** «no contar este dispositivo» (cookie tb_self) */
+  selfExcluded?: boolean
 }
 
 export function visitFromRequest(req: FastifyRequest): Visit {
@@ -23,6 +27,8 @@ export function visitFromRequest(req: FastifyRequest): Visit {
     referrer: typeof req.headers.referer === 'string' ? req.headers.referer : null,
     lang: al ? (al.split(',')[0]?.split(';')[0]?.trim().split('-')[0]?.toLowerCase().slice(0, 8) ?? null) || null : null,
     utm: { source: s('utm_source'), medium: s('utm_medium'), campaign: s('utm_campaign') },
+    viewerId: req.ctx?.user?.id ?? null,
+    selfExcluded: req.cookies?.tb_self === '1',
   }
 }
 
@@ -78,6 +84,9 @@ export function recordEvent(
   e: { linkId: number; blockId?: number | null; kind: 'view' | 'click'; variant?: string | null },
 ): boolean {
   if (isBotVisit(visit)) return false
+  // las visitas del dueño (o desde un dispositivo excluido) no son estadística
+  if (visit.selfExcluded) return false
+  if (visit.viewerId && deps.db.prepare('SELECT 1 FROM links WHERE id = ? AND user_id = ?').get(e.linkId, visit.viewerId)) return false
   const ts = deps.now()
   const day = dayOf(ts)
   const visitor = sha256(dailySalt(deps, day) + '|' + visit.ip + '|' + visit.ua).slice(0, 32)

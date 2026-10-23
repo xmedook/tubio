@@ -88,3 +88,28 @@ describe('creación masiva', () => {
     expect(t.deps.db.prepare("SELECT COUNT(*) FROM links WHERE kind = 'short'").pluck().get()).toBe(25)
   })
 })
+
+describe('mis propias visitas no cuentan', () => {
+  it('con sesión del dueño o con el dispositivo excluido', async () => {
+    const { Agent } = await import('./helpers.ts')
+    const UA = { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 Safari/605.1.15' }
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=short')
+    await a.postMultipart('/panel/links?kind=short', { alias: 'mio', target_url: 'https://a.mx', is_enabled: '1' })
+    const n = () => t.deps.db.prepare('SELECT COUNT(*) FROM stat_events').pluck().get()
+    await a.get('/mio', UA)
+    expect(n()).toBe(0)
+    await new Agent(t.app).get('/mio', UA)
+    expect(n()).toBe(1)
+    await a.get('/panel/account')
+    await a.post('/panel/account/self-exclude', { on: '1' })
+    expect((await a.get('/panel/account')).body).toContain('Este dispositivo está excluido')
+    const cookie = a.cookies.get('tb_self')
+    const anon = new Agent(t.app)
+    anon.cookies.set('tb_self', cookie as string)
+    await anon.get('/mio', UA)
+    expect(n()).toBe(1)
+  })
+})

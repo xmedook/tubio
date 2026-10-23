@@ -8,8 +8,8 @@ import { parseQrStyle, renderQrSvg } from '../../lib/qr.ts'
 import { generateSecret, matchTotp, otpauthUri, verifyTotp } from '../../lib/totp.ts'
 import { deleteUserFiles } from '../../lib/uploads.ts'
 import { panelLayout } from '../../views/layout.ts'
-import { csrfField, input, select, type Errors } from '../../views/ui.ts'
-import { sendHtml, setFlash, userGuard, type Ctx } from '../../web/context.ts'
+import { csrfField, input, select, type Errors, postButton } from '../../views/ui.ts'
+import { cookieOpts, sendHtml, setFlash, userGuard, type Ctx } from '../../web/context.ts'
 import { field, parseForm } from '../../web/forms.ts'
 import { actorOf, passwordSchema, sendVerifyEmail } from '../auth/routes.ts'
 import { destroyUserSessions, SESSION_COOKIE } from '../auth/sessions.ts'
@@ -78,6 +78,14 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
         <button class="btn btn-danger" type="submit">${t('account.2fa_disable')}</button>
       </form>`
     : html`<p>${t('account.2fa_intro')}</p><a class="btn" href="/panel/account/2fa">${t('account.2fa_enable')}</a>`}
+</section>
+
+<section class="card" aria-labelledby="h-self">
+  <h2 id="h-self">${t('self.title')}</h2>
+  <p>${t('self.body')}</p>
+  ${ctx.selfExcluded
+    ? html`<p class="flash flash-ok">${t('self.on')}</p>${postButton(ctx, '/panel/account/self-exclude', t('self.turn_off'), { cls: 'btn', hidden: { on: '0' } })}`
+    : postButton(ctx, '/panel/account/self-exclude', t('self.turn_on'), { cls: 'btn', hidden: { on: '1' } })}
 </section>
 
 <section class="card" aria-labelledby="h-data">
@@ -210,6 +218,13 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.2fa_disabled' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.2fa_disabled' })
     return reply.redirect('/panel/account', 303)
+  })
+
+  // «no contar este dispositivo»: cookie de un año; no se guarda la IP
+  app.post('/panel/account/self-exclude', { preHandler: userGuard }, async (req, reply) => {
+    if (field(req.body, 'on') === '1') reply.setCookie('tb_self', '1', cookieOpts(deps, 365 * 86400))
+    else reply.clearCookie('tb_self', { path: '/' })
+    return reply.redirect('/panel/account#h-self', 303)
   })
 
   app.get('/panel/account/export', { preHandler: userGuard }, async (req, reply) => {
