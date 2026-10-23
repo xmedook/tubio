@@ -105,8 +105,8 @@ form .field { margin-bottom: 1rem; }
 .field input[type="color"] { width: 3.25rem; height: 2.5rem; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 0; }
 .field-check { display: flex; gap: .55rem; align-items: flex-start; flex-wrap: wrap; }
-.field-check label { margin: 0; font-weight: 500; }
-.field-check input { margin-top: .3rem; width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+.field-check label { margin: 0; font-weight: 500; min-height: 44px; display: inline-flex; align-items: center; }
+.field-check input { margin-top: .8rem; width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
 .field-check .hint { flex-basis: 100%; margin-left: 1.6rem; }
 .hint { color: var(--muted); font-size: .85rem; margin: .3rem 0 0; }
 .error { color: var(--danger); font-size: .88rem; margin: .3rem 0 0; font-weight: 550; }
@@ -715,3 +715,12 @@ a.sl-row:hover .sl-l { text-decoration: underline; }
 .start-actions { display: grid; gap: 10px; margin: 1rem 0; }
 .btn-lg { min-height: 52px; font-size: 17px; }
 @media (max-width: 899px) { body:has(.sticky-actions) .fab-wrap { display: none; } }
+/* QR en el celular: la vista previa arriba y fija mientras ajustas */
+@media (max-width: 899px) {
+  .qr-editor { display: flex; flex-direction: column; }
+  .qr-editor .qr-side { order: -1; position: sticky; top: 64px; z-index: 12; background: var(--bg); padding: 4px 0 8px; margin: 0 -1rem; padding-left: 1rem; padding-right: 1rem; max-width: none; }
+  .qr-editor .qr-preview { min-height: 0; height: 168px; padding: 8px; width: 100%; box-sizing: border-box; display: grid; place-items: center; }
+  .qr-editor .qr-preview img, .qr-editor .qr-preview svg { width: auto; height: 150px; max-width: 100%; }
+  .qr-editor .danger-zone { display: none; }
+}
+.tap { display: inline-flex; align-items: center; min-height: 44px; }

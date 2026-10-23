@@ -6,3 +6,4 @@ coverage/
 
 # Inventario de la referencia (sala limpia, sólo local: nombra el producto y la instalación del cliente)
 docs/SPEC-V2-REFERENCIA.md
+.rc-trash/

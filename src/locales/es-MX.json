@@ -1573,5 +1573,6 @@
   "start.share_wa": "Compartir por WhatsApp",
   "start.qr": "Hacer su código QR",
   "start.keep_editing": "Seguir editando",
-  "start.done_hint": "Cambia textos, agrega botones y escoge colores en el editor cuando quieras."
+  "start.done_hint": "Cambia textos, agrega botones y escoge colores en el editor cuando quieras.",
+  "links.opt_advanced": "Avanzado"
 }
