@@ -1,3 +1,4 @@
+import { notifyUser } from '../inbox/repo.ts'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { sha256 } from '../../lib/crypto.ts'
@@ -88,6 +89,7 @@ export function registerCapture(app: FastifyInstance, deps: AppDeps): void {
         at: now,
         payload: { id, page: link.alias, block: b.type, kind, data },
       }
+      notifyUser(db, link.user_id, { kind: 'capture', title: notice.title, body: Object.values(data).join(' · ').slice(0, 300), url: '/panel/data' }, now)
       for (const tid of targetIds) {
         const t = getOwnTarget(deps, tid, link.user_id)
         if (t?.is_enabled) enqueue(deps, 'notify', { target_id: t.id, notice })

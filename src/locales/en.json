@@ -1529,5 +1529,9 @@
   "links.open_app": "Open in the app",
   "links.open_app_hint": "If the destination is YouTube, Instagram, TikTok, Spotify, Facebook, X, Telegram, LinkedIn or Amazon and it is opened on a phone, the app opens (or the website if they do not have it).",
   "app.opening": "Opening {app}…",
-  "app.continue": "If it did not open, continue on the web"
+  "app.continue": "If it did not open, continue on the web",
+  "inbox.title": "Updates",
+  "inbox.none": "No updates",
+  "inbox.none_body": "Here you will see when someone fills a form on your pages, when a payment is approved or your plan is about to expire.",
+  "inbox.bell_n": "Updates: {n} unread"
 }

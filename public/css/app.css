@@ -688,3 +688,8 @@ a.sl-row:hover .sl-l { text-decoration: underline; }
   .chart-card, .stat-list { border-radius: var(--r-md); }
 }
 .kpi-hero .st-l::first-letter, .kpi-hero .st-k dt::first-letter { text-transform: uppercase; }
+/* campanita */
+.bell { position: relative; color: var(--text); }
+.bell-n { position: absolute; top: 6px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 12px; font-weight: 800; display: grid; place-items: center; line-height: 1; }
+@media (min-width: 900px) { .top-search { display: none; } .bell { order: 5; } }
+.notif-list li.unread { background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface)); }

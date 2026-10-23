@@ -3,7 +3,7 @@ import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '20'
+export const ASSET_VERSION = '21'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -62,6 +62,7 @@ ${head(ctx, opts.title, opts.head)}
     <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
   </div>
   <a class="icon-btn top-search" href="/panel?buscar=1" aria-label="${t('links.search')}">${icon('search')}</a>
+  <a class="icon-btn bell" href="/panel/inbox" aria-label="${ctx.unread ? t('inbox.bell_n', { n: ctx.unread }) : t('inbox.title')}">${icon('bell')}${ctx.unread ? html`<span class="bell-n" aria-hidden="true">${ctx.unread > 9 ? '9+' : ctx.unread}</span>` : ''}</a>
   <details class="more-menu">
     <summary aria-label="${t('nav.more')}">${icon('more')}</summary>
     <ul class="menu">
