@@ -29,3 +29,27 @@ describe('centro de ayuda', () => {
     expect(t.mailer.sent).toHaveLength(1)
   })
 })
+
+describe('soporte → Zammad', () => {
+  it('crea el ticket con el visitante como cliente; si Zammad falla, cae al correo', async () => {
+    const calls: { url: string; body: Record<string, unknown> }[] = []
+    let ok = true
+    const t = await makeApp({ fetch: (async (url: string, init: RequestInit) => {
+      calls.push({ url, body: JSON.parse(String(init.body)) })
+      return new Response(JSON.stringify({ number: '17123' }), { status: ok ? 201 : 500 })
+    }) as unknown as typeof fetch })
+    process.env.TUBIO_ZAMMAD_URL = 'https://soporte.test'
+    process.env.TUBIO_ZAMMAD_TOKEN = 'x'
+    const v = new Agent(t.app)
+    await v.get('/help/contact')
+    await v.post('/help/contact', { email: 'ana@example.com', topic: 'billing', message: 'No veo mi recibo de pago' })
+    expect(calls[0]!.url).toBe('https://soporte.test/api/v1/tickets')
+    expect(calls[0]!.body).toMatchObject({ group: 'tubio', customer_id: 'guess:ana@example.com', tags: 'tubio,billing' })
+    expect(t.mailer.sent).toHaveLength(0)
+    ok = false
+    await v.post('/help/contact', { email: 'ana@example.com', topic: 'bug', message: 'Otra cosa que falla aquí' })
+    expect(t.mailer.sent).toHaveLength(1)
+    delete process.env.TUBIO_ZAMMAD_URL
+    delete process.env.TUBIO_ZAMMAD_TOKEN
+  })
+})

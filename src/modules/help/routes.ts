@@ -34,6 +34,36 @@ ${pow ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" 
 <p class="muted small"><a href="/help/contact">${t('help.contact')}</a> · <a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a></p></main></body></html>`
 }
 
+/**
+ * Ticket en Zammad (TUBIO_ZAMMAD_URL + TUBIO_ZAMMAD_TOKEN, agente sólo del grupo TUBIO_ZAMMAD_GROUP).
+ * El cliente del ticket es quien escribió, no no-reply. Devuelve el número o null si no se pudo.
+ */
+export async function zammadTicket(deps: AppDeps, t: { email: string; title: string; body: string; tags: string[] }): Promise<string | null> {
+  const url = process.env.TUBIO_ZAMMAD_URL
+  const token = process.env.TUBIO_ZAMMAD_TOKEN
+  if (!url || !token) return null
+  const http = deps.fetch ?? fetch
+  try {
+    const r = await http(`${url.replace(/\/$/, '')}/api/v1/tickets`, {
+      method: 'POST',
+      headers: { authorization: `Token token=${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        title: t.title,
+        group: process.env.TUBIO_ZAMMAD_GROUP || 'tubio',
+        customer_id: `guess:${t.email}`,
+        tags: t.tags.join(','),
+        article: { type: 'web', sender: 'Customer', internal: false, content_type: 'text/plain', subject: t.title, body: t.body },
+      }),
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (!r.ok) return null
+    const j = (await r.json()) as { number?: string }
+    return j.number ?? null
+  } catch {
+    return null
+  }
+}
+
 export function registerHelp(app: FastifyInstance, deps: AppDeps): void {
   const supportTo = () => process.env.TUBIO_SUPPORT_EMAIL || process.env.TUBIO_CONTACT_EMAIL || 'hola@tubio.link'
 
@@ -79,7 +109,15 @@ ${powField(ctx, pow)}<button class="btn btn-primary" type="submit">${t('help.sen
     if (values.message.length < 10) return contactPage(ctx, reply, { error: 'help.too_short', values }, 422)
     const topic = (TOPICS as readonly string[]).includes(values.topic) ? values.topic : 'other'
     const me = (ctx.member ?? ctx.user) as User | null
-    // sólo a nuestro buzón (nunca al correo que escribió el visitante: eso sería un relevo de spam)
+    const who = `${values.email}${me ? ` (cuenta #${me.id}${me.email !== values.email ? `, ${me.email}` : ''})` : ' (sin sesión)'}`
+    const ticket = await zammadTicket(deps, {
+      email: values.email,
+      title: `[tubio] ${values.message.replace(/\s+/g, ' ').slice(0, 70)}`,
+      body: [`De: ${who}`, `Tema: ${topic}`, `Idioma: ${ctx.locale}`, '', values.message].join('\n'),
+      tags: ['tubio', topic],
+    })
+    if (ticket) return contactPage(ctx, reply, { sent: true })
+    // sin Zammad (o falló): sólo a nuestro buzón (nunca al correo que escribió el visitante: eso sería un relevo de spam)
     await deps.mailer.send({
       to: supportTo(),
       replyTo: values.email,
