@@ -10,7 +10,7 @@ describe('registro', () => {
     await a.get('/register')
     const res = await a.post('/register', { accept: '1', name: 'Ana', email: 'Ana@Example.com', password: 'contrasena-segura' })
     expect(res.statusCode).toBe(303)
-    expect(res.headers.location).toBe('/panel')
+    expect(res.headers.location).toBe('/panel/start')
     const panel = await a.get('/panel')
     expect(panel.statusCode).toBe(200)
     expect(panel.body).toContain('Aún no verificas')

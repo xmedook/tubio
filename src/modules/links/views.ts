@@ -87,7 +87,7 @@ export function dashboardPage(
 ${opts.items.length === 0
   ? emptyState(
       filtered ? t('links.empty_filtered') : t('links.empty'),
-      filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>`,
+      filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary btn-lg" href="/panel/start">${t('start.title')}</a>`,
     )
   : html`<ul class="list link-list chat-list">${opts.items.map((l) => {
       const url = linkUrl(ctx.baseUrl, l)

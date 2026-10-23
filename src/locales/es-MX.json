@@ -1556,5 +1556,22 @@
   "redeem.create": "Crear códigos",
   "redeem.n_days": "{n} días",
   "redeem.delete_confirm": "¿Borrar este código? Quien ya lo canjeó conserva sus días.",
-  "redeem.none": "Todavía no hay códigos"
+  "redeem.none": "Todavía no hay códigos",
+  "start.title": "Crea tu página",
+  "start.lead": "Escoge un punto de partida y pon lo básico. Después puedes cambiar todo.",
+  "start.s1": "¿Qué tipo de página?",
+  "start.blank": "En blanco",
+  "start.s2": "Lo básico",
+  "start.name": "Nombre de tu negocio o tu nombre",
+  "start.whatsapp": "WhatsApp (opcional)",
+  "start.whatsapp_hint": "Tu número a 10 dígitos. Pondremos un botón para que te escriban.",
+  "start.photo": "Tu logo o foto (opcional)",
+  "start.photo_hint": "Cuadrada de preferencia; PNG, JPG o WEBP.",
+  "start.go": "Crear mi página",
+  "start.done": "¡Tu página ya está publicada!",
+  "start.done_lead": "Compártela en tu bio de Instagram y TikTok, en tu estado de WhatsApp o imprímela como QR.",
+  "start.share_wa": "Compartir por WhatsApp",
+  "start.qr": "Hacer su código QR",
+  "start.keep_editing": "Seguir editando",
+  "start.done_hint": "Cambia textos, agrega botones y escoge colores en el editor cuando quieras."
 }
