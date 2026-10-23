@@ -11,6 +11,9 @@ function init() {
   window.Sortable.create(list, {
     handle: '.handle',
     animation: 150,
+    // en táctil: presión breve sobre la agarradera para no arrastrar al hacer scroll
+    delay: 120,
+    delayOnTouchOnly: true,
     ghostClass: 'drag-ghost',
     async onEnd() {
       const ids = [...list.querySelectorAll('li[data-id]')].map((li) => Number(li.getAttribute('data-id')))
@@ -32,3 +35,34 @@ function init() {
 // Sortable se carga con defer; los módulos corren después, pero por si acaso:
 if (document.readyState === 'complete' || 'Sortable' in window) init()
 else window.addEventListener('load', init, { once: true })
+
+// Interruptor «Editar | Vista previa» (móvil). Sin JS queda oculto y se ven ambas partes.
+const toggle = document.querySelector('[data-view-toggle]')
+const editor = document.querySelector('[data-editor]')
+if (toggle && editor) {
+  toggle.hidden = false
+  editor.classList.add('has-toggle')
+  toggle.addEventListener('click', (e) => {
+    const btn = e.target instanceof Element ? e.target.closest('[data-view]') : null
+    if (!btn) return
+    const view = btn.getAttribute('data-view')
+    editor.dataset.view = view
+    for (const b of toggle.querySelectorAll('[data-view]')) b.setAttribute('aria-pressed', String(b === btn))
+    if (view === 'preview') refreshPreview()
+  })
+}
+
+// Buscar en «Añadir bloque»
+const q = document.querySelector('[data-pick-search]')
+if (q instanceof HTMLInputElement) {
+  q.addEventListener('input', () => {
+    const term = q.value.trim().toLowerCase()
+    for (const pick of document.querySelectorAll('.add-block .pick')) pick.hidden = !!term && !pick.textContent.toLowerCase().includes(term)
+    for (const h of document.querySelectorAll('[data-pick-group]')) {
+      const grid = h.nextElementSibling
+      const any = grid && [...grid.querySelectorAll('.pick')].some((p) => !p.hidden)
+      h.hidden = !any
+      if (grid) grid.hidden = !any
+    }
+  })
+}

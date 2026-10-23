@@ -412,3 +412,48 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
   .link-item .tag { display: none; }
   .link-item .is-off .tag-off, .link-item.is-off .tag-off { display: inline-block; }
 }
+
+/* ===== v2: editor de página ===== */
+.seg { display: none; }
+.blocks > li { flex-wrap: nowrap; padding: .35rem .35rem .35rem .25rem; gap: .25rem; }
+.blocks .handle { display: grid; place-items: center; width: 40px; height: 44px; padding: 0; letter-spacing: 0; color: var(--muted); }
+.blocks .block-main { display: block; flex: 1 1 auto; min-width: 0; padding: .4rem .25rem; color: var(--text); text-decoration: none; border-radius: 8px; }
+.blocks .block-main .title, .blocks .block-main .sub { display: block; }
+.blocks .clicks { font-size: .875rem; }
+.row-menu .menu-body form { margin: 0; display: block; }
+.row-menu .menu-body button { display: flex; align-items: center; width: 100%; min-height: 44px; padding: 0 .8rem; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.row-menu .menu-body button:hover { background: var(--surface-2); }
+.row-menu .menu-body .danger, .row-menu .menu-body form:last-child button { color: var(--danger); }
+.add-block > summary { list-style: none; }
+.add-block > summary::-webkit-details-marker { display: none; }
+.add-sheet .sheet-title { display: none; }
+.pick-search { margin: 1rem 0 .25rem; }
+.pick { min-height: 44px; }
+@media (max-width: 899px) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-left: -1rem; margin-right: -1rem; padding: 0 1rem; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabs a { white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
+  .seg:not([hidden]) { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 1rem; background: var(--surface-2); border-radius: 12px; position: sticky; top: 64px; z-index: 12; }
+  .seg-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 44px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: inherit; font-weight: 650; cursor: pointer; }
+  .seg-btn[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .seg-btn .ic { width: 20px; height: 20px; }
+  .editor.has-toggle:not([data-view="preview"]) .editor-preview { display: none; }
+  .editor.has-toggle[data-view="preview"] .editor-main { display: none; }
+  .editor.has-toggle[data-view="preview"] .editor-preview { max-width: none; }
+  .editor.has-toggle[data-view="preview"] .phone { max-width: 420px; margin: 0 auto; }
+  .add-block { padding: 0; border: 0; background: none; box-shadow: none; }
+  .add-block > summary { width: 100%; min-height: 52px; }
+  .add-block[open] > summary::before { content: ''; position: fixed; inset: 0; background: rgb(10 14 20 / 45%); z-index: 40; }
+  .add-block[open] .add-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 85vh; overflow-y: auto; overscroll-behavior: contain; background: var(--surface); border-radius: 20px 20px 0 0; padding: .75rem 1rem calc(1.25rem + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgb(16 24 40 / 20%); }
+  .add-block[open] .add-sheet .sheet-title { display: block; text-align: center; font-weight: 700; margin: .25rem 0 0; }
+  .add-block .picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+  .row-menu[open] > summary::before { content: ''; position: fixed; inset: 0; background: rgb(10 14 20 / 45%); z-index: 40; }
+  .row-menu[open] .menu-body { position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 41; min-width: 0; border-radius: 20px 20px 0 0; border: 0; padding: .75rem .75rem calc(1rem + env(safe-area-inset-bottom)); box-shadow: 0 -8px 32px rgb(16 24 40 / 20%); }
+  .row-menu .menu-body a, .row-menu .menu-body button { min-height: 52px; font-size: 1.05rem; }
+}
+@media (max-width: 899px) {
+  .sticky-actions { bottom: calc(72px + env(safe-area-inset-bottom)); margin: 0 -1rem; padding: .6rem 1rem; z-index: 11; border-top: 1px solid var(--border); }
+  .sticky-actions .btn { flex: 1; min-height: 48px; }
+}

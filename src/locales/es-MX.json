@@ -1343,5 +1343,8 @@
   "nav.create": "Crear",
   "links.open": "Abrir",
   "links.chip_all": "Todos",
-  "links.search_ph": "Buscar por nombre o dirección"
+  "links.search_ph": "Buscar por nombre o dirección",
+  "bio.view": "Vista",
+  "bio.view_edit": "Editar",
+  "bio.search_blocks": "Buscar bloque…"
 }

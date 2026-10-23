@@ -1,7 +1,8 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
 import { formatNumber, plural } from '../../lib/i18n.ts'
 import { imageUrl } from '../../lib/uploads.ts'
-import { panelLayout } from '../../views/layout.ts'
+import { icon } from '../../views/icons.ts'
+import { ASSET_VERSION, panelLayout } from '../../views/layout.ts'
 import { checkbox, csrfField, input, postButton, select, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 import { linkUrl, type Link } from '../links/repo.ts'
@@ -11,6 +12,15 @@ import { BLOCK_BY_TYPE, BLOCKS, MAX_BLOCKS_PER_PAGE, type BlockDef, type BlockRo
 import { FONT_IDS, FONTS, THEMES, type Design } from './design.ts'
 
 const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', 'media']
+
+/** Interruptor «Editar | Vista previa» (sólo en el celular; sin JS se ven las dos cosas una tras otra) */
+function viewToggle(ctx: Ctx): SafeHtml {
+  const { t } = ctx
+  return html`<div class="seg" role="group" aria-label="${t('bio.view')}" data-view-toggle hidden>
+  <button type="button" class="seg-btn" data-view="edit" aria-pressed="true">${icon('edit')} ${t('bio.view_edit')}</button>
+  <button type="button" class="seg-btn" data-view="preview" aria-pressed="false">${icon('eye')} ${t('bio.preview')}</button>
+</div>`
+}
 
 function preview(ctx: Ctx, link: Link): SafeHtml {
   const { t } = ctx
@@ -30,17 +40,21 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: str
     active: 'links',
     path: `/panel/links/${link.id}/blocks`,
     wide: true,
-    head: html`<script src="/_/static/vendor/sortablejs/Sortable.min.js" defer nonce="${ctx.nonce}"></script><script type="module" src="/_/static/js/editor.js" nonce="${ctx.nonce}"></script>`,
+    head: html`<script src="/_/static/vendor/sortablejs/Sortable.min.js" defer nonce="${ctx.nonce}"></script><script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`,
     body: html`${linkTabs(ctx, link, 'blocks')}
-<div class="editor">
+${viewToggle(ctx)}
+<div class="editor" data-editor>
   <section class="editor-main">
     <details class="card add-block"${blocks.length === 0 ? html` open` : ''}>
-      <summary class="btn btn-primary">+ ${t('bio.add_block')}</summary>
-      ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : GROUPS.map(
-        (g) => html`<h3>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
+      <summary class="btn btn-primary btn-block">${icon('plus')} ${t('bio.add_block')}</summary>
+      <div class="add-sheet">
+      <p class="sheet-title">${t('bio.add_block')}</p>
+      ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : html`<div class="field pick-search"><label class="sr-only" for="pick-q">${t('bio.search_blocks')}</label><input id="pick-q" type="search" placeholder="${t('bio.search_blocks')}" data-pick-search autocomplete="off"></div>${GROUPS.map(
+        (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
           (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="pick-ico pi-${b.type}" aria-hidden="true"></span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
         )}</div>`,
-      )}
+      )}`}
+      </div>
     </details>
     ${blocks.length === 0
       ? html`<p class="muted">${t('bio.no_blocks')}</p>`
@@ -48,19 +62,22 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: str
       ${blocks.map((b, i) => {
         const def = BLOCK_BY_TYPE.get(b.type)
         return html`<li data-id="${b.id}"${b.is_enabled ? '' : html` class="off"`}>
-        <span class="handle" title="${t('bio.drag')}" aria-hidden="true">⋮⋮</span>
-        <div class="grow">
-          <div class="title">${t(`bio.type_${b.type}`)}${b.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}${scheduled(b) ? html` <span class="tag">${t('bio.scheduled')}</span>` : ''}</div>
-          <div class="sub">${def?.summary(b) ?? ''}</div>
-        </div>
-        ${def?.clickable ? html`<span class="muted nowrap">${plural(t, ctx.locale, 'links.n_clicks', b.clicks)}</span>` : ''}
-        <div class="btn-row">
-          <form method="post" action="/panel/blocks/${b.id}/move" class="inline">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button class="btn btn-sm" type="submit" aria-label="${t('bio.move_up')}"${i === 0 ? html` disabled` : ''}>↑</button></form>
-          <form method="post" action="/panel/blocks/${b.id}/move" class="inline">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button class="btn btn-sm" type="submit" aria-label="${t('bio.move_down')}"${i === blocks.length - 1 ? html` disabled` : ''}>↓</button></form>
-          <a class="btn btn-sm" href="/panel/blocks/${b.id}">${t('common.edit')}</a>
-          ${postButton(ctx, `/panel/blocks/${b.id}/toggle`, b.is_enabled ? t('bio.hide') : t('bio.show'), { cls: 'btn btn-sm' })}
-          ${postButton(ctx, `/panel/blocks/${b.id}/delete`, t('common.delete'), { cls: 'btn btn-sm btn-danger', confirm: t('bio.delete_confirm') })}
-        </div>
+        <span class="handle" title="${t('bio.drag')}" aria-hidden="true">${icon('grip')}</span>
+        <a class="grow block-main" href="/panel/blocks/${b.id}">
+          <span class="title">${t(`bio.type_${b.type}`)}${b.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}${scheduled(b) ? html` <span class="tag">${t('bio.scheduled')}</span>` : ''}</span>
+          <span class="sub">${def?.summary(b) ?? ''}</span>
+        </a>
+        ${def?.clickable ? html`<span class="muted nowrap clicks">${plural(t, ctx.locale, 'links.n_clicks', b.clicks)}</span>` : ''}
+        <details class="row-menu">
+          <summary class="icon-btn" aria-label="${t('nav.more')}: ${t(`bio.type_${b.type}`)}">${icon('more')}</summary>
+          <div class="menu-body">
+            <a href="/panel/blocks/${b.id}">${t('common.edit')}</a>
+            ${i > 0 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button type="submit">${t('bio.move_up')}</button></form>` : ''}
+            ${i < blocks.length - 1 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button type="submit">${t('bio.move_down')}</button></form>` : ''}
+            ${postButton(ctx, `/panel/blocks/${b.id}/toggle`, b.is_enabled ? t('bio.hide') : t('bio.show'), { cls: '' })}
+            ${postButton(ctx, `/panel/blocks/${b.id}/delete`, t('common.delete'), { cls: 'danger', confirm: t('bio.delete_confirm') })}
+          </div>
+        </details>
       </li>`
       })}
     </ol>`}
@@ -79,8 +96,10 @@ export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockR
     active: 'links',
     path: action,
     wide: true,
+    head: html`<script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`,
     body: html`${linkTabs(ctx, link, 'blocks')}
-<div class="editor">
+${viewToggle(ctx)}
+<div class="editor" data-editor>
   <section class="editor-main">
     <h2>${block ? t('bio.edit_block', { type: t(`bio.type_${def.type}`) }) : t('bio.new_block', { type: t(`bio.type_${def.type}`) })}</h2>
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}

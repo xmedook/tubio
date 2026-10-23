@@ -1343,5 +1343,8 @@
   "nav.create": "Create",
   "links.open": "Open",
   "links.chip_all": "All",
-  "links.search_ph": "Search by name or address"
+  "links.search_ph": "Search by name or address",
+  "bio.view": "View",
+  "bio.view_edit": "Edit",
+  "bio.search_blocks": "Search blocks…"
 }
