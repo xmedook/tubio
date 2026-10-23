@@ -1334,5 +1334,8 @@
   "pay.card_body": "Pago seguro con Stripe (tarjeta de crédito o débito). Tu plan se activa en cuanto se confirme.",
   "pay.card_pay": "Pagar {amount}",
   "pay.card_error": "No pudimos abrir el pago con tarjeta. Intenta de nuevo en unos minutos o paga por transferencia.",
-  "pay.card_wait": "Estamos confirmando tu pago con Stripe; en un momento se activa tu plan."
+  "pay.card_wait": "Estamos confirmando tu pago con Stripe; en un momento se activa tu plan.",
+  "domains.cf_error": "Verificamos el dominio pero no pudimos activarlo en nuestra red. Intenta de nuevo en unos minutos.",
+  "domains.cert_ok": "Certificado HTTPS activo.",
+  "domains.cert_pending": "Emitiendo el certificado HTTPS: revisa que el CNAME apunte a {target}. Suele tardar unos minutos."
 }

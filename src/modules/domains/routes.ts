@@ -10,9 +10,10 @@ import { listLinks } from '../links/repo.ts'
 import { limitsOf, ownerLimits } from '../plans/limits.ts'
 import { audit } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
+import { cfAddHostname, cfDeleteHostname, cfGetHostname, cfOn } from './cloudflare.ts'
 import { getOwnDomain, listDomains, normalizeHost, refreshDomainCache, verifyDomain } from './repo.ts'
 
-/** A dónde apuntan los clientes su CNAME (lo atiende Caddy con TLS bajo demanda) */
+/** A dónde apuntan los clientes su CNAME (Cloudflare for SaaS; o Caddy con TLS bajo demanda) */
 export const CNAME_TARGET = process.env.TUBIO_CNAME_TARGET ?? 'custom.tubio.link'
 
 export function registerDomains(app: FastifyInstance, deps: AppDeps, resolver?: Parameters<typeof verifyDomain>[2]): void {
@@ -20,7 +21,7 @@ export function registerDomains(app: FastifyInstance, deps: AppDeps, resolver?: 
   refreshDomainCache(db)
   const me = (req: FastifyRequest) => req.ctx.user as User
 
-  function page(ctx: Ctx, user: User, error?: string, value = '') {
+  function page(ctx: Ctx, user: User, error?: string, value = '', certs: Map<number, string> = new Map()) {
     const { t } = ctx
     const lim = limitsOf(db, user, deps.now())
     const list = listDomains(db, user.id)
@@ -43,7 +44,8 @@ ${list.map((d) => html`<div class="card"><h2 class="mono">${d.host} <span class=
       ${postButton(ctx, `/panel/domains/${d.id}/verify`, t('domains.verify'), { cls: 'btn btn-primary' })}`
     : html`<form method="post" action="/panel/domains/${d.id}/home" class="toolbar">${csrfField(ctx)}
       ${select({ ctx, name: 'home_link_id', label: t('domains.home'), value: d.home_link_id ?? '', options: [{ value: '', label: t('domains.home_none') }, ...pages.filter((p) => p.domain_id === d.id).map((p) => ({ value: String(p.id), label: p.title || p.alias }))] })}
-      <button class="btn" type="submit">${t('common.save')}</button></form><p class="hint">${t('domains.home_hint')}</p>`}
+      <button class="btn" type="submit">${t('common.save')}</button></form><p class="hint">${t('domains.home_hint')}</p>
+      ${certs.has(d.id) ? html`<p class="${certs.get(d.id) === 'active' ? 'muted' : 'flash flash-info'}">${certs.get(d.id) === 'active' ? t('domains.cert_ok') : t('domains.cert_pending', { target: CNAME_TARGET })}</p>` : ''}`}
   ${postButton(ctx, `/panel/domains/${d.id}/delete`, t('common.delete'), { cls: 'btn btn-sm btn-danger', confirm: t('domains.delete_confirm') })}
 </div>`)}
 ${list.length < lim.custom_domains || lim.custom_domains < 0
@@ -54,7 +56,18 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
     })
   }
 
-  app.get('/panel/domains', { preHandler: userGuard }, async (req, reply) => sendHtml(reply, page(req.ctx, me(req))))
+  app.get('/panel/domains', { preHandler: userGuard }, async (req, reply) => {
+    // estado del certificado en Cloudflare (sólo de los activos, en paralelo y con tope de tiempo)
+    const certs = new Map<number, string>()
+    if (cfOn()) {
+      const act = listDomains(db, me(req).id).filter((d) => d.status === 'active' && d.cf_id)
+      await Promise.all(act.map(async (d) => {
+        const h = await cfGetHostname(deps, d.cf_id as string)
+        if (h) certs.set(d.id, h.ssl?.status === 'active' && h.status === 'active' ? 'active' : 'pending')
+      }))
+    }
+    return sendHtml(reply, page(req.ctx, me(req), undefined, '', certs))
+  })
 
   app.post('/panel/domains', { preHandler: userGuard }, async (req, reply) => {
     const user = me(req)
@@ -76,7 +89,18 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
     if (db.prepare("SELECT 1 FROM domains WHERE host = ? AND status = 'active' AND id != ?").get(d.host, d.id)) {
       setFlash(reply, deps, { type: 'error', key: 'err.domain_taken' })
     } else if (await verifyDomain(d, CNAME_TARGET, resolver)) {
-      db.prepare("UPDATE domains SET status = 'active', verified_at = ? WHERE id = ?").run(deps.now(), d.id)
+      // Cloudflare for SaaS: alta del host para que emita el certificado y lo enrute
+      let cfId: string | null = d.cf_id ?? null
+      if (cfOn()) {
+        try {
+          cfId = (await cfAddHostname(deps, d.host)).id
+        } catch (e) {
+          req.log.error({ err: String(e), host: d.host }, 'cloudflare custom hostname')
+          setFlash(reply, deps, { type: 'error', key: 'domains.cf_error' })
+          return reply.redirect('/panel/domains', 303)
+        }
+      }
+      db.prepare("UPDATE domains SET status = 'active', verified_at = ?, cf_id = ? WHERE id = ?").run(deps.now(), cfId, d.id)
       // los intentos pendientes de otras cuentas sobre el mismo host ya no sirven
       db.prepare("DELETE FROM domains WHERE host = ? AND status = 'pending' AND id != ?").run(d.host, d.id)
       refreshDomainCache(db)
@@ -105,6 +129,7 @@ ${list.length < lim.custom_domains || lim.custom_domains < 0
     }
     db.prepare('DELETE FROM domains WHERE id = ?').run(d.id)
     refreshDomainCache(db)
+    if (d.cf_id && cfOn()) await cfDeleteHostname(deps, d.cf_id)
     audit(db, { actorId: me(req).id, userId: me(req).id, action: 'domain.delete', target: d.host }, deps.now())
     return reply.redirect('/panel/domains', 303)
   })

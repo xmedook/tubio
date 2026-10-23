@@ -1334,5 +1334,8 @@
   "pay.card_body": "Secure payment with Stripe (credit or debit card). Your plan turns on as soon as it is confirmed.",
   "pay.card_pay": "Pay {amount}",
   "pay.card_error": "We could not open the card payment. Try again in a few minutes or pay by transfer.",
-  "pay.card_wait": "We are confirming your payment with Stripe; your plan will turn on in a moment."
+  "pay.card_wait": "We are confirming your payment with Stripe; your plan will turn on in a moment.",
+  "domains.cf_error": "We verified the domain but could not activate it on our network. Try again in a few minutes.",
+  "domains.cert_ok": "HTTPS certificate active.",
+  "domains.cert_pending": "Issuing the HTTPS certificate: make sure the CNAME points to {target}. It usually takes a few minutes."
 }

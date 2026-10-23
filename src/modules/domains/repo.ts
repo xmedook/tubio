@@ -1,7 +1,7 @@
 import { resolveCname, resolveTxt } from 'node:dns/promises'
 import type { DB } from '../../db/index.ts'
 
-export type Domain = { id: number; user_id: number; host: string; status: 'pending' | 'active' | 'disabled'; verify_token: string; verified_at: number | null; home_link_id: number | null; created_at: number }
+export type Domain = { id: number; user_id: number; host: string; status: 'pending' | 'active' | 'disabled'; verify_token: string; verified_at: number | null; home_link_id: number | null; created_at: number; cf_id?: string | null }
 
 /** Host de cada dominio activo (para armar URLs públicas sin consultar la BD en cada enlace) */
 const hostById = new Map<number, string>()

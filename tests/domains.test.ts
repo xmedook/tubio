@@ -89,3 +89,36 @@ describe('dominios propios', () => {
     expect((await s.post('/panel/domains', { host: 'links.marca.com' })).statusCode).toBe(422)
   })
 })
+
+describe('dominios con Cloudflare for SaaS', () => {
+  it('al verificar da de alta el host; muestra el certificado; al borrar lo da de baja', async () => {
+    const calls: { method: string; url: string }[] = []
+    let ssl = 'pending_validation'
+    const fetchMock = (async (url: string, init: RequestInit = {}) => {
+      calls.push({ method: init.method ?? 'GET', url })
+      const r = url.includes('?hostname=') ? [] : { id: 'cfh_1', status: 'active', ssl: { status: ssl } }
+      return new Response(JSON.stringify({ success: true, result: r }), { status: 200 })
+    }) as unknown as typeof fetch
+    let txt: string[][] = []
+    const t = await makeApp({ fetch: fetchMock, dnsResolver: { txt: async () => txt, cname: async () => [] } })
+    process.env.TUBIO_CF_TOKEN = 'x'
+    process.env.TUBIO_CF_ZONE = 'z'
+    const u = await seedUser(t)
+    setPlan(t, u.id, 'pro')
+    const a = await loginAgent(t)
+    await a.get('/panel/domains')
+    await a.post('/panel/domains', { host: 'links.marca.com' })
+    const d = t.deps.db.prepare('SELECT * FROM domains').get() as { id: number; verify_token: string }
+    txt = [[`tubio-verify=${d.verify_token}`]]
+    await a.post(`/panel/domains/${d.id}/verify`)
+    expect(t.deps.db.prepare('SELECT status, cf_id FROM domains').get()).toEqual({ status: 'active', cf_id: 'cfh_1' })
+    expect(calls.some((c) => c.method === 'POST' && c.url === 'https://api.cloudflare.com/client/v4/zones/z/custom_hostnames')).toBe(true)
+    expect((await a.get('/panel/domains')).body).toContain('Emitiendo el certificado')
+    ssl = 'active'
+    expect((await a.get('/panel/domains')).body).toContain('Certificado HTTPS activo')
+    await a.post(`/panel/domains/${d.id}/delete`)
+    expect(calls.at(-1)).toEqual({ method: 'DELETE', url: 'https://api.cloudflare.com/client/v4/zones/z/custom_hostnames/cfh_1' })
+    delete process.env.TUBIO_CF_TOKEN
+    delete process.env.TUBIO_CF_ZONE
+  })
+})

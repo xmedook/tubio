@@ -43,3 +43,17 @@ En aws1.nexosrv.one los puertos 80/443 de la IP principal son de nginx/Plesk, as
 Con A, pasos: (1) IP extra en IONOS y asignarla en el servidor; (2) instalar Caddy (paquete oficial) con el
 Caddyfile de arriba y `bind <ip-extra>` en ambos bloques; (3) DNS `custom.tubio.link A <ip-extra>`;
 (4) probar con un dominio de prueba.
+
+
+## Decisión 2026-10-22: Cloudflare for SaaS (no Caddy)
+tubio.link ya vive en Cloudflare, así que los dominios de clientes van por **Cloudflare for SaaS** ($0 hasta 100
+hosts, luego 0.10 USD/mes c/u): sin IP extra ni Caddy.
+- Fallback origin `custom.tubio.link` (A 74.208.210.20, proxied). El cliente hace CNAME a `custom.tubio.link`.
+- Al verificar (TXT) la app da de alta el host (`custom_hostnames`, SSL DV por HTTP); al borrar, lo da de baja.
+  Variables `TUBIO_CF_TOKEN` (token sólo de la zona tubio.link: SSL y certificados, DNS, Origin Rules, Config Rules) y
+  `TUBIO_CF_ZONE`. El panel muestra si el certificado ya está activo.
+- **Origin Rule**: todo host que no sea `tubio.link`/`*.tubio.link` va al **puerto 2053** de aws1; **Config Rule**: SSL
+  «Full» para esos hosts. En aws1 `/etc/nginx/conf.d/zz900-tubio-saas.conf` escucha 2053 con certificado autofirmado
+  (`/etc/nginx/tubio-saas/`), sólo IPs de Cloudflare (`cf-allow.conf`, regenerar si Cloudflare cambia su lista), y pasa
+  a 127.0.0.1:3095 conservando el Host. Así no se toca el 443 que comparten los 113 sitios Plesk. Firewall de IONOS: TCP
+  2053 abierto.

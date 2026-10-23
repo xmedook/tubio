@@ -1,0 +1,1 @@
+ALTER TABLE domains ADD COLUMN cf_id TEXT;
