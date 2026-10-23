@@ -2,9 +2,13 @@
 
 Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones [SemVer](https://semver.org/lang/es/).
 
-## [Sin publicar] — camino a 1.0.0
+## [1.0.0] — 2026-10-22
 
-### F5 — producto terminado (en curso)
+### Lanzamiento
+- Precios: Pro $99/mes o $990/año, Negocio $299/mes o $2,990/año (IVA incluido).
+- Fundadores: las primeras 100 cuentas con correo confirmado reciben un año de Negocio gratis.
+
+### F5 — producto terminado
 - `/.well-known/security.txt` y política de divulgación responsable.
 - Centro de ayuda es/en y formulario de soporte.
 - Runbook de incidentes, respaldo de sitios estáticos y simulacro de restauración.

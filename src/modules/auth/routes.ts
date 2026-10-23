@@ -1,3 +1,4 @@
+import { claimFounder } from '../plans/founders.ts'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import type { AppDeps } from '../../app.ts'
@@ -182,7 +183,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       return sendHtml(reply, messagePage(req.ctx, { title: t('auth.verify_title'), message: t('auth.verify_invalid') }), 400)
     }
     updateUser(db, userId, { email_verified_at: deps.now() }, deps.now())
-    setFlash(reply, deps, { type: 'ok', key: 'auth.verify_done' })
+    const founder = claimFounder(deps, userId)
+    setFlash(reply, deps, founder ? { type: 'ok', key: 'founders.welcome', vars: { n: founder } } : { type: 'ok', key: 'auth.verify_done' })
     return reply.redirect(req.ctx.user ? '/panel' : '/login', 303)
   })
 
@@ -241,6 +243,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       ...(user?.email_verified_at ? {} : { email_verified_at: deps.now() }),
     }, deps.now())
     destroyUserSessions(db, userId)
+    claimFounder(deps, userId)
     audit(db, { actorId: userId, userId, action: 'user.password_reset' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'auth.reset_done' })
     return reply.redirect('/login', 303)

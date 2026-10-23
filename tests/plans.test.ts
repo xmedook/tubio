@@ -73,7 +73,7 @@ describe('página de plan y asignación', () => {
     const a = await loginAgent(t)
     const page = await a.get('/panel/plan')
     expect(page.body).toContain('Plan actual: Gratis')
-    expect(page.body).toContain('$79')
+    expect(page.body).toContain('$99')
     const adm = await loginAgent(t, 'admin@example.com')
     await adm.get(`/admin/users/${u.id}`)
     const pro = t.deps.db.prepare("SELECT id FROM plans WHERE slug = 'pro'").pluck().get() as number

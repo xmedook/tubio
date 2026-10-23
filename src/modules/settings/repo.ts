@@ -18,6 +18,11 @@ export const SETTING_DEFAULTS = {
   themes_hidden: [] as string[],
   /** Tema de las páginas nuevas ('' = el del sistema) */
   default_theme: '',
+  /** Fundadores: un año del plan más alto para las primeras N cuentas con correo confirmado */
+  founders_open: true,
+  founders_max: 100,
+  founders_plan: 'business',
+  founders_days: 365,
 }
 export type Settings = typeof SETTING_DEFAULTS
 export type SettingKey = keyof Settings

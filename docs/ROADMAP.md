@@ -124,7 +124,9 @@ correo/webhook firmado/Slack/Discord/Telegram con cola y reintentos. Todo HTTP s
 
 | | Gratis | Pro | Negocio |
 |---|---|---|---|
-| Precio | $0 | $79/mes · $790/año | $249/mes · $2,490/año |
+| Precio (IVA incl.) | $0 | $99/mes · $990/año | $299/mes · $2,990/año |
+
+Fundadores (Alejandro, 22-oct-2026): las primeras **100** cuentas con correo confirmado reciben **1 año de Negocio gratis** (`users.founder_no`; ajustes `founders_*`).
 | Páginas bio | 1 | 10 | ilimitadas |
 | Enlaces cortos / archivos / vCard / eventos | 25 | 1,000 | ilimitados |
 | Bloques por página | 30 | 100 | 100 |

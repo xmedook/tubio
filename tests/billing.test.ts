@@ -26,7 +26,7 @@ describe('cobro', () => {
     t.deps.db.prepare("INSERT INTO coupons (code, percent_off, max_uses, plans, created_at) VALUES ('BIENVENIDA', 50, 1, '[\"pro\"]', 0)").run()
     const a = await loginAgent(t)
     const chk = await a.get('/panel/checkout?plan=pro&period=year&coupon=bienvenida')
-    expect(chk.body).toContain('$395')
+    expect(chk.body).toContain('$495')
     expect(chk.body).toContain('Pruébalo gratis 14 días')
     const res = await a.post('/panel/checkout?plan=pro&period=year', { coupon: 'BIENVENIDA', billing_name: 'Ana SA' })
     expect(res.statusCode).toBe(303)

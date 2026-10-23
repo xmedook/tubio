@@ -60,7 +60,7 @@ export function registerPlans(app: FastifyInstance, deps: AppDeps): void {
       active: 'account',
       path: '/panel/plan',
       body: html`<h1>${t('plan.title')}</h1>
-<div class="card"><h2>${t('plan.current', { name: plan.name })}</h2>
+<div class="card"><h2>${t('plan.current', { name: plan.name })}${user.founder_no ? html` <span class="tag">${t('founders.badge', { n: user.founder_no })}</span>` : ''}</h2>
   ${user.plan_expires_at && plan.slug !== 'free' ? html`<p class="muted">${t('plan.expires', { when: formatDateTime(ctx.locale, user.plan_expires_at, user.timezone) })}</p>` : ''}
   ${bar(ctx, t('plan.r_bio'), u.bio_pages, l.bio_pages)}
   ${bar(ctx, t('plan.r_links'), u.links, l.links)}

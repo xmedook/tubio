@@ -1326,5 +1326,8 @@
   "help.back": "Volver a la ayuda",
   "help.too_short": "Cuéntanos un poco más (al menos 10 letras).",
   "bio.gallery_photo": "{alt} ({n} de {total})",
-  "bio.gallery_default": "Foto"
+  "bio.gallery_default": "Foto",
+  "founders.welcome": "¡Correo confirmado! Eres fundador #{n}: tienes un año del plan Negocio gratis.",
+  "founders.banner": "Fundadores: las primeras 100 cuentas tienen un año del plan Negocio gratis. Quedan {n}.",
+  "founders.badge": "Fundador #{n}"
 }

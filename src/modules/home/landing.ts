@@ -4,7 +4,7 @@ import { csrfField, flashBox, powAttr, powField } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 
 /** Portada pública. Sin JS salvo la prueba de trabajo de la lista de espera. */
-export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string; pages?: { slug: string; title: string }[] }): SafeHtml {
+export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string; pages?: { slug: string; title: string }[]; foundersLeft?: number }): SafeHtml {
   const { t } = ctx
   const other = ctx.locale === 'es-MX' ? 'en' : 'es-MX'
   const pow = ctx.pow()
@@ -54,6 +54,7 @@ export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?
       <p class="eyebrow">${t('home.eyebrow')}</p>
       <h1>${t('home.title')}</h1>
       <p class="lead">${t('home.lead')}</p>
+      ${opts.foundersLeft ? html`<p class="founders" role="note">${t('founders.banner', { n: opts.foundersLeft })}</p>` : ''}
       ${flashBox(ctx)}
       <div class="hero-cta">${cta}</div>
     </div>

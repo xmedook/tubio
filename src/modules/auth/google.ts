@@ -1,3 +1,4 @@
+import { claimFounder } from '../plans/founders.ts'
 import { createHash } from 'node:crypto'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
@@ -116,12 +117,14 @@ export function registerGoogle(app: FastifyInstance, deps: AppDeps): void {
       if (byEmail) {
         // mismo correo verificado por Google: se enlaza la cuenta existente
         updateUser(db, byEmail.id, { google_sub: claims.sub, ...(byEmail.email_verified_at ? {} : { email_verified_at: now }) }, now)
+        claimFounder(deps, byEmail.id)
         audit(db, { actorId: byEmail.id, userId: byEmail.id, action: 'user.google_linked' }, now)
         user = findUserByGoogleSub(db, claims.sub)
       } else {
         if (!getSetting(db, 'registration_open')) return fail(req, reply, 'auth.registration_closed', 403)
         const created = createUser(db, { email: claims.email, passwordHash: await hashPassword(randomToken(32)), name: (claims.name ?? '').slice(0, 80), locale: req.ctx.locale }, now)
         updateUser(db, created.id, { google_sub: claims.sub, email_verified_at: now }, now)
+        claimFounder(deps, created.id)
         audit(db, { actorId: created.id, userId: created.id, action: 'user.register', meta: { google: true } }, now)
         user = findUserByGoogleSub(db, claims.sub)
         setFlash(reply, deps, { type: 'ok', key: 'auth.welcome_google' })
