@@ -147,9 +147,10 @@ export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {},
     active: 'links',
     path: `/panel/links/${link.id}/design`,
     wide: true,
-    head: html`<link rel="stylesheet" href="/_/themes.css">`,
+    head: html`<link rel="stylesheet" href="/_/themes.css"><script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`,
     body: html`${linkTabs(ctx, link, 'design')}
-<div class="editor">
+${viewToggle(ctx)}
+<div class="editor" data-editor>
   <section class="editor-main">
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="/panel/links/${link.id}/design?_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
@@ -157,7 +158,7 @@ export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {},
         <div class="themes">${THEMES.filter((th) => th.id === d.theme || !hiddenThemes.includes(th.id)).map((th) => themeCard(ctx, th.id, d.theme))}</div>
       </fieldset>
 
-      <details class="opt" open><summary>${t('bio.d.background')}</summary><div class="opt-body">
+      <details class="opt"><summary>${t('bio.d.background')}</summary><div class="opt-body">
         ${select({ ctx, name: 'bg_type', label: t('bio.d.bg_type'), value: d.bg_type, options: opts('bg_type', ['theme', 'color', 'gradient', 'image']) })}
         <div class="grid-3">
           ${input({ ctx, name: 'bg_color', type: 'color', label: t('bio.d.bg_color'), value: d.bg_color })}

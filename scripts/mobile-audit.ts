@@ -23,7 +23,10 @@ async function measure(page: Page, path: string, name: string) {
     const hscroll = Math.max(0, document.documentElement.scrollWidth - vw)
     const small: string[] = []
     for (const el of Array.from(document.querySelectorAll('a, button, input, select, textarea, [role=button], summary'))) {
-      const b = el.getBoundingClientRect()
+      if (el.classList.contains('skip')) continue // enlace oculto hasta recibir foco
+      // casillas y radios: lo que se toca es su etiqueta
+      const target = el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio') ? (el.closest('label') ?? (el.id ? document.querySelector(`label[for="${el.id}"]`) : null) ?? el) : el
+      const b = target.getBoundingClientRect()
       if (!b.width || !b.height || getComputedStyle(el).visibility === 'hidden') continue
       if (b.height < 44 && b.width < 44 * 4 && !(el instanceof HTMLInputElement && el.type === 'hidden')) small.push(`${el.tagName.toLowerCase()}${el.className ? '.' + String(el.className).split(' ')[0] : ''} ${Math.round(b.width)}×${Math.round(b.height)} «${(el.textContent ?? '').trim().slice(0, 20)}»`)
     }
