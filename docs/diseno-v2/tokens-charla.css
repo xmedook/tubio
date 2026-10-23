@@ -16,14 +16,14 @@
   --touch:44px;
   /* claro */
   --bg:#F2EEE3; --surface:#FBF9F4; --s2:#E7E2D4; --ink:#111A16; --ink2:#56594F;
-  --line:#DAD4C4; --accent:#14774A; --onaccent:#F6F3EA; --soft:#DCEADB; --ok:#14774A;
+  --line:#DAD4C4; --accent:#14774A; --onaccent:#F6F3EA; --soft:#DCEADB; --accent-on-soft:#126E44; --ok:#14774A;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme=light]){
   --bg:#0D1310; --surface:#151D19; --s2:#1E2823; --ink:#EFEBE0; --ink2:#ABAA9D;
-  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --ok:#5DD597;
+  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --accent-on-soft:#5DD597; --ok:#5DD597;
 }}
 :root[data-theme=dark]{
   --bg:#0D1310; --surface:#151D19; --s2:#1E2823; --ink:#EFEBE0; --ink2:#ABAA9D;
-  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --ok:#5DD597;
+  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --accent-on-soft:#5DD597; --ok:#5DD597;
 }
 

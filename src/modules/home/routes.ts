@@ -1,4 +1,5 @@
 import { foundersLeft } from '../plans/founders.ts'
+import { listPlans } from '../plans/limits.ts'
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { isLocale } from '../../lib/i18n.ts'
@@ -21,12 +22,12 @@ export function registerHome(app: FastifyInstance, deps: AppDeps): void {
       return l && l.domain_id === req.ctx.domainId ? reply.redirect(`/${l.alias}`, 302) : reply.callNotFound()
     }
     const joined = (req.query as { joined?: string }).joined === '1'
-    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL, pages: footerPages(deps, req.ctx.locale), foundersLeft: getSetting(deps.db, 'founders_open') ? foundersLeft(deps) : 0 }))
+    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL, pages: footerPages(deps, req.ctx.locale), foundersLeft: getSetting(deps.db, 'founders_open') ? foundersLeft(deps) : 0, plans: listPlans(deps.db, true) }))
   })
 
   app.post('/waitlist', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {
     const page = (error: string) =>
-      sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), error, sourceUrl: SOURCE_URL }), 422)
+      sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), error, sourceUrl: SOURCE_URL, plans: listPlans(deps.db, true) }), 422)
     if (!powOk(deps, req.body)) return page('err.pow')
     const email = field(req.body, 'email').trim().toLowerCase()
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return page('err.email')
