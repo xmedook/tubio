@@ -93,6 +93,6 @@ mejorando pantallas en sitio.
 ## Decisiones que necesito de ti
 1. **Lista de funciones de referencia**: ¿le pido a la sesión `rea` que escriba un anexo a la SPEC con sólo
    comportamientos (sin código ni textos), como se hizo con la SPEC original? Con ella completo la columna de V2.6.
-4. De las propuestas nuevas de V2.6, ¿cuáles te interesan para empezar? (Las marcadas en negritas son mi recomendación.)
 2. ¿Te parece que la sesión **`design`** proponga la dirección visual de V2.0 (2–3 opciones en maqueta para que escojas)?
 3. Orden propuesto: V2.0 → V2.1 → V2.2 → V2.3 → V2.4 → V2.5, con V2.6 en paralelo. ¿Va?
+4. De las propuestas nuevas de V2.6, ¿cuáles te interesan para empezar? (Las marcadas en negritas son mi recomendación.)
