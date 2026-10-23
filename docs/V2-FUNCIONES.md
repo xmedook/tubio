@@ -4,6 +4,12 @@ Base: inventario de comportamientos de la referencia (sala limpia; el documento 
 lo que tubio ya tiene. Prioridad: **P1** = en v2 sí o sí · **P2** = en v2 si da el tiempo · **P3** = después / según demanda ·
 **✗** = no lo hacemos. Tamaño: S/M/L como en `ROADMAP-V2.md`.
 
+> **Decisión de Alejandro (23-oct-2026): enfocarse en la app; la parte de negocio queda fuera por ahora**
+> (suscripciones, Mercado Pago, CFDI, avisos por WhatsApp, plan Agencia, marca blanca).
+> Hecho y en producción: duplicar, creación masiva, GTM, idioma, reclamar dirección, visitas propias,
+> plantillas, bloques portada/artículo/CTA, estadísticas en cascada, reporte semanal, abrir en la app,
+> campanita, códigos de canje.
+
 ## 1. Ventajas de tubio que se conservan
 Estadísticas públicas compartibles · programación de la página entera · barra de anuncio por página · bloques de clima,
 encuesta con resultados, suscripción, contador, antes/después, marquesina, botón con imagen · embeds de Bluesky, Threads,

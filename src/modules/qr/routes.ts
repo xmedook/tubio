@@ -111,13 +111,13 @@ function formPage(ctx: Ctx, deps: AppDeps, user: User, st: FormState, errors: Er
     body: html`<h1>${qr ? qr.name : t('qr.new')}</h1>
 ${!qr ? html`<nav class="tabs kinds" aria-label="${t('qr.kind')}">${QR_KINDS.map((k) => html`<a href="/panel/qr/new?kind=${k}"${k === st.kind ? html` aria-current="page"` : ''}>${t(`qr.kind_${k}`)}</a>`)}</nav>` : ''}
 ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
-<div class="editor">
+<div class="editor qr-editor">
 <section class="editor-main">
 <form method="post" action="${action}?kind=${st.kind}&_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate data-qr-form data-preview-url="/panel/qr/preview?kind=${st.kind}&_csrf=${encodeURIComponent(ctx.csrf)}">
   <div class="card">
     <div class="grid-2">
       ${input({ ctx, name: 'name', label: t('qr.name'), value: st.name, error: errors.name, required: true, maxlength: 80 })}
-      ${select({ ctx, name: 'project_id', label: t('nav.projects'), value: st.project_id, options: [{ value: '', label: t('links.no_project') }, ...projects.map((p) => ({ value: String(p.id), label: p.name }))] })}
+      ${projects.length ? select({ ctx, name: 'project_id', label: t('nav.projects'), value: st.project_id, options: [{ value: '', label: t('links.no_project') }, ...projects.map((p) => ({ value: String(p.id), label: p.name }))] }) : html`<input type="hidden" name="project_id" value="${st.project_id ?? ''}">`}
     </div>
     <h2>${t(`qr.kind_${st.kind}`)}</h2>
     ${kindFieldsHtml(ctx, st.kind, st.values, errors, linkOptions)}

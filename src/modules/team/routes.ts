@@ -35,7 +35,7 @@ ${spaces.length ? html`<section class="card"><h2>${t('team.spaces')}</h2><ul cla
 </ul></section>` : ''}
 <section class="card"><h2>${t('team.my_team')}</h2>
 ${lim.team_members === 0
-  ? html`<p class="muted">${t('team.locked')} <a href="/panel/plan">${t('plan.see_plans')}</a></p>`
+  ? html`<p class="muted">${t('team.locked')} <a class="tap" href="/panel/plan">${t('plan.see_plans')}</a></p>`
   : html`<p class="muted">${t('team.intro', { n: lim.team_members })}</p>
   ${members.length ? html`<ul class="list">${members.map((m) => html`<li><div class="grow"><div class="title">${m.email}</div><div class="sub">${m.accepted_at ? t(`team.role_${m.role}`) : t('team.pending')}</div></div>
     <form method="post" action="/panel/team/${m.id}/role" class="inline btn-row">${csrfField(ctx)}<select name="role" aria-label="${t('team.role')}" class="inline-input">${ROLES.map((r) => html`<option value="${r}"${r === m.role ? html` selected` : ''}>${t(`team.role_${r}`)}</option>`)}</select><button class="btn btn-sm" type="submit">${t('common.save')}</button></form>

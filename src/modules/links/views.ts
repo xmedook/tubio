@@ -87,7 +87,7 @@ export function dashboardPage(
 ${opts.items.length === 0
   ? emptyState(
       filtered ? t('links.empty_filtered') : t('links.empty'),
-      filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>`,
+      filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary btn-lg" href="/panel/start">${t('start.title')}</a>`,
     )
   : html`<ul class="list link-list chat-list">${opts.items.map((l) => {
       const url = linkUrl(ctx.baseUrl, l)
@@ -151,9 +151,6 @@ function kindFields(ctx: Ctx, kind: LinkKind, v: FormValues, e: Errors, isNew: b
   const { t } = ctx
   if (kind === 'short') {
     return html`${input({ ctx, name: 'target_url', type: 'url', label: t('links.target_url'), value: v.target_url, error: e.target_url, required: true, placeholder: 'https://', inputmode: 'url' })}
-${select({ ctx, name: 'redirect_code', label: t('links.redirect_code'), value: v.redirect_code ?? '302', hint: t('links.redirect_hint'), options: [
-  { value: '302', label: t('links.redirect_302') }, { value: '301', label: t('links.redirect_301') },
-  { value: '307', label: t('links.redirect_307') }, { value: '308', label: t('links.redirect_308') }] })}
 ${checkbox({ name: 'open_app', label: t('links.open_app'), checked: isNew ? true : v.open_app === '1', hint: t('links.open_app_hint') })}`
   }
   if (kind === 'file') {
@@ -198,7 +195,7 @@ ${textarea({ ctx, name: 'ev_description', label: t('event.description'), value: 
 function marketingSection(ctx: Ctx, kind: LinkKind, v: FormValues, e: Errors, mk?: { enabled: boolean; pixels: { id: number; name: string; kind: string }[]; splashes: { id: number; name: string }[] }): SafeHtml {
   const { t } = ctx
   if (!mk) return html``
-  if (!mk.enabled) return html`<details class="opt"><summary>${t('mk.title')} <span class="tag">Pro</span></summary><div class="opt-body"><p>${t('mk.locked')} <a href="/panel/plan">${t('plan.see_plans')}</a></p></div></details>`
+  if (!mk.enabled) return html`<details class="opt"><summary>${t('mk.title')} <span class="tag">Pro</span></summary><div class="opt-body"><p>${t('mk.locked')} <a class="tap" href="/panel/plan">${t('plan.see_plans')}</a></p></div></details>`
   const chosen = new Set((v.pixel_ids ?? '').split(',').filter(Boolean))
   const hasRules = Object.keys(v).some((k) => k.startsWith('tg__') || k.startsWith('ab__')) || v.splash_id || v.cloak || chosen.size
   const types = ['country', 'device', 'lang', 'os'].map((x) => ({ value: x, label: t(`mk.rule_${x}`) }))
@@ -264,13 +261,18 @@ ${hasErrors ? html`<p class="flash flash-error" role="alert">${t(e._form ?? 'err
     </div>
     <div class="grid-2">
       ${input({ ctx, name: 'title', label: kind === 'bio' ? t('links.page_name') : t('links.title'), value: v.title, error: e.title, maxlength: 120, hint: t('links.title_hint') })}
-      ${select({ ctx, name: 'project_id', label: t('nav.projects'), value: v.project_id, options: projectOptions(ctx, opts.projects) })}
+      ${opts.projects.length ? select({ ctx, name: 'project_id', label: t('nav.projects'), value: v.project_id, options: projectOptions(ctx, opts.projects) }) : html`<input type="hidden" name="project_id" value="${v.project_id ?? ''}">`}
     </div>
     ${checkbox({ name: 'is_enabled', label: t('links.enabled'), checked: !!v.is_enabled, hint: t('links.enabled_hint') })}
-    ${checkbox({ name: 'public_stats', label: t('links.public_stats'), checked: !!v.public_stats, hint: t('links.public_stats_hint') })}
   </div>
 
   <h2>${t('links.options')}</h2>
+  <details class="opt"><summary>${t('links.opt_advanced')}</summary><div class="opt-body">
+    ${kind === 'short' ? select({ ctx, name: 'redirect_code', label: t('links.redirect_code'), value: v.redirect_code ?? '302', hint: t('links.redirect_hint'), options: [
+      { value: '302', label: t('links.redirect_302') }, { value: '301', label: t('links.redirect_301') },
+      { value: '307', label: t('links.redirect_307') }, { value: '308', label: t('links.redirect_308') }] }) : ''}
+    ${checkbox({ name: 'public_stats', label: t('links.public_stats'), checked: !!v.public_stats, hint: t('links.public_stats_hint') })}
+  </div></details>
   <details class="opt"${openSchedule ? html` open` : ''}><summary>${t('links.opt_schedule')}</summary><div class="opt-body">
     <p class="hint">${t('links.opt_schedule_hint', { tz: ctx.user?.timezone ?? '' })}</p>
     <div class="grid-2">

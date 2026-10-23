@@ -108,7 +108,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })
     // reclamó un alias en la portada: directo a crear su página con él
-    return reply.redirect(claimOk ? `/panel/links/new?kind=bio&alias=${encodeURIComponent(claimOk.alias)}` : '/panel', 303)
+    return reply.redirect(claimOk ? `/panel/start?alias=${encodeURIComponent(claimOk.alias)}` : '/panel/start', 303)
   })
 
   app.get('/login', async (req, reply) => {
