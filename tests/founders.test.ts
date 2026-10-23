@@ -10,7 +10,7 @@ describe('fundadores', () => {
     const t = await makeApp()
     setSetting(t.deps.db, 'founders_max', 2)
     const a = new Agent(t.app)
-    expect((await a.get('/')).body).toContain('Quedan 2')
+    expect((await a.get('/')).body).toContain('data-quedan>2<')
     await a.get('/register')
     await a.post('/register', { email: 'uno@example.com', password: 'contrasena-segura', accept: '1' })
     const link = /\/verify\/[\w-]+/.exec(t.mailer.sent.at(-1)!.text)![0]
@@ -29,6 +29,6 @@ describe('fundadores', () => {
       claimFounder(t.deps, u.id)
     }
     expect(t.deps.db.prepare('SELECT COUNT(*) FROM users WHERE founder_no IS NOT NULL').pluck().get()).toBe(2)
-    expect((await new Agent(t.app).get('/')).body).not.toContain('Fundadores:')
+    expect((await new Agent(t.app).get('/')).body).not.toContain('data-fundadores')
   })
 })
