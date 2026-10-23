@@ -1,0 +1,29 @@
+/* tubio v2 · tokens «Recado» (patrones de app de mensajería, 23-oct-2026). Tipografía: Figtree (OFL) 400/500/600/700, servir woff2 desde tubio.
+   Verde propio de tubio: NO usar los verdes de WhatsApp (#25D366/#075E54/#128C7E). */
+:root{
+  /* tipografía */
+  --f-display:"Figtree", ui-serif, serif; --f-body:"Figtree", system-ui, sans-serif; --f-num:"Figtree", ui-monospace, monospace;
+  --dispw:700;
+  /* escala (móvil · se escala ×1.125 desde 768px) */
+  --t-xs:14px; --t-sm:15px; --t-base:16px; --t-md:18px; --t-lg:22px; --t-xl:30px; --t-2xl:40px; --t-kpi:52px;
+  /* radios con intención: sm controles chicos · md campos/chips · lg hojas · pill/btn botones */
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --btnr:999px; --cardr:0px;
+  /* espaciado base 4 */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
+  /* sombras */
+  --shadow:none; --sheetshadow:0 -8px 30px -12px rgba(20,25,10,.35);
+  /* táctil */
+  --touch:44px;
+  /* claro */
+  --bg:#F8F8F5; --surface:#FDFDFB; --s2:#EEEEE8; --ink:#171A12; --ink2:#5A5F50;
+  --line:#E0E1D8; --accent:#3F7A10; --onaccent:#F8FBF2; --soft:#E3EFD3; --ok:#3F7A10;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){
+  --bg:#10120D; --surface:#181B14; --s2:#22261C; --ink:#ECEFE5; --ink2:#A3A898;
+  --line:#2B3023; --accent:#A5DA5E; --onaccent:#10120D; --soft:#2A3A17; --ok:#A5DA5E;
+}}
+:root[data-theme=dark]{
+  --bg:#10120D; --surface:#181B14; --s2:#22261C; --ink:#ECEFE5; --ink2:#A3A898;
+  --line:#2B3023; --accent:#A5DA5E; --onaccent:#10120D; --soft:#2A3A17; --ok:#A5DA5E;
+}
+

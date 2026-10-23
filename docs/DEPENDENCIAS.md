@@ -12,7 +12,6 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | fastify | MIT | servidor HTTP |
 | @fastify/cookie | MIT | cookies firmadas |
 | fflate | MIT | descomprimir los ZIP de sitios estáticos |
-| @fontsource-variable/bricolage-grotesque, @fontsource-variable/atkinson-hyperlegible-next | OFL-1.1 | tipografía del panel y del sitio (dirección A «Mercado») |
 | playwright (dev) | Apache-2.0 | navegador para la auditoría de accesibilidad |
 | @axe-core/playwright, axe-core (dev) | MPL-2.0 | reglas WCAG de la auditoría |
 | @fastify/formbody | MIT | formularios urlencoded |

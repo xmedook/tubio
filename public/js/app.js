@@ -17,3 +17,9 @@ document.addEventListener('click', async (e) => {
     setTimeout(() => { btn.textContent = old }, 1500)
   } catch { /* sin permiso: no pasa nada */ }
 })
+
+// lupa de la cabecera: enfocar la búsqueda de enlaces
+if (new URLSearchParams(location.search).has('buscar')) {
+  document.querySelector('.search-bar')?.removeAttribute('data-collapsed')
+  document.querySelector('input[name="q"]')?.focus()
+}

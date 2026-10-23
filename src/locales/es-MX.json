@@ -1376,5 +1376,17 @@
   "self.body": "Cuando entras a tus páginas con tu sesión iniciada, no cuentan en las estadísticas. Para que tampoco cuenten desde este teléfono o computadora sin sesión, exclúyelo.",
   "self.turn_on": "No contar las visitas de este dispositivo",
   "self.turn_off": "Volver a contarlas",
-  "self.on": "Este dispositivo está excluido de las estadísticas."
+  "self.on": "Este dispositivo está excluido de las estadísticas.",
+  "create.bio": "Tu página con todos tus enlaces",
+  "create.short": "Una dirección corta que lleva a otra",
+  "create.qr": "Para imprimir en tu local o volante",
+  "create.bulk": "Muchos enlaces cortos de una vez",
+  "create.file": "Comparte un PDF o archivo",
+  "create.vcard": "Para que guarden tu contacto",
+  "create.event": "Para que lo agreguen al calendario",
+  "time.today": "hoy",
+  "time.yesterday": "ayer",
+  "links.chip_bio": "Páginas",
+  "links.chip_short": "Cortos",
+  "bio.hidden": "Oculto"
 }
