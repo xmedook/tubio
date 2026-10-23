@@ -1359,5 +1359,17 @@
   "claim.placeholder": "yourname",
   "claim.go": "Claim",
   "claim.free": "{url} is available! Create your account and it is yours.",
-  "claim.taken": "“{alias}” is taken; try another."
+  "claim.taken": "“{alias}” is taken; try another.",
+  "bulk.title": "Create many short links",
+  "bulk.short": "Many at once",
+  "bulk.intro": "Paste one URL per line; each gets a short address. Up to {max} per batch ({room} left today on your plan).",
+  "bulk.urls": "URLs",
+  "bulk.hint": "Example: https://myshop.com/offer. Invalid ones are marked and skipped.",
+  "bulk.create": "Create links",
+  "bulk.empty": "Paste at least one URL.",
+  "bulk.line": "line {n}",
+  "bulk.no_room": "You have no links left on your plan or for today.",
+  "bulk.too_many": "Only the first 100 lines are processed.",
+  "bulk.copy_all": "Copy all",
+  "bulk.see_links": "See my links"
 }

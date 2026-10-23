@@ -101,6 +101,7 @@ ${opts.body}
       <p class="sheet-title">${t('nav.create')}</p>
       <a role="menuitem" href="/panel/links/new?kind=bio">${icon('bio')}<span>${t('links.kind_bio')}</span></a>
       <a role="menuitem" href="/panel/links/new?kind=short">${icon('short')}<span>${t('links.kind_short')}</span></a>
+      <a role="menuitem" href="/panel/links/bulk">${icon('links')}<span>${t('bulk.short')}</span></a>
       <a role="menuitem" href="/panel/qr/new">${icon('qr')}<span>${t('nav.qr')}</span></a>
       <a role="menuitem" href="/panel/links/new?kind=file">${icon('file')}<span>${t('links.kind_file')}</span></a>
       <a role="menuitem" href="/panel/links/new?kind=vcard">${icon('card')}<span>${t('links.kind_vcard')}</span></a>

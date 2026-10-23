@@ -70,3 +70,21 @@ describe('reclama tu alias', () => {
     expect((await v.get(String(r.headers.location))).body).toContain('value="cafe-norte"')
   })
 })
+
+describe('creación masiva', () => {
+  it('una URL por renglón; marca las malas; respeta el plan', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/bulk')
+    const r = await a.post('/panel/links/bulk', { urls: 'https://uno.mx\njavascript:alert(1)\n\ndos.mx/x' })
+    expect(r.statusCode).toBe(200)
+    expect(t.deps.db.prepare("SELECT target_url FROM links WHERE kind = 'short' ORDER BY id").pluck().all()).toEqual(['https://uno.mx/', 'https://dos.mx/x'])
+    expect(r.body).toContain('renglón 2')
+    // plan gratis: 25 enlaces
+    t.deps.db.prepare('UPDATE users SET email_verified_at = 1 WHERE id = ?').run(u.id)
+    const many = Array.from({ length: 30 }, (_, i) => `https://e${i}.mx`).join('\n')
+    await a.post('/panel/links/bulk', { urls: many })
+    expect(t.deps.db.prepare("SELECT COUNT(*) FROM links WHERE kind = 'short'").pluck().get()).toBe(25)
+  })
+})

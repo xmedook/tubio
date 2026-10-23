@@ -49,6 +49,7 @@ export function dashboardPage(
         <a href="/panel/links/new?kind=file">${t('links.kind_file')}</a>
         <a href="/panel/links/new?kind=vcard">${t('links.kind_vcard')}</a>
         <a href="/panel/links/new?kind=event">${t('links.kind_event')}</a>
+        <a href="/panel/links/bulk">${t('bulk.short')}</a>
         <a href="/panel/pixels">${t('mk.title')}</a>
         <a href="/panel/domains">${t('domains.title')}</a>
       </div>

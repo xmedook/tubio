@@ -1359,5 +1359,17 @@
   "claim.placeholder": "tunombre",
   "claim.go": "Reclamar",
   "claim.free": "¡{url} está libre! Crea tu cuenta y es tuya.",
-  "claim.taken": "«{alias}» ya está ocupado; prueba otro."
+  "claim.taken": "«{alias}» ya está ocupado; prueba otro.",
+  "bulk.title": "Crear varios enlaces cortos",
+  "bulk.short": "Varios a la vez",
+  "bulk.intro": "Pega una URL por renglón; a cada una le damos una dirección corta. Hasta {max} por envío (te quedan {room} hoy con tu plan).",
+  "bulk.urls": "URLs",
+  "bulk.hint": "Ejemplo: https://mitienda.mx/oferta. Las que no sean válidas se marcan y no se crean.",
+  "bulk.create": "Crear enlaces",
+  "bulk.empty": "Pega al menos una URL.",
+  "bulk.line": "renglón {n}",
+  "bulk.no_room": "Ya no te alcanzan los enlaces de tu plan o de hoy.",
+  "bulk.too_many": "Sólo se procesan los primeros 100 renglones.",
+  "bulk.copy_all": "Copiar todos",
+  "bulk.see_links": "Ver mis enlaces"
 }
