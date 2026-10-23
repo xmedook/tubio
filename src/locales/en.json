@@ -1508,5 +1508,14 @@
   "bio.type_cta": "Call to action",
   "bio.f.cover": "Cover image",
   "bio.f.avatar_optional": "Photo or logo (optional)",
-  "bio.f.button": "Button text"
+  "bio.f.button": "Button text",
+  "stats.range": "Range",
+  "stats.last_days": "{n} days",
+  "stats.custom": "Custom",
+  "stats.remove_filter": "Remove filter",
+  "stats.range_label": "{from} to {to}",
+  "stats.vs_prev": "{pct}% vs. the previous {n} days",
+  "stats.ctr": "Click rate",
+  "stats.per_day": "Per day",
+  "stats.export": "Download"
 }

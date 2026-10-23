@@ -1508,5 +1508,14 @@
   "bio.type_cta": "Llamada a la acción",
   "bio.f.cover": "Imagen de portada",
   "bio.f.avatar_optional": "Foto o logo (opcional)",
-  "bio.f.button": "Texto del botón"
+  "bio.f.button": "Texto del botón",
+  "stats.range": "Rango",
+  "stats.last_days": "{n} días",
+  "stats.custom": "Otro rango",
+  "stats.remove_filter": "Quitar filtro",
+  "stats.range_label": "del {from} al {to}",
+  "stats.vs_prev": "{pct} % contra los {n} días anteriores",
+  "stats.ctr": "Tasa de clic",
+  "stats.per_day": "Por día",
+  "stats.export": "Descargar"
 }

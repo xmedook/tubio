@@ -40,10 +40,29 @@ export function parseRange(fromQ: unknown, toQ: unknown, timeZone: string, now: 
   return { from, to, fromTs: Date.parse(from) - offsetMin * 60000, toTs: Date.parse(to) + DAY - offsetMin * 60000, offsetMin, days }
 }
 
-function where(scope: Scope): { sql: string; param: number } {
-  return 'linkId' in scope
-    ? { sql: 'e.link_id = ?', param: scope.linkId }
-    : { sql: 'e.link_id IN (SELECT id FROM links WHERE user_id = ?)', param: scope.userId }
+/** Filtros de la navegación en cascada (país → ciudad, fuente → medio → campaña, procedencia) */
+export const FILTER_KEYS = ['country', 'utm_source', 'utm_medium', 'referrer'] as const
+export type Filters = Partial<Record<(typeof FILTER_KEYS)[number], string>>
+
+export function parseFilters(q: Record<string, unknown>): Filters {
+  const f: Filters = {}
+  for (const k of FILTER_KEYS) {
+    const v = q[`f_${k}`]
+    if (typeof v === 'string' && v.length <= 100) f[k] = v
+  }
+  return f
+}
+
+function where(scope: Scope, filters: Filters = {}): { sql: string; param: number; extra: string[] } {
+  const extra: string[] = []
+  // '' = «directo / desconocido» (columna nula)
+  const cond = Object.entries(filters).map(([k, v]) => {
+    if (v === '') return `e.${k} IS NULL`
+    extra.push(v as string)
+    return `e.${k} = ?`
+  })
+  const base = 'linkId' in scope ? 'e.link_id = ?' : 'e.link_id IN (SELECT id FROM links WHERE user_id = ?)'
+  return { sql: [base, ...cond].join(' AND '), param: 'linkId' in scope ? scope.linkId : scope.userId, extra }
 }
 
 export type Row = { key: string | null; views: number; visitors: number; clicks: number }
@@ -65,11 +84,11 @@ export type Dimension = (typeof DIMENSIONS)[number]
  * Visitante único = hash distinto por día (la sal rota a diario: por diseño no se puede
  * seguir a alguien de un día a otro). En rangos, los únicos son la suma de únicos diarios.
  */
-export function buildReport(db: DB, scope: Scope, range: Range, limit = 10): Report {
-  const w = where(scope)
+export function buildReport(db: DB, scope: Scope, range: Range, limit = 10, filters: Filters = {}): Report {
+  const w = where(scope, filters)
   const off = range.offsetMin * 60
   const base = `FROM stat_events e WHERE ${w.sql} AND e.ts >= ? AND e.ts < ?`
-  const params = [w.param, range.fromTs, range.toTs]
+  const params = [w.param, ...w.extra, range.fromTs, range.toTs]
   const localDay = `date(e.ts / 1000 + ${off}, 'unixepoch')`
   const uniq = `COUNT(DISTINCT CASE WHEN e.kind = 'view' THEN e.visitor || ${localDay} END)`
 
@@ -111,6 +130,14 @@ export function buildReport(db: DB, scope: Scope, range: Range, limit = 10): Rep
       : []
 
   return { range, totals: { views: t.views ?? 0, visitors: t.visitors ?? 0, clicks: t.clicks ?? 0 }, series, hours, breakdowns, blocks, links }
+}
+
+/** Totales del periodo anterior de la misma duración (para «▲ 18 % contra el anterior») */
+export function previousTotals(db: DB, scope: Scope, range: Range, filters: Filters = {}): { views: number; clicks: number } {
+  const w = where(scope, filters)
+  const len = range.toTs - range.fromTs
+  const r = db.prepare(`SELECT SUM(e.kind = 'view') AS views, SUM(e.kind = 'click') AS clicks FROM stat_events e WHERE ${w.sql} AND e.ts >= ? AND e.ts < ?`).get(w.param, ...w.extra, range.fromTs - len, range.fromTs) as { views: number | null; clicks: number | null }
+  return { views: r.views ?? 0, clicks: r.clicks ?? 0 }
 }
 
 export type EventRow = {

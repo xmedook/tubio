@@ -11,7 +11,7 @@ import { linkTabs } from '../links/views.ts'
 import { availability } from '../public/gate.ts'
 import type { User } from '../users/repo.ts'
 import { limitsOf } from '../plans/limits.ts'
-import { buildReport, csvCell, iterateEvents, parseRange, type Range, type Scope } from './query.ts'
+import { buildReport, csvCell, iterateEvents, parseRange, type Range, type Scope, parseFilters, previousTotals } from './query.ts'
 import { reportBody } from './views.ts'
 
 const CSV_COLS = ['ts', 'kind', 'link_id', 'block_id', 'country', 'city', 'device', 'os', 'browser', 'lang', 'referrer', 'utm_source', 'utm_medium', 'utm_campaign'] as const
@@ -49,7 +49,9 @@ export function registerStats(app: FastifyInstance, deps: AppDeps): void {
     const q = req.query as { from?: string; to?: string; format?: string }
     const range = clampToPlan(deps, user, parseRange(q.from, q.to, user.timezone, deps.now()))
     if (q.format === 'csv' || q.format === 'json') return exportReply(deps, reply, { linkId: link.id }, range, q.format, link.alias)
-    const report = buildReport(db, { linkId: link.id }, range)
+    const filters = parseFilters(req.query as Record<string, unknown>)
+    const report = buildReport(db, { linkId: link.id }, range, 10, filters)
+    const prev = previousTotals(db, { linkId: link.id }, range, filters)
     const { t } = req.ctx
     return sendHtml(reply, panelLayout(req.ctx, {
       title: `${t('stats.title')} · ${link.title || link.alias}`,
@@ -58,7 +60,7 @@ export function registerStats(app: FastifyInstance, deps: AppDeps): void {
       body: html`${linkTabs(req.ctx, link, 'stats')}
 <p class="muted">${t('stats.lifetime', { n: link.clicks })} · ${t('stats.created', { date: formatDateTime(req.ctx.locale, link.created_at, user.timezone) })}
 ${link.public_stats ? html` · <a href="/_/stats/${link.alias}">${t('stats.public_link')}</a>` : ''}</p>
-${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blocks: link.kind === 'bio' ? listBlocks(db, link.id) : undefined, geoAttribution: geoAttribution(), action: `/panel/links/${link.id}/stats` })}`,
+${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blocks: link.kind === 'bio' ? listBlocks(db, link.id) : undefined, geoAttribution: geoAttribution(), action: `/panel/links/${link.id}/stats`, filters, prev })}`,
     }))
   })
 
@@ -67,7 +69,9 @@ ${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blo
     const q = req.query as { from?: string; to?: string; format?: string }
     const range = clampToPlan(deps, user, parseRange(q.from, q.to, user.timezone, deps.now()))
     if (q.format === 'csv' || q.format === 'json') return exportReply(deps, reply, { userId: user.id }, range, q.format, 'todo')
-    const report = buildReport(db, { userId: user.id }, range)
+    const filters = parseFilters(req.query as Record<string, unknown>)
+    const report = buildReport(db, { userId: user.id }, range, 10, filters)
+    const prev = previousTotals(db, { userId: user.id }, range, filters)
     const links = new Map<number, Link>(listLinks(db, user.id, { limit: 10000 }).items.map((l) => [l.id, l]))
     const { t } = req.ctx
     return sendHtml(reply, panelLayout(req.ctx, {
@@ -75,7 +79,7 @@ ${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blo
       active: 'stats',
       path: '/panel/stats',
       body: html`<h1>${t('stats.all_title')}</h1>
-${reportBody(req.ctx, report, { exportBase: '/panel/stats', links, geoAttribution: geoAttribution(), action: '/panel/stats' })}`,
+${reportBody(req.ctx, report, { exportBase: '/panel/stats', links, geoAttribution: geoAttribution(), action: '/panel/stats', filters, prev })}`,
     }))
   })
 
@@ -85,7 +89,9 @@ ${reportBody(req.ctx, report, { exportBase: '/panel/stats', links, geoAttributio
     if (!link || !link.public_stats || link.password_hash || availability(deps, link) === 'missing') return reply.callNotFound()
     const q = req.query as { from?: string; to?: string }
     const range = parseRange(q.from, q.to, 'UTC', deps.now())
-    const report = buildReport(db, { linkId: link.id }, range)
+    const filters = parseFilters(req.query as Record<string, unknown>)
+    const report = buildReport(db, { linkId: link.id }, range, 10, filters)
+    const prev = previousTotals(db, { linkId: link.id }, range, filters)
     report.breakdowns.city = []
     const { t } = req.ctx
     reply.header('X-Robots-Tag', 'noindex')
@@ -93,7 +99,7 @@ ${reportBody(req.ctx, report, { exportBase: '/panel/stats', links, geoAttributio
       title: `${t('stats.title')} · ${link.alias}`,
       path: `/_/stats/${link.alias}`,
       body: html`<h1>${t('stats.public_title', { alias: link.alias })}</h1>
-<div class="public-stats">${reportBody(req.ctx, report, { geoAttribution: geoAttribution(), action: `/_/stats/${link.alias}` })}</div>`,
+<div class="public-stats">${reportBody(req.ctx, report, { geoAttribution: geoAttribution(), action: `/_/stats/${link.alias}`, filters, prev })}</div>`,
     }))
   })
 }
