@@ -29,6 +29,7 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['payments', '/admin/payments', t('admin.payments')],
     ['pages', '/admin/pages', t('site.admin')],
     ['referrals', '/admin/referrals', t('ref.title')],
+    ['redeem', '/admin/redeem', t('redeem.admin')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
