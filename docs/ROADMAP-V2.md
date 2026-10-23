@@ -1,7 +1,7 @@
 # tubio v2 — paridad de funciones y UI/UX móvil primero (2026-10-22)
 
-**Decisión de Alejandro:** la v2 no agrega funciones nuevas: deja las funciones al nivel del producto de referencia
-y **rehace la UI/UX, sobre todo en el celular**. (Las ideas de producto nuevas quedan en `docs/IDEAS-V3.md`.)
+**Decisión de Alejandro:** la v2 **revisa cada función que tiene el producto de referencia, la mejora y propone
+nuevas**, y **rehace la UI/UX, sobre todo en el celular**. Más ideas de largo plazo en `docs/IDEAS-V3.md`.
 
 **Sala limpia, también en v2:** no se mira el código, CSS, imágenes ni la interfaz del producto de referencia (ni alav.link).
 La paridad se mide contra una **lista de funciones** escrita sólo en términos de comportamiento, igual que `docs/SPEC.md`.
@@ -64,9 +64,23 @@ Tamaños: S ≈ 1 día · M ≈ 2–4 días · L ≈ 1–2 semanas de sesión.
 - Temas renovados con el sistema nuevo, micro-animaciones sutiles (respetando `prefers-reduced-motion`).
 - Presupuesto de rendimiento en 4G: LCP < 1.5 s, CLS < 0.05, JS público < 15 KB.
 
-## V2.6 — Paridad de funciones · S–L (según la lista)
-- Con la **lista de funciones** de referencia (sólo comportamiento) se marca qué falta, qué está distinto y qué sobra, y
-  se implementa lo que falte con la UI nueva.
+## V2.6 — Funciones: revisar → mejorar → proponer · M–L (en paralelo a V2.1–V2.5)
+Para cada área: 1) qué hace la referencia (lista de comportamientos), 2) qué tenemos, 3) qué mejoramos, 4) qué nuevo
+proponemos. Primera pasada con lo que ya sé de nuestro lado; se completa con la lista de referencia.
+
+| Área | Mejorar (propuesta) | Nuevo (propuesta) |
+|---|---|---|
+| Página bio y bloques | vista previa en vivo, duplicar bloque, programar visibilidad con calendario, bloques agrupados en secciones | **plantillas por giro**, **importar de Linktree/Beacons**, **agenda de citas**, **catálogo con pedido por WhatsApp** |
+| Diseño | menos opciones a la vez y mejores valores por defecto; temas renovados | generar paleta desde el logo, **asistente con IA** que arma la página desde una descripción o el Instagram |
+| Enlaces cortos | crear desde el portapapeles, editar en línea, vista de destino antes de abrir | enlaces que vencen por fecha o clics con página de «ya no disponible» propia, carpetas por campaña |
+| QR | plantillas de estilo, descarga en un toque, QR dinámico por defecto | QR impreso listo (PDF con marco y texto), lote de QR desde CSV |
+| Estadísticas | gráficas táctiles, comparar periodos, resumen semanal por correo | metas y conversión (clic → formulario o venta), exportar a Google Sheets |
+| Captura y avisos | bandeja de respuestas más clara, filtros | conectores a Google Sheets, Mailchimp/Brevo, HubSpot, Zapier |
+| Planes y cobro | página de planes más clara en móvil | **suscripciones con renovación automática**, **Mercado Pago (OXXO/SPEI)**, **CFDI a petición** vía Dolibarr, precios en USD |
+| Equipos / agencias | invitar con enlace, roles más claros | plan Agencia con varios clientes y reportes con su marca |
+| Admin | tablero de embudo (registro → publicado → pago) | moderación automática de URLs maliciosas |
+
+Cada propuesta nueva se presenta con su porqué y tamaño, y **sólo entra con tu ok**.
 
 ## V2.7 — Calidad · S (continuo)
 - `mobile-audit` y `npm run a11y` en cada cambio, con los umbrales de V2.0 como prueba que falla.
@@ -78,6 +92,7 @@ mejorando pantallas en sitio.
 
 ## Decisiones que necesito de ti
 1. **Lista de funciones de referencia**: ¿le pido a la sesión `rea` que escriba un anexo a la SPEC con sólo
-   comportamientos (sin código ni textos), como se hizo con la SPEC original? Sin ella, V2.6 no se puede medir.
+   comportamientos (sin código ni textos), como se hizo con la SPEC original? Con ella completo la columna de V2.6.
+4. De las propuestas nuevas de V2.6, ¿cuáles te interesan para empezar? (Las marcadas en negritas son mi recomendación.)
 2. ¿Te parece que la sesión **`design`** proponga la dirección visual de V2.0 (2–3 opciones en maqueta para que escojas)?
-3. Orden propuesto: V2.0 → V2.1 → V2.2 → V2.3 → V2.4 → V2.5, con V2.6 en paralelo cuando llegue la lista. ¿Va?
+3. Orden propuesto: V2.0 → V2.1 → V2.2 → V2.3 → V2.4 → V2.5, con V2.6 en paralelo. ¿Va?
