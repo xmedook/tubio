@@ -66,3 +66,21 @@ if (q instanceof HTMLInputElement) {
     }
   })
 }
+
+// Interruptor «Mostrar» de cada bloque: sin recargar (sin JS es un formulario normal)
+for (const form of document.querySelectorAll('form[data-toggle]')) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const btn = form.querySelector('[role="switch"]')
+    const on = btn?.getAttribute('aria-checked') !== 'true'
+    btn?.setAttribute('aria-checked', String(on))
+    form.closest('li')?.classList.toggle('off', !on)
+    try {
+      const res = await fetch(form.action, { method: 'POST', body: new URLSearchParams(new FormData(form)), redirect: 'manual' })
+      if (res.status >= 400) throw new Error(String(res.status))
+      refreshPreview()
+    } catch {
+      location.reload()
+    }
+  })
+}

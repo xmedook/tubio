@@ -10,6 +10,7 @@
   --accent: #14774A;
   --accent-ink: #F6F3EA;
   --accent-soft: #DCEADB;
+  --accent-on-soft: #126E44;
   --danger: #b42318;
   --danger-soft: #fdecea;
   --ok: #14774A;
@@ -36,6 +37,7 @@
     --accent: #5DD597;
     --accent-ink: #0D1310;
     --accent-soft: #183829;
+    --accent-on-soft: #5DD597;
     --danger: #ff8a7a;
     --danger-soft: #3a1714;
     --ok: #5DD597;
@@ -559,7 +561,7 @@ fieldset { min-width: 0; }
 }
 @media (max-width: 899px) {
   .search-bar[data-collapsed] { display: none; }
-  .page-head h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .wrap:has(.chat-list) .page-head h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   body.panel .wrap:has(.chat-list) { padding: 0 0 2rem; }
   .wrap:has(.chat-list) .chips { padding: 4px 16px 12px; margin: 0; }
   .wrap:has(.chat-list) .search-bar { padding: 0 16px 8px; }
@@ -596,3 +598,45 @@ fieldset { min-width: 0; }
   .wrap:has(.chat-list) .page-head { margin: 0; min-height: 0; }
   .chat-list { margin-bottom: 88px; }
 }
+
+/* ===== v2 · Charla: editor ===== */
+.sw-form { margin: 0; }
+.sw { position: relative; width: 52px; height: 44px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; }
+.sw i { width: 44px; height: 26px; border-radius: 13px; background: var(--border); position: relative; transition: background .15s; }
+.sw i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 30%); transition: transform .15s; }
+.sw[aria-checked="true"] i { background: var(--accent); }
+.sw[aria-checked="true"] i::after { transform: translateX(18px); }
+@media (prefers-reduced-motion: reduce) { .sw i, .sw i::after { transition: none; } }
+.blk .block-main { display: flex; align-items: center; gap: 12px; }
+.blk .av.s { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.blk .av.s .ic { width: 22px; height: 22px; }
+.blk .row-b { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.blk .title { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: inherit; }
+.blk .sub { font-size: 15px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.blocks > li.off .grow { opacity: 1; }
+.blk.off .title, .blk.off .av.s { opacity: .55; }
+.pick .tipo-ic { width: 36px; height: 36px; }
+.pick .tipo-ic .ic { width: 20px; height: 20px; }
+@media (max-width: 899px) {
+  .blocks { border: 0; border-radius: 0; margin: 0 -1rem; background: var(--surface); }
+  .blocks > li { min-height: 72px; padding: 0 4px 0 0; border-top: 0; }
+  .blk .block-main { align-self: stretch; padding: 10px 0; border-bottom: 1px solid var(--border); border-radius: 0; }
+  .blocks > li:last-child .block-main { border-bottom: 0; }
+  .editor-main { padding-bottom: 88px; }
+  /* «Añadir bloque» = el botón flotante */
+  .add-block > summary { position: fixed; right: 16px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 26; width: 60px; height: 60px; min-height: 60px; padding: 0; border-radius: 50%; font-size: 0; box-shadow: 0 8px 20px -6px rgb(0 0 0 / 35%), 0 2px 4px rgb(0 0 0 / 12%); }
+  .add-block > summary .ic { width: 28px; height: 28px; }
+  .add-block[open] > summary { background: transparent; box-shadow: none; color: transparent; }
+  .add-block[open] > summary::before { z-index: 39; }
+  .add-block[open] .add-sheet { z-index: 40; }
+  .add-block .add-sheet .sheet-title { text-align: left; font-size: 24px; }
+  .add-block .picker { grid-template-columns: 1fr; gap: 0; }
+  .add-block .pick { border: 0; border-top: 1px solid var(--border); border-radius: 0; min-height: 60px; background: none; font-size: 16px; padding: 8px 4px; gap: 14px; }
+  .add-block h3 { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 1rem 0 .25rem; }
+}
+@media (max-width: 899px) {
+  .add-block[open] .add-sheet .sheet-title { text-align: left; font-size: 24px; margin: .25rem 0 .5rem; }
+  .page-head h1, .wrap > h1 { font-size: 24px; margin-bottom: .25rem; }
+}
+/* texto verde sobre verde claro: tono que da AA (4.5:1) */
+.topbar nav a[aria-current="page"], .av, .blk .av.s, .tipo-ic, .kind-ic, .tab[aria-current="page"] .tab-i, .chat-row .av { color: var(--accent-on-soft); }

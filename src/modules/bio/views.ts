@@ -13,6 +13,20 @@ import { FONT_IDS, FONTS, THEMES, type Design } from './design.ts'
 
 const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', 'media']
 
+/** Ícono de una fila de bloque o del catálogo */
+export function blockIcon(type: string, group?: string): string {
+  if (/link|button|cta/.test(type)) return 'links'
+  if (/heading|paragraph|text|marquee|list|alert|divider|faq|timeline/.test(type)) return 'text'
+  if (/image|gallery|carousel|avatar|before_after/.test(type)) return 'image'
+  if (/map|location/.test(type)) return 'pin'
+  if (/social|share/.test(type)) return 'share'
+  if (/hours|countdown|calendar|event/.test(type)) return 'clock'
+  if (/whatsapp|telegram|chat|messenger/.test(type)) return 'chat'
+  if (/youtube|video|vimeo|spotify|tiktok|twitch|audio|soundcloud/.test(type)) return 'play'
+  if (group === 'capture' || /form|poll|subscribe|email|phone/.test(type)) return 'form'
+  return 'bio'
+}
+
 /** Interruptor «Editar | Vista previa» (sólo en el celular; sin JS se ven las dos cosas una tras otra) */
 function viewToggle(ctx: Ctx): SafeHtml {
   const { t } = ctx
@@ -51,7 +65,7 @@ ${viewToggle(ctx)}
       <p class="sheet-title">${t('bio.add_block')}</p>
       ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : html`<div class="field pick-search"><label class="sr-only" for="pick-q">${t('bio.search_blocks')}</label><input id="pick-q" type="search" placeholder="${t('bio.search_blocks')}" data-pick-search autocomplete="off"></div>${GROUPS.map(
         (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
-          (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="pick-ico pi-${b.type}" aria-hidden="true"></span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
+          (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="tipo-ic" aria-hidden="true">${icon(blockIcon(b.type, b.group))}</span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
         )}</div>`,
       )}`}
       </div>
@@ -61,20 +75,24 @@ ${viewToggle(ctx)}
       : html`<ol class="blocks" data-sortable data-order-url="/panel/links/${link.id}/blocks/order" data-csrf="${ctx.csrf}" aria-label="${t('bio.blocks')}">
       ${blocks.map((b, i) => {
         const def = BLOCK_BY_TYPE.get(b.type)
-        return html`<li data-id="${b.id}"${b.is_enabled ? '' : html` class="off"`}>
+        return html`<li data-id="${b.id}" class="blk${b.is_enabled ? '' : ' off'}">
         <span class="handle" title="${t('bio.drag')}" aria-hidden="true">${icon('grip')}</span>
         <a class="grow block-main" href="/panel/blocks/${b.id}">
-          <span class="title">${t(`bio.type_${b.type}`)}${b.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}${scheduled(b) ? html` <span class="tag">${t('bio.scheduled')}</span>` : ''}</span>
-          <span class="sub">${def?.summary(b) ?? ''}</span>
+          <span class="av s" aria-hidden="true">${icon(blockIcon(b.type, def?.group))}</span>
+          <span class="row-b">
+            <span class="title">${def?.summary(b) || t(`bio.type_${b.type}`)}</span>
+            <span class="sub">${t(`bio.type_${b.type}`)}${b.is_enabled ? '' : html` · <b>${t('bio.hidden')}</b>`}${scheduled(b) ? html` · ${t('bio.scheduled')}` : ''}${def?.clickable && b.clicks ? html` · ${plural(t, ctx.locale, 'links.n_clicks', b.clicks)}` : ''}</span>
+          </span>
         </a>
-        ${def?.clickable ? html`<span class="muted nowrap clicks">${plural(t, ctx.locale, 'links.n_clicks', b.clicks)}</span>` : ''}
+        <form method="post" action="/panel/blocks/${b.id}/toggle" class="sw-form" data-toggle>${csrfField(ctx)}
+          <button type="submit" class="sw" role="switch" aria-checked="${b.is_enabled ? 'true' : 'false'}" aria-label="${t('bio.show')}: ${t(`bio.type_${b.type}`)}"><i></i></button>
+        </form>
         <details class="row-menu">
           <summary class="icon-btn" aria-label="${t('nav.more')}: ${t(`bio.type_${b.type}`)}">${icon('more')}</summary>
           <div class="menu-body">
             <a href="/panel/blocks/${b.id}">${t('common.edit')}</a>
             ${i > 0 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button type="submit">${t('bio.move_up')}</button></form>` : ''}
             ${i < blocks.length - 1 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button type="submit">${t('bio.move_down')}</button></form>` : ''}
-            ${postButton(ctx, `/panel/blocks/${b.id}/toggle`, b.is_enabled ? t('bio.hide') : t('bio.show'), { cls: '' })}
             ${postButton(ctx, `/panel/blocks/${b.id}/delete`, t('common.delete'), { cls: 'danger', confirm: t('bio.delete_confirm') })}
           </div>
         </details>

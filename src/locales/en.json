@@ -1387,5 +1387,6 @@
   "time.today": "today",
   "time.yesterday": "yesterday",
   "links.chip_bio": "Pages",
-  "links.chip_short": "Short"
+  "links.chip_short": "Short",
+  "bio.hidden": "Hidden"
 }
