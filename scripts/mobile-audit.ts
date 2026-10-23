@@ -34,7 +34,7 @@ async function measure(page: Page, path: string, name: string) {
     }
     return { hscroll, small, tiny }
   })
-  rows.push({ path, hscroll: r.hscroll, smallTargets: r.small.length, tinyText: r.tiny, examples: r.small.slice(0, 6) })
+  rows.push({ path, hscroll: r.hscroll, smallTargets: r.small.length, tinyText: r.tiny, examples: r.small.slice(0, 40) })
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined })

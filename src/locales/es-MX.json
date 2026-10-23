@@ -1337,5 +1337,11 @@
   "pay.card_wait": "Estamos confirmando tu pago con Stripe; en un momento se activa tu plan.",
   "domains.cf_error": "Verificamos el dominio pero no pudimos activarlo en nuestra red. Intenta de nuevo en unos minutos.",
   "domains.cert_ok": "Certificado HTTPS activo.",
-  "domains.cert_pending": "Emitiendo el certificado HTTPS: revisa que el CNAME apunte a {target}. Suele tardar unos minutos."
+  "domains.cert_pending": "Emitiendo el certificado HTTPS: revisa que el CNAME apunte a {target}. Suele tardar unos minutos.",
+  "nav.stats": "Estadísticas",
+  "nav.more": "Más opciones",
+  "nav.create": "Crear",
+  "links.open": "Abrir",
+  "links.chip_all": "Todos",
+  "links.search_ph": "Buscar por nombre o dirección"
 }

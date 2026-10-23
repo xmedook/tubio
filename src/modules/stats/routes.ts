@@ -72,7 +72,7 @@ ${reportBody(req.ctx, report, { exportBase: `/panel/links/${link.id}/stats`, blo
     const { t } = req.ctx
     return sendHtml(reply, panelLayout(req.ctx, {
       title: t('stats.all_title'),
-      active: 'links',
+      active: 'stats',
       path: '/panel/stats',
       body: html`<h1>${t('stats.all_title')}</h1>
 ${reportBody(req.ctx, report, { exportBase: '/panel/stats', links, geoAttribution: geoAttribution(), action: '/panel/stats' })}`,

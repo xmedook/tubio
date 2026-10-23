@@ -1,6 +1,7 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
 import { formatNumber, plural } from '../../lib/i18n.ts'
 import { UTM_KEYS } from '../../lib/urls.ts'
+import { icon } from '../../views/icons.ts'
 import { panelLayout } from '../../views/layout.ts'
 import { checkbox, emptyState, input, postButton, select, textarea, type Errors, type Option } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
@@ -54,35 +55,52 @@ export function dashboardPage(
     </details>
   </div>
 </div>
-<form class="toolbar" method="get" action="/panel" role="search">
-  ${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: opts.q })}
-  ${select({ ctx, name: 'kind', label: t('links.kind'), value: opts.kind, options: [{ value: '', label: t('links.all_kinds') }, ...LINK_KINDS.map((k) => ({ value: k, label: kindLabel(ctx, k) }))] })}
+<form class="toolbar search-bar" method="get" action="/panel" role="search">
+  ${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: opts.q, placeholder: t('links.search_ph') })}
+  ${opts.kind ? html`<input type="hidden" name="kind" value="${opts.kind}">` : ''}
   ${opts.projects.length ? select({ ctx, name: 'project', label: t('nav.projects'), value: opts.project ?? '', options: [{ value: '', label: t('links.all_projects') }, ...opts.projects.map((p) => ({ value: String(p.id), label: p.name }))] }) : ''}
   <button class="btn" type="submit">${t('links.filter')}</button>
   ${filtered ? html`<a class="btn-link" href="/panel">${t('links.clear')}</a>` : ''}
 </form>
+<nav class="chips" aria-label="${t('links.kind')}">
+  ${[['', t('links.chip_all')] as const, ...LINK_KINDS.map((k) => [k, kindLabel(ctx, k)] as const)].map(([k, label]) => {
+    const p = new URLSearchParams()
+    if (k) p.set('kind', k)
+    if (opts.q) p.set('q', opts.q)
+    if (opts.project) p.set('project', String(opts.project))
+    const href = p.toString() ? `/panel?${p}` : '/panel'
+    return html`<a class="chip" href="${href}"${(opts.kind ?? '') === k ? html` aria-current="true"` : ''}>${label}</a>`
+  })}
+</nav>
 ${opts.items.length === 0
   ? emptyState(
       filtered ? t('links.empty_filtered') : t('links.empty'),
       filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>`,
     )
-  : html`<ul class="list">${opts.items.map((l) => {
+  : html`<ul class="list link-list">${opts.items.map((l) => {
       const url = linkUrl(ctx.baseUrl, l)
       const p = l.project_id ? byId.get(l.project_id) : undefined
-      return html`<li>
+      const main = l.kind === 'bio' ? `/panel/links/${l.id}/blocks` : `/panel/links/${l.id}`
+      const ic = l.kind === 'vcard' ? 'card' : l.kind
+      return html`<li class="link-item${l.is_enabled ? '' : ' is-off'}">
+  <span class="kind-ic" aria-hidden="true">${icon(ic)}</span>
   <div class="grow">
-    <div class="title">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${l.title || l.alias}
-      <span class="tag">${kindLabel(ctx, l.kind)}</span>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}</div>
-    <div class="sub"><a href="${url}" target="_blank" rel="noopener">${url.replace(/^https?:\/\//, '')}</a>
-      <button type="button" class="btn-link" data-copy="${url}" data-copied="${t('links.copied')}">${t('links.copy')}</button>
-      ${l.kind === 'short' && l.target_url ? html` → ${l.target_url}` : ''}</div>
+    <a class="title" href="${main}">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${l.title || l.alias}</a>
+    <div class="sub"><span class="tag">${kindLabel(ctx, l.kind)}</span>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}
+      <a class="short-url" href="${url}" target="_blank" rel="noopener">${url.replace(/^https?:\/\//, '')}</a>${l.kind === 'short' && l.target_url ? html`<span class="dest"> → ${l.target_url}</span>` : ''}</div>
   </div>
   <a class="num-link" href="/panel/links/${l.id}/stats" aria-label="${t('links.clicks_aria', { n: l.clicks })}"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></a>
-  <div class="btn-row">
-    ${l.kind === 'bio' ? html`<a class="btn btn-sm" href="/panel/links/${l.id}/blocks">${t('links.edit_page')}</a>` : ''}
-    <a class="btn btn-sm" href="/panel/links/${l.id}">${l.kind === 'bio' ? t('links.settings') : t('common.edit')}</a>
-    <a class="btn btn-sm" href="/panel/qr/new?link=${l.id}">QR</a>
-  </div>
+  <button type="button" class="icon-btn" data-copy="${url}" data-copied="${t('links.copied')}" aria-label="${t('links.copy')}: ${url.replace(/^https?:\/\//, '')}">${icon('copy')}</button>
+  <details class="row-menu">
+    <summary class="icon-btn" aria-label="${t('nav.more')}: ${l.title || l.alias}">${icon('more')}</summary>
+    <div class="menu-body">
+      ${l.kind === 'bio' ? html`<a href="/panel/links/${l.id}/blocks">${t('links.edit_page')}</a>` : ''}
+      <a href="/panel/links/${l.id}">${l.kind === 'bio' ? t('links.settings') : t('common.edit')}</a>
+      <a href="/panel/links/${l.id}/stats">${t('stats.title')}</a>
+      <a href="/panel/qr/new?link=${l.id}">QR</a>
+      <a href="${url}" target="_blank" rel="noopener">${t('links.open')}</a>
+    </div>
+  </details>
 </li>`
     })}</ul>
 ${pages > 1
