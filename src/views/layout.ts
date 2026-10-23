@@ -3,7 +3,7 @@ import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '17'
+export const ASSET_VERSION = '18'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -99,6 +99,7 @@ ${opts.body}
     <span class="sheet-grip" aria-hidden="true"></span>
     <p class="sheet-title">${t('nav.create')}</p>
     <a role="menuitem" href="/panel/links/new?kind=bio"><span class="tipo-ic">${icon('bio')}</span><span><b>${t('links.kind_bio')}</b><small>${t('create.bio')}</small></span></a>
+    <a role="menuitem" href="/panel/templates"><span class="tipo-ic">${icon('image')}</span><span><b>${t('tpl.start_with')}</b><small>${t('create.tpl')}</small></span></a>
     <a role="menuitem" href="/panel/links/new?kind=short"><span class="tipo-ic">${icon('short')}</span><span><b>${t('links.kind_short')}</b><small>${t('create.short')}</small></span></a>
     <a role="menuitem" href="/panel/qr/new"><span class="tipo-ic">${icon('qr')}</span><span><b>${t('nav.qr')}</b><small>${t('create.qr')}</small></span></a>
     <a role="menuitem" href="/panel/links/bulk"><span class="tipo-ic">${icon('links')}</span><span><b>${t('bulk.short')}</b><small>${t('create.bulk')}</small></span></a>

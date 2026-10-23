@@ -99,6 +99,13 @@ ${viewToggle(ctx)}
       </li>`
       })}
     </ol>`}
+    <details class="opt save-tpl"><summary>${t('tpl.save')}</summary><div class="opt-body">
+      <form method="post" action="/panel/links/${link.id}/save-template">${csrfField(ctx)}
+        ${input({ ctx, name: 'name', label: t('links.title'), value: link.title || link.alias, maxlength: 80 })}
+        ${ctx.user?.role === 'admin' && !ctx.member ? checkbox({ name: 'general', label: t('tpl.save_general') }) : ''}
+        <button class="btn" type="submit">${t('tpl.save')}</button>
+      </form>
+    </div></details>
   </section>
   ${preview(ctx, link)}
 </div>`,

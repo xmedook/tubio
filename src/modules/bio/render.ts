@@ -92,7 +92,8 @@ export function bioCsp(nonce: string, preview: boolean, frameOrigins: string[] =
 /** Defensa extra: sólo http(s) aunque el formulario ya lo validó */
 const web = (v: string): string | null => (/^https?:\/\//i.test(v) ? v : null)
 
-export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: FastifyReply, link: Link) {
+/** `override.blocks`: bloques en memoria (vista previa de plantillas) en lugar de los de la BD */
+export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: FastifyReply, link: Link, override?: { blocks: BlockRow[] }) {
   const d = readDesign(link.data)
   const owner = findUserById(deps.db, link.user_id)
   const px = owner && limitsOf(deps.db, owner, deps.now()).marketing ? pixelsForLink(deps.db, link.user_id, JSON.stringify(link.pixel_ids)) : []
@@ -104,7 +105,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const locale: Locale = d.lang.startsWith('en') ? 'en' : d.lang.startsWith('es') ? 'es-MX' : ownerLocale
   const t = translator(locale)
   const ownerLim = owner ? limitsOf(deps.db, owner, deps.now()) : null
-  const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now()).filter((b) => blockTypeAllowed(ownerLim, b.type))
+  const blocks = visibleBlocks(override?.blocks ?? listBlocks(deps.db, link.id), deps.now()).filter((b) => blockTypeAllowed(ownerLim, b.type))
   const host = new URL(deps.config.baseUrl).hostname
   const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
     csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias,

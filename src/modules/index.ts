@@ -23,6 +23,7 @@ import { registerSite } from './site/routes.ts'
 import { registerGrowth } from './growth/routes.ts'
 import { registerHelp } from './help/routes.ts'
 import { registerBulk } from './links/bulk.ts'
+import { registerTemplates } from './templates/routes.ts'
 import { registerTeam } from './team/routes.ts'
 
 /** Orden importa: el resolvedor público /:alias va al final. */
@@ -33,6 +34,7 @@ export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerGrowth(app, deps)
   registerHelp(app, deps)
   registerBulk(app, deps)
+  registerTemplates(app, deps)
   registerAuth(app, deps)
   registerGoogle(app, deps)
   registerAccount(app, deps)

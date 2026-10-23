@@ -640,3 +640,16 @@ fieldset { min-width: 0; }
 }
 /* texto verde sobre verde claro: tono que da AA (4.5:1) */
 .topbar nav a[aria-current="page"], .av, .blk .av.s, .tipo-ic, .kind-ic, .tab[aria-current="page"] .tab-i, .chat-row .av { color: var(--accent-on-soft); }
+
+/* plantillas */
+.tpl-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.tpl { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px; }
+.tpl-prev { flex: none; display: block; border-radius: 12px; overflow: hidden; }
+.tpl-sw { display: grid; gap: 6px; align-content: center; width: 72px; height: 112px; padding: 10px; }
+.tpl-sw span { height: 14px; border-radius: 7px; border: 1px solid transparent; }
+.tpl-b { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.tpl-b b { font-size: 17px; }
+.tpl-use > summary { list-style: none; align-self: flex-start; margin-top: 6px; }
+.tpl-use > summary::-webkit-details-marker { display: none; }
+.tpl-use form { margin-top: .5rem; }
+.save-tpl { margin-top: 1.5rem; }

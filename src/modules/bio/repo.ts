@@ -131,5 +131,14 @@ export function imageKeysInUse(db: DB, userId: number): Set<string> {
       /* ignora */
     }
   }
+  // imágenes que usan las plantillas (las propias y las generales): no son huérfanas
+  for (const r of db.prepare('SELECT design, blocks FROM templates WHERE user_id = ? OR user_id IS NULL').all(userId) as { design: string; blocks: string }[]) {
+    try {
+      for (const v of Object.values(JSON.parse(r.design) as Record<string, unknown>)) add(v)
+      for (const b of JSON.parse(r.blocks) as { data: Record<string, unknown> }[]) for (const v of Object.values(b.data ?? {})) add(v)
+    } catch {
+      /* ignora */
+    }
+  }
   return keys
 }
