@@ -1329,5 +1329,10 @@
   "bio.gallery_default": "Foto",
   "founders.welcome": "¡Correo confirmado! Eres fundador #{n}: tienes un año del plan Negocio gratis.",
   "founders.banner": "Fundadores: las primeras 100 cuentas tienen un año del plan Negocio gratis. Quedan {n}.",
-  "founders.badge": "Fundador #{n}"
+  "founders.badge": "Fundador #{n}",
+  "pay.card_title": "Pagar con tarjeta",
+  "pay.card_body": "Pago seguro con Stripe (tarjeta de crédito o débito). Tu plan se activa en cuanto se confirme.",
+  "pay.card_pay": "Pagar {amount}",
+  "pay.card_error": "No pudimos abrir el pago con tarjeta. Intenta de nuevo en unos minutos o paga por transferencia.",
+  "pay.card_wait": "Estamos confirmando tu pago con Stripe; en un momento se activa tu plan."
 }

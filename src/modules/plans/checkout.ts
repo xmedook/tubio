@@ -16,6 +16,7 @@ import { getPlan, getPlanBySlug, listPlans, planOf, type Plan } from './limits.t
 import { receiptPdf } from './receipt.ts'
 import { creditReferral } from '../growth/routes.ts'
 import { money } from './routes.ts'
+import { stripeApi, stripeOn, verifyStripeSignature } from './stripe.ts'
 
 const env = process.env
 export const bank = () =>
@@ -95,7 +96,7 @@ ${b
   app.post('/panel/checkout', { preHandler: userGuard, config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } }, async (req, reply) => {
     if (req.ctx.session?.impersonator_id) return reply.code(403).send('impersonating')
     const pp = payPlan(req)
-    if (!pp || !bank()) return reply.redirect('/panel/plan', 303)
+    if (!pp || (!bank() && !stripeOn())) return reply.redirect('/panel/plan', 303)
     const user = me(req)
     // pagar un plan menor mientras el mayor sigue vigente le recortaría el tiempo ya pagado
     const cur = planOf(db, user, deps.now())
@@ -153,6 +154,9 @@ ${b
       path: `/panel/payments/${p.id}`,
       body: html`<h1>${t('pay.payment', { ref: p.reference })}</h1>
 <p><span class="tag">${t(`pay.status_${p.status}`)}</span> ${plan.name} · ${t(`pay.period_${p.period}`)} · <strong>${money(locale, total, p.currency)}</strong></p>
+${p.status === 'pending' && stripeOn() && !p.proof_file_id
+  ? html`<div class="card"><h2>${t('pay.card_title')}</h2><p>${t('pay.card_body')}</p>${postButton(ctx, `/panel/payments/${p.id}/stripe`, t('pay.card_pay', { amount: money(locale, total, p.currency) }), { cls: 'btn btn-primary' })}</div>`
+  : ''}
 ${p.status === 'pending' && b
   ? html`<div class="card"><h2>${t('pay.transfer_data')}</h2>
   <table class="data"><tbody>
@@ -311,14 +315,13 @@ ${postButton(ctx, '/admin/coupons/delete', t('common.delete'), { cls: 'btn btn-s
     return receiptOf(p, reply)
   })
 
-  app.post('/admin/payments/:id/approve', { preHandler: adminGuard }, async (req, reply) => {
-    const p = adminPayment(req)
-    if (!p || p.status !== 'pending') return reply.callNotFound()
+  /** Pago confirmado (admin o Stripe): activa el plan, comisión de afiliado, aviso por correo */
+  async function approve(p: Payment, actorId: number | null): Promise<void> {
     const now = deps.now()
     const expires = activatePayment(db, p, now)
     creditReferral(deps, p)
-    db.prepare('UPDATE payments SET reviewed_by = ? WHERE id = ?').run(actorOf(req), p.id)
-    audit(db, { actorId: actorOf(req), userId: p.user_id, action: 'pay.approved', target: `payment:${p.id}`, meta: { reference: p.reference } }, now)
+    db.prepare('UPDATE payments SET reviewed_by = ? WHERE id = ?').run(actorId, p.id)
+    audit(db, { actorId, userId: p.user_id, action: 'pay.approved', target: `payment:${p.id}`, meta: { reference: p.reference, method: p.method } }, now)
     const u = findUserById(db, p.user_id)
     const plan = getPlan(db, p.plan_id)
     if (u && plan) {
@@ -330,8 +333,68 @@ ${postButton(ctx, '/admin/coupons/delete', t('common.delete'), { cls: 'btn btn-s
         button: t('pay.receipt'),
       })
     }
+  }
+
+  app.post('/admin/payments/:id/approve', { preHandler: adminGuard }, async (req, reply) => {
+    const p = adminPayment(req)
+    if (!p || p.status !== 'pending') return reply.callNotFound()
+    await approve(p, actorOf(req))
     setFlash(reply, deps, { type: 'ok', key: 'pay.approved' })
     return reply.redirect('/admin/payments', 303)
+  })
+
+  // ---------- Stripe ----------
+  app.post('/panel/payments/:id/stripe', { preHandler: userGuard, config: { rateLimit: { max: 10, timeWindow: '10 minutes' } } }, async (req, reply) => {
+    if (!stripeOn() || req.ctx.session?.impersonator_id) return reply.callNotFound()
+    const p = ownPayment(req)
+    if (!p || p.status !== 'pending' || p.proof_file_id) return reply.callNotFound()
+    const plan = getPlan(db, p.plan_id)!
+    const user = me(req)
+    const t = req.ctx.t
+    const base = deps.config.baseUrl
+    try {
+      const s = await stripeApi<{ id: string; url: string }>(deps, 'POST', 'checkout/sessions', {
+        mode: 'payment',
+        client_reference_id: p.reference,
+        customer_email: user.email,
+        locale: req.ctx.locale === 'en' ? 'en' : 'es-419',
+        line_items: [{ quantity: 1, price_data: { currency: p.currency.toLowerCase(), unit_amount: p.amount - p.discount, product_data: { name: `tubio ${plan.name} — ${t(`pay.period_${p.period}`)}` } } }],
+        metadata: { app: 'tubio', payment_id: p.id, reference: p.reference },
+        payment_intent_data: { description: `tubio ${plan.name} ${p.reference}`, metadata: { app: 'tubio', payment_id: p.id, reference: p.reference } },
+        success_url: `${base}/panel/payments/${p.id}?stripe=ok`,
+        cancel_url: `${base}/panel/payments/${p.id}`,
+        expires_at: Math.floor(deps.now() / 1000) + 3600,
+      }, `tubio-${p.reference}-${Math.floor(deps.now() / 600_000)}`)
+      db.prepare('UPDATE payments SET provider_ref = ? WHERE id = ?').run(s.id, p.id)
+      return reply.redirect(s.url, 303)
+    } catch (e) {
+      req.log.error({ err: String(e) }, 'stripe checkout')
+      setFlash(reply, deps, { type: 'error', key: 'pay.card_error' })
+      return reply.redirect(`/panel/payments/${p.id}`, 303)
+    }
+  })
+
+  // webhook: cuerpo crudo para la firma (parser propio sólo en este contexto)
+  app.register(async (sub) => {
+    sub.addContentTypeParser('application/json', { parseAs: 'string', bodyLimit: 512 * 1024 }, (_req, body, done) => done(null, body))
+    sub.post('/_/stripe/webhook', { config: { csrf: false } }, async (req, reply) => {
+      const raw = String(req.body ?? '')
+      if (!verifyStripeSignature(raw, req.headers['stripe-signature'] as string | undefined, process.env.TUBIO_STRIPE_WEBHOOK_SECRET ?? '', deps.now())) return reply.code(400).send('bad signature')
+      const ev = JSON.parse(raw) as { type: string; data: { object: { metadata?: Record<string, string>; payment_status?: string; amount_total?: number; currency?: string; payment_intent?: string; id?: string } } }
+      const o = ev.data.object
+      if (o.metadata?.app !== 'tubio') return reply.send({ ignored: true }) // la cuenta la comparten otros sistemas
+      if ((ev.type === 'checkout.session.completed' || ev.type === 'checkout.session.async_payment_succeeded') && o.payment_status === 'paid') {
+        const p = db.prepare('SELECT * FROM payments WHERE id = ?').get(Number(o.metadata.payment_id)) as Payment | undefined
+        if (!p || p.status !== 'pending') return reply.send({ ok: true, noop: true })
+        if (o.amount_total !== p.amount - p.discount || (o.currency ?? '').toUpperCase() !== p.currency) {
+          req.log.error({ payment: p.id, amount: o.amount_total }, 'stripe: monto no coincide')
+          return reply.send({ ok: false })
+        }
+        db.prepare("UPDATE payments SET method = 'stripe', provider_ref = ? WHERE id = ?").run(o.payment_intent ?? o.id ?? null, p.id)
+        await approve({ ...p, method: 'stripe' }, null)
+      }
+      return reply.send({ ok: true })
+    })
   })
 
   app.post('/admin/payments/:id/reject', { preHandler: adminGuard }, async (req, reply) => {

@@ -1329,5 +1329,10 @@
   "bio.gallery_default": "Photo",
   "founders.welcome": "Email confirmed! You are founder #{n}: you get one year of the Business plan for free.",
   "founders.banner": "Founders: the first 100 accounts get one year of the Business plan for free. {n} left.",
-  "founders.badge": "Founder #{n}"
+  "founders.badge": "Founder #{n}",
+  "pay.card_title": "Pay by card",
+  "pay.card_body": "Secure payment with Stripe (credit or debit card). Your plan turns on as soon as it is confirmed.",
+  "pay.card_pay": "Pay {amount}",
+  "pay.card_error": "We could not open the card payment. Try again in a few minutes or pay by transfer.",
+  "pay.card_wait": "We are confirming your payment with Stripe; your plan will turn on in a moment."
 }
