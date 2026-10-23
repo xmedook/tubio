@@ -17,7 +17,11 @@ export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?
   const cta = ctx.user
     ? html`<a class="btn btn-primary btn-lg" href="/panel">${t('home.go_panel')}</a>`
     : opts.registrationOpen
-      ? html`<a class="btn btn-primary btn-lg" href="/register">${t('home.cta_register')}</a><a class="btn btn-lg" href="/login">${t('auth.login_link')}</a>`
+      ? html`<form class="claim" method="get" action="/register" role="search" aria-label="${t('claim.title')}">
+  <label for="claim-alias">${t('claim.title')}</label>
+  <div class="claim-row"><span class="claim-host" aria-hidden="true">${new URL(ctx.baseUrl).host}/</span><input id="claim-alias" name="alias" required minlength="3" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${t('claim.placeholder')}"><button class="btn btn-primary" type="submit">${t('claim.go')}</button></div>
+</form>
+<p class="hero-alt"><a href="/register">${t('home.cta_register')}</a> · <a href="/login">${t('auth.login_link')}</a></p>`
       : opts.joined
         ? html`<p class="flash flash-ok" role="status">${t('home.waitlist_ok')}</p>`
         : html`<form class="waitlist" method="post" action="/waitlist" novalidate${powAttr(pow)}>
@@ -40,6 +44,7 @@ export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?
 <meta property="og:description" content="${t('home.lead')}">
 <link rel="canonical" href="${ctx.baseUrl}/">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
+<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 </head>

@@ -5,7 +5,9 @@ import type { Ctx } from '../../web/context.ts'
 
 type V = Record<string, string>
 
-export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}) {
+export type Claim = { alias: string; error: string | null } | null
+
+export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}, claim: Claim = null) {
   const { t } = ctx
   const pow = ctx.pow()
   return authLayout(ctx, {
@@ -13,8 +15,10 @@ export function registerPage(ctx: Ctx, values: V = {}, errors: Errors = {}) {
     path: '/register',
     body: html`<h1>${t('auth.register_title')}</h1>
 ${googleButton(ctx)}
+${claim ? html`<p class="${claim.error ? 'claim-bad' : 'claim-ok'}" role="status">${claim.error ? t(claim.error, { alias: claim.alias }) : t('claim.free', { url: `${new URL(ctx.baseUrl).host}/${claim.alias}` })}</p>` : ''}
 <form method="post" action="/register" novalidate${powAttr(pow)}>
   ${csrfField(ctx)}
+  ${claim && !claim.error ? html`<input type="hidden" name="claim" value="${claim.alias}">` : ''}
   ${errors._form ? html`<p class="error" role="alert">${t(errors._form)}</p>` : ''}
   ${input({ ctx, name: 'name', label: t('auth.name'), value: values.name, error: errors.name, autocomplete: 'name', maxlength: 80 })}
   ${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: values.email, error: errors.email, required: true, autocomplete: 'email' })}

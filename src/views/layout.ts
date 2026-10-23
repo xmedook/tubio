@@ -1,8 +1,9 @@
 import { html, type HtmlValue, type SafeHtml } from '../lib/html.ts'
 import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
+import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '5'
+export const ASSET_VERSION = '11'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -11,6 +12,7 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
 <title>${title} · tubio</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
+<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/app.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
@@ -23,7 +25,11 @@ function langSwitch(ctx: Ctx, path: string): SafeHtml {
   return html`<a class="lang" href="/lang/${other}?next=${encodeURIComponent(path)}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>`
 }
 
-export type NavKey = 'links' | 'qr' | 'data' | 'projects' | 'account' | 'admin'
+export type NavKey = 'links' | 'qr' | 'stats' | 'data' | 'projects' | 'account' | 'admin'
+
+function tab(active: NavKey | undefined, key: NavKey, href: string, label: string, ic: string): SafeHtml {
+  return html`<a class="tab" href="${href}"${active === key ? html` aria-current="page"` : ''}>${icon(ic)}<span class="tab-l">${label}</span></a>`
+}
 
 export function panelLayout(
   ctx: Ctx,
@@ -33,6 +39,7 @@ export function panelLayout(
   const nav: [NavKey, string, string][] = [
     ['links', '/panel', t('nav.links')],
     ['qr', '/panel/qr', t('nav.qr')],
+    ['stats', '/panel/stats', t('nav.stats')],
     ['data', '/panel/data', t('nav.data')],
     ['projects', '/panel/projects', t('nav.projects')],
     ['account', '/panel/account', t('nav.account')],
@@ -55,6 +62,19 @@ ${head(ctx, opts.title, opts.head)}
     ${langSwitch(ctx, opts.path)}
     <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
   </div>
+  <details class="more-menu">
+    <summary aria-label="${t('nav.more')}">${icon('more')}</summary>
+    <ul class="menu">
+      <li><a href="/panel/data">${t('nav.data')}</a></li>
+      <li><a href="/panel/projects">${t('nav.projects')}</a></li>
+      <li><a href="/panel/domains">${t('domains.title')}</a></li>
+      <li><a href="/panel/pixels">${t('mk.title')}</a></li>
+      ${user?.role === 'admin' ? html`<li><a href="/admin">${t('nav.admin')}</a></li>` : ''}
+      <li><a href="/help">${t('help.title')}</a></li>
+      <li>${langSwitch(ctx, opts.path)}</li>
+      <li><form method="post" action="/logout">${csrfField(ctx)}<button type="submit">${t('nav.logout')}</button></form></li>
+    </ul>
+  </details>
 </header>
 ${ctx.announcement ? html`<div class="banner${ctx.announcement.level === 'warn' ? ' banner-warn' : ''}" role="status">${ctx.announcement.text}</div>` : ''}
 ${ctx.session?.impersonator_id
@@ -73,6 +93,25 @@ ${user && !ctx.member && !user.email_verified_at
 ${flashBox(ctx)}
 ${opts.body}
 </main>
+<nav class="tabbar" aria-label="${t('nav.main')}">
+  ${tab(opts.active, 'links', '/panel', t('nav.links'), 'links')}
+  ${tab(opts.active, 'qr', '/panel/qr', 'QR', 'qr')}
+  <details class="create">
+    <summary aria-label="${t('nav.create')}"><span class="create-btn">${icon('plus')}</span><span class="tab-l">${t('nav.create')}</span></summary>
+    <div class="sheet" role="menu">
+      <p class="sheet-title">${t('nav.create')}</p>
+      <a role="menuitem" href="/panel/links/new?kind=bio">${icon('bio')}<span>${t('links.kind_bio')}</span></a>
+      <a role="menuitem" href="/panel/links/new?kind=short">${icon('short')}<span>${t('links.kind_short')}</span></a>
+      <a role="menuitem" href="/panel/links/bulk">${icon('links')}<span>${t('bulk.short')}</span></a>
+      <a role="menuitem" href="/panel/qr/new">${icon('qr')}<span>${t('nav.qr')}</span></a>
+      <a role="menuitem" href="/panel/links/new?kind=file">${icon('file')}<span>${t('links.kind_file')}</span></a>
+      <a role="menuitem" href="/panel/links/new?kind=vcard">${icon('card')}<span>${t('links.kind_vcard')}</span></a>
+      <a role="menuitem" href="/panel/links/new?kind=event">${icon('event')}<span>${t('links.kind_event')}</span></a>
+    </div>
+  </details>
+  ${tab(opts.active, 'stats', '/panel/stats', t('nav.stats'), 'stats')}
+  ${tab(opts.active, 'account', '/panel/account', t('nav.account'), 'user')}
+</nav>
 <footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> · <a href="/source">${t('foot.source')}</a></footer>
 </body>
 </html>`

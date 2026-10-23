@@ -64,7 +64,7 @@ Tamaños: S ≈ 1 día · M ≈ 2–4 días · L ≈ 1–2 semanas de sesión.
 - Temas renovados con el sistema nuevo, micro-animaciones sutiles (respetando `prefers-reduced-motion`).
 - Presupuesto de rendimiento en 4G: LCP < 1.5 s, CLS < 0.05, JS público < 15 KB.
 
-## V2.6 — Funciones: revisar → mejorar → proponer · M–L (en paralelo a V2.1–V2.5)
+## V2.6 — Funciones: revisar → mejorar → proponer · M–L (en paralelo a V2.1–V2.5) — detalle en `docs/V2-FUNCIONES.md`
 Para cada área: 1) qué hace la referencia (lista de comportamientos), 2) qué tenemos, 3) qué mejoramos, 4) qué nuevo
 proponemos. Primera pasada con lo que ya sé de nuestro lado; se completa con la lista de referencia.
 

@@ -6,7 +6,8 @@ import { listProjects } from '../projects/repo.ts'
 import { audit, getSetting } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { defaultValues, parseLinkForm, valuesFromLink } from './form.ts'
-import { createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
+import { aliasError, normalizeAlias } from '../../lib/alias.ts'
+import { aliasTaken, createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
 import { dashboardPage, linkFormPage } from './views.ts'
 import { actorOf } from '../auth/routes.ts'
 import { defaultBioData } from '../bio/design.ts'
@@ -63,7 +64,10 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
   app.get('/panel/links/new', { preHandler: userGuard }, async (req, reply) => {
     const kind = asKind((req.query as { kind?: string }).kind) ?? 'short'
     const user = req.ctx.user as User
-    return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
+    const values = defaultValues()
+    const pre = normalizeAlias(String((req.query as { alias?: string }).alias ?? '')).slice(0, 60)
+    if (pre && !aliasError(pre)) values.alias = pre
+    return sendHtml(reply, linkFormPage(req.ctx, { kind, values, errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
   })
 
   app.post('/panel/links', { preHandler: userGuard }, async (req, reply) => {
@@ -128,6 +132,35 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     dropOldFile(deps, link, r.input.data)
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
     return reply.redirect(`/panel/links/${link.id}`, 303)
+  })
+
+  // duplicar: misma configuración y bloques, alias nuevo, contadores en cero
+  app.post('/panel/links/:id/duplicate', { preHandler: userGuard }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const user = req.ctx.user as User
+    const back = (key: string) => {
+      setFlash(reply, deps, { type: 'error', key })
+      return reply.redirect('/panel', 303)
+    }
+    // los archivos se borran con su enlace: duplicarlos compartiría el archivo
+    if (link.kind === 'file') return back('links.dup_file')
+    if (dailyCapHit(db, user, deps.now())) return back('err.daily_cap')
+    const lim = limitsOf(db, user, deps.now())
+    const used = usageOf(db, user.id)
+    if (link.kind === 'bio' ? !withinLimit(lim.bio_pages, used.bio_pages) : !withinLimit(lim.links, used.links)) return back(link.kind === 'bio' ? 'err.plan_bio_pages' : 'err.plan_links')
+    let alias = `${link.alias}-copia`.slice(0, 60)
+    for (let n = 2; aliasTaken(db, alias, undefined, link.domain_id); n++) alias = `${link.alias}-copia-${n}`.slice(0, 60)
+    const now = deps.now()
+    const id = db.transaction(() => {
+      const cols = (db.prepare('PRAGMA table_info(links)').all() as { name: string }[]).map((c) => c.name).filter((c) => !['id', 'alias', 'title', 'clicks', 'hits', 'created_at', 'updated_at', 'dir_hidden'].includes(c))
+      const newId = Number(db.prepare(`INSERT INTO links (${cols.join(', ')}, alias, title, created_at, updated_at) SELECT ${cols.join(', ')}, ?, ?, ?, ? FROM links WHERE id = ?`).run(alias, `${link.title || link.alias} (${req.ctx.t('links.copy_suffix')})`.slice(0, 120), now, now, link.id).lastInsertRowid)
+      db.prepare('INSERT INTO bio_blocks (link_id, type, position, is_enabled, starts_at, ends_at, data, style, created_at, updated_at) SELECT ?, type, position, is_enabled, starts_at, ends_at, data, style, ?, ? FROM bio_blocks WHERE link_id = ? ORDER BY position, id').run(newId, now, now, link.id)
+      return newId
+    })()
+    audit(db, { actorId: actorOf(req), userId: user.id, action: 'link.duplicate', target: `link:${id}`, meta: { from: link.id } }, now)
+    setFlash(reply, deps, { type: 'ok', key: 'links.duplicated' })
+    return reply.redirect(link.kind === 'bio' ? `/panel/links/${id}/blocks` : `/panel/links/${id}`, 303)
   })
 
   app.post('/panel/links/:id/delete', { preHandler: userGuard }, async (req, reply) => {

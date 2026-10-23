@@ -13,7 +13,9 @@ import { audit, getSetting } from '../settings/repo.ts'
 import { createUser, findUserByEmail, findUserById, updateUser, type User } from '../users/repo.ts'
 import { createSession, destroySession, destroyUserSessions, SESSION_COOKIE, SESSION_TTL_MS } from './sessions.ts'
 import { consumeAuthToken, createAuthToken, peekAuthToken } from './tokens.ts'
-import { forgotPage, loginPage, registerPage, resetPage, twoFactorPage } from './views.ts'
+import { forgotPage, loginPage, registerPage, resetPage, twoFactorPage, type Claim } from './views.ts'
+import { aliasError, normalizeAlias } from '../../lib/alias.ts'
+import { aliasTaken } from '../links/repo.ts'
 
 export const passwordSchema = z.string().min(10, 'err.password_short').max(200, 'err.password_long')
 const emailSchema = z.string().trim().max(254, 'err.email').pipe(z.email('err.email'))
@@ -61,12 +63,20 @@ export async function sendVerifyEmail(deps: AppDeps, user: User): Promise<void> 
 export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
 
+  /** «Reclama tu alias»: ¿está libre en el dominio principal? */
+  const checkClaim = (raw: string): Claim => {
+    const alias = normalizeAlias(raw).slice(0, 60)
+    const err = aliasError(alias)
+    return { alias, error: err ?? (aliasTaken(db, alias) ? 'claim.taken' : null) }
+  }
+
   app.get('/register', async (req, reply) => {
     if (req.ctx.user) return reply.redirect('/panel', 303)
     if (!getSetting(db, 'registration_open')) {
       return sendHtml(reply, messagePage(req.ctx, { title: req.ctx.t('auth.register_title'), message: req.ctx.t('auth.registration_closed') }), 403)
     }
-    return sendHtml(reply, registerPage(req.ctx))
+    const raw = String((req.query as { alias?: string }).alias ?? '')
+    return sendHtml(reply, registerPage(req.ctx, {}, {}, raw ? checkClaim(raw) : null))
   })
 
   app.post('/register', { config: AUTH_LIMIT }, async (req, reply) => {
@@ -75,12 +85,14 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       return sendHtml(reply, messagePage(req.ctx, { title: t('auth.register_title'), message: t('auth.registration_closed') }), 403)
     }
     const values = { name: field(req.body, 'name'), email: field(req.body, 'email') }
-    if (!powOk(deps, req.body)) return sendHtml(reply, registerPage(req.ctx, values, { _form: 'err.pow' }), 422)
-    if (!checked(req.body, 'accept')) return sendHtml(reply, registerPage(req.ctx, values, { accept: 'err.accept_terms' }), 422)
+    const claimed = field(req.body, 'claim') ? checkClaim(field(req.body, 'claim')) : null
+    const claimOk = claimed && !claimed.error ? claimed : null
+    if (!powOk(deps, req.body)) return sendHtml(reply, registerPage(req.ctx, values, { _form: 'err.pow' }, claimOk), 422)
+    if (!checked(req.body, 'accept')) return sendHtml(reply, registerPage(req.ctx, values, { accept: 'err.accept_terms' }, claimOk), 422)
     const r = parseForm(registerSchema, req.body)
-    if (!r.ok) return sendHtml(reply, registerPage(req.ctx, values, r.errors), 422)
+    if (!r.ok) return sendHtml(reply, registerPage(req.ctx, values, r.errors, claimOk), 422)
     if (findUserByEmail(db, r.data.email)) {
-      return sendHtml(reply, registerPage(req.ctx, values, { email: 'err.email_taken' }), 422)
+      return sendHtml(reply, registerPage(req.ctx, values, { email: 'err.email_taken' }, claimOk), 422)
     }
     const user = createUser(db, {
       email: r.data.email,
@@ -95,7 +107,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     await sendVerifyEmail(deps, user)
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })
-    return reply.redirect('/panel', 303)
+    // reclamó un alias en la portada: directo a crear su página con él
+    return reply.redirect(claimOk ? `/panel/links/new?kind=bio&alias=${encodeURIComponent(claimOk.alias)}` : '/panel', 303)
   })
 
   app.get('/login', async (req, reply) => {

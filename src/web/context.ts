@@ -36,6 +36,8 @@ export type Ctx = {
   member: User | null
   teamRole: 'viewer' | 'editor' | 'admin' | null
   announcement: { text: string; level: 'info' | 'warn' } | null
+  /** este dispositivo no cuenta en las estadísticas (cookie tb_self) */
+  selfExcluded: boolean
 }
 
 declare module 'fastify' {
@@ -178,6 +180,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
       domainId,
       member,
       teamRole,
+      selfExcluded: req.cookies.tb_self === '1',
       announcement: (() => {
         const text = getSetting(deps.db, 'announcement')
         return text ? { text, level: getSetting(deps.db, 'announcement_level') === 'warn' ? 'warn' : 'info' } : null

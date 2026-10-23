@@ -1,0 +1,29 @@
+/* tubio v2 · tokens elegidos: Mercado · Jamaica (Alejandro, 23-oct-2026). Fuentes OFL a servir desde tubio:
+   Bricolage Grotesque (display, wdth 88%, 700) y Atkinson Hyperlegible Next (cuerpo). */
+:root{
+  /* tipografía */
+  --f-display:"Bricolage Grotesque", ui-serif, serif; --f-body:"Atkinson Hyperlegible Next", system-ui, sans-serif; --f-num:"Bricolage Grotesque", ui-monospace, monospace;
+  --dispw:700;
+  /* escala (móvil · se escala ×1.125 desde 768px) */
+  --t-xs:14px; --t-sm:15px; --t-base:16px; --t-md:18px; --t-lg:22px; --t-xl:30px; --t-2xl:40px; --t-kpi:52px;
+  /* radios con intención: sm controles chicos · md campos/chips · lg hojas · pill/btn botones */
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --btnr:999px; --cardr:22px;
+  /* espaciado base 4 */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
+  /* sombras */
+  --shadow:0 1px 0 rgba(20,20,30,.06), 0 10px 24px -14px rgba(20,20,30,.30); --sheetshadow:0 -1px 0 rgba(20,20,30,.08), 0 -18px 40px -20px rgba(20,20,30,.40);
+  /* táctil */
+  --touch:44px;
+  /* claro */
+  --bg:#F2F0EE; --surface:#FBFAF9; --s2:#E7E3E0; --ink:#1F1A1C; --ink2:#5E5559;
+  --line:#D6CFCC; --accent:#A3163F; --onaccent:#FFF7F9; --soft:#F4D7DF; --ok:#2F6B3F;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){
+  --bg:#161214; --surface:#201A1C; --s2:#2C2427; --ink:#F2ECEE; --ink2:#BFB3B8;
+  --line:#3E3438; --accent:#FF7A9C; --onaccent:#161214; --soft:#4A1E2B; --ok:#8CCB97;
+}}
+:root[data-theme=dark]{
+  --bg:#161214; --surface:#201A1C; --s2:#2C2427; --ink:#F2ECEE; --ink2:#BFB3B8;
+  --line:#3E3438; --accent:#FF7A9C; --onaccent:#161214; --soft:#4A1E2B; --ok:#8CCB97;
+}
+
