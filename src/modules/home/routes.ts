@@ -1,6 +1,3 @@
-import { createReadStream } from 'node:fs'
-import { createRequire } from 'node:module'
-import { dirname, join } from 'node:path'
 import { foundersLeft } from '../plans/founders.ts'
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
@@ -14,23 +11,7 @@ import { updateUser } from '../users/repo.ts'
 
 export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xmedook/tubio'
 
-/** Fuentes del panel y del sitio (OFL-1.1, paquetes @fontsource), servidas por nosotros */
-const UI_FONTS: Record<string, string> = {
-  'bricolage-grotesque-latin-wdth-normal.woff2': '@fontsource-variable/bricolage-grotesque',
-  'bricolage-grotesque-latin-ext-wdth-normal.woff2': '@fontsource-variable/bricolage-grotesque',
-  'atkinson-hyperlegible-next-latin-wght-normal.woff2': '@fontsource-variable/atkinson-hyperlegible-next',
-  'atkinson-hyperlegible-next-latin-ext-wght-normal.woff2': '@fontsource-variable/atkinson-hyperlegible-next',
-}
-
 export function registerHome(app: FastifyInstance, deps: AppDeps): void {
-  const req_ = createRequire(import.meta.url)
-  app.get('/_/uifont/:file', async (req, reply) => {
-    const file = (req.params as { file: string }).file
-    const pkg = UI_FONTS[file]
-    if (!pkg) return reply.callNotFound()
-    reply.header('Cache-Control', 'public, max-age=31536000, immutable')
-    return reply.type('font/woff2').send(createReadStream(join(dirname(req_.resolve(`${pkg}/package.json`)), 'files', file)))
-  })
 
   app.get('/', async (req, reply) => {
     if (req.ctx.domainId) {

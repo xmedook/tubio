@@ -9,6 +9,17 @@ import type { Project } from '../projects/repo.ts'
 import { type FormValues } from './form.ts'
 import { LINK_KINDS, linkUrl, type Link, type LinkKind } from './repo.ts'
 
+/** «hoy», «ayer», día de la semana (esta semana) o «12 oct» — en la zona de la cuenta */
+function relDay(ctx: Ctx, ts: number): string {
+  const tz = ctx.user?.timezone || 'America/Mexico_City'
+  const day = (x: number) => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(x)
+  const diff = Math.round((Date.parse(day(ctx.now)) - Date.parse(day(ts))) / 86400_000)
+  if (diff <= 0) return ctx.t('time.today')
+  if (diff === 1) return ctx.t('time.yesterday')
+  if (diff < 7) return new Intl.DateTimeFormat(ctx.locale, { weekday: 'short', timeZone: tz }).format(ts).replace('.', '')
+  return new Intl.DateTimeFormat(ctx.locale, { day: 'numeric', month: 'short', timeZone: tz }).format(ts).replace('.', '')
+}
+
 export function kindLabel(ctx: Ctx, kind: LinkKind): string {
   return ctx.t(`links.kind_${kind}`)
 }
@@ -19,7 +30,7 @@ function projectOptions(ctx: Ctx, projects: Project[]): Option[] {
 
 export function dashboardPage(
   ctx: Ctx,
-  opts: { items: Link[]; total: number; projects: Project[]; kind?: string | undefined; project?: number | undefined; q?: string | undefined; page: number; perPage: number },
+  opts: { items: Link[]; total: number; projects: Project[]; kind?: string | undefined; project?: number | undefined; q?: string | undefined; page: number; perPage: number; last?: Map<number, number> },
 ): SafeHtml {
   const { t } = ctx
   const byId = new Map(opts.projects.map((p) => [p.id, p]))
@@ -56,7 +67,7 @@ export function dashboardPage(
     </details>
   </div>
 </div>
-<form class="toolbar search-bar" method="get" action="/panel" role="search">
+<form class="toolbar search-bar" method="get" action="/panel" role="search"${filtered ? '' : html` data-collapsed`}>
   ${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: opts.q, placeholder: t('links.search_ph') })}
   ${opts.kind ? html`<input type="hidden" name="kind" value="${opts.kind}">` : ''}
   ${opts.projects.length ? select({ ctx, name: 'project', label: t('nav.projects'), value: opts.project ?? '', options: [{ value: '', label: t('links.all_projects') }, ...opts.projects.map((p) => ({ value: String(p.id), label: p.name }))] }) : ''}
@@ -64,7 +75,7 @@ export function dashboardPage(
   ${filtered ? html`<a class="btn-link" href="/panel">${t('links.clear')}</a>` : ''}
 </form>
 <nav class="chips" aria-label="${t('links.kind')}">
-  ${[['', t('links.chip_all')] as const, ...LINK_KINDS.map((k) => [k, kindLabel(ctx, k)] as const)].map(([k, label]) => {
+  ${[['', t('links.chip_all')] as const, ...LINK_KINDS.map((k) => [k, k === 'bio' ? t('links.chip_bio') : k === 'short' ? t('links.chip_short') : kindLabel(ctx, k)] as const)].map(([k, label]) => {
     const p = new URLSearchParams()
     if (k) p.set('kind', k)
     if (opts.q) p.set('q', opts.q)
@@ -78,25 +89,28 @@ ${opts.items.length === 0
       filtered ? t('links.empty_filtered') : t('links.empty'),
       filtered ? '' : html`<p class="muted">${t('links.empty_body')}</p><a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>`,
     )
-  : html`<ul class="list link-list">${opts.items.map((l) => {
+  : html`<ul class="list link-list chat-list">${opts.items.map((l) => {
       const url = linkUrl(ctx.baseUrl, l)
       const p = l.project_id ? byId.get(l.project_id) : undefined
       const main = l.kind === 'bio' ? `/panel/links/${l.id}/blocks` : `/panel/links/${l.id}`
       const ic = l.kind === 'vcard' ? 'card' : l.kind
-      return html`<li class="link-item${l.is_enabled ? '' : ' is-off'}">
-  <span class="kind-ic" aria-hidden="true">${icon(ic)}</span>
-  <div class="grow">
-    <a class="title" href="${main}">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${l.title || l.alias}</a>
-    <div class="sub"><span class="tag">${kindLabel(ctx, l.kind)}</span>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}
-      <span class="short-url">${url.replace(/^https?:\/\//, '')}</span>${l.kind === 'short' && l.target_url ? html`<span class="dest"> → ${l.target_url}</span>` : ''}</div>
-  </div>
-  <a class="num-link" href="/panel/links/${l.id}/stats"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></a>
-  <button type="button" class="icon-btn" data-copy="${url}" data-copied="${t('links.copied')}" aria-label="${t('links.copy')}: ${url.replace(/^https?:\/\//, '')}">${icon('copy')}</button>
+      const name = l.title || l.alias
+      const initials = name.replace(/[^\p{L}\p{N} ]/gu, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '·'
+      const when = opts.last?.get(l.id) ?? l.created_at
+      return html`<li class="link-item chat-row${l.is_enabled ? '' : ' is-off'}">
+  <a class="row-a" href="${main}">
+    <span class="av" aria-hidden="true">${l.kind === 'bio' ? initials : icon(ic)}</span>
+    <span class="row-b">
+      <span class="row-1"><b class="title">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${name}</b><time datetime="${new Date(when).toISOString()}">${relDay(ctx, when)}</time></span>
+      <span class="row-2"><span class="u">${l.is_enabled ? '' : html`<span class="tag tag-off">${t('links.disabled')}</span> `}${url.replace(/^https?:\/\//, '')}${l.kind === 'short' && l.target_url ? html` → ${l.target_url.replace(/^https?:\/\/(www\.)?/, '')}` : ''}</span>${l.clicks ? html`<span class="cnt" title="${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks)}">${formatNumber(ctx.locale, l.clicks)}<span class="sr-only"> ${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></span>` : ''}</span>
+    </span>
+  </a>
   <details class="row-menu">
-    <summary class="icon-btn" aria-label="${t('nav.more')}: ${l.title || l.alias}">${icon('more')}</summary>
+    <summary class="icon-btn" aria-label="${t('nav.more')}: ${name}">${icon('more')}</summary>
     <div class="menu-body">
       ${l.kind === 'bio' ? html`<a href="/panel/links/${l.id}/blocks">${t('links.edit_page')}</a>` : ''}
       <a href="/panel/links/${l.id}">${l.kind === 'bio' ? t('links.settings') : t('common.edit')}</a>
+      <button type="button" data-copy="${url}" data-copied="${t('links.copied')}">${t('links.copy')}</button>
       <a href="/panel/links/${l.id}/stats">${t('stats.title')}</a>
       <a href="/panel/qr/new?link=${l.id}">QR</a>
       <a href="${url}" target="_blank" rel="noopener">${t('links.open')}</a>

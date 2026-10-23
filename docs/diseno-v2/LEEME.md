@@ -16,3 +16,11 @@ A3 Talavera, A4 Agave. Cada una con claro/oscuro y 2 temas bio, AA verificado; `
 
 ## Elegida (23-oct-2026)
 **A2 · Mercado Jamaica.** Tokens finales en `tokens-jamaica.css`; maquetas en `a2-jamaica.html`.
+
+## Ronda 3 (Alejandro vía tubio: «que se sienta como WhatsApp»)
+`mensajeria.html`: patrones de app de mensajes (filas tipo chat de 72 px con avatar redondo, contador a la derecha, pestañas
+abajo con indicador de píldora, botón redondo flotante «Crear», hojas inferiores, interruptores del sistema) con marca y verde
+propios. Sin logo, íconos, verdes ni fondo de WhatsApp/Meta.
+- **M1 · Charla** (recomendada): letra del sistema, verde hoja `#14774A` / `#5DD597`. Tokens: `tokens-charla.css`.
+- **M2 · Recado**: Figtree (OFL), verde lima-olivo `#3F7A10` / `#A5DA5E`. Tokens: `tokens-recado.css`.
+Auditado: 0 táctiles < 44 px, 0 textos < 14 px, AA en todo texto (claro, oscuro y temas bio). `gen-mensajeria.py` regenera.

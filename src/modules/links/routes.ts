@@ -58,7 +58,12 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const search = (q.q ?? '').trim().slice(0, 100) || undefined
     const page = Math.max(1, Number(q.page) || 1)
     const { items, total } = listLinks(db, user.id, { kind, projectId: project, q: search, limit: PER_PAGE, offset: (page - 1) * PER_PAGE })
-    return sendHtml(reply, dashboardPage(req.ctx, { items, total, projects: listProjects(db, user.id), kind, project, q: search, page, perPage: PER_PAGE }))
+    // último movimiento de cada enlace (la hora de la fila, como en una app de mensajes)
+    const last = new Map<number, number>()
+    if (items.length) {
+      for (const r of db.prepare(`SELECT link_id, MAX(ts) AS ts FROM stat_events WHERE link_id IN (${items.map(() => '?').join(',')}) GROUP BY link_id`).all(...items.map((l) => l.id)) as { link_id: number; ts: number }[]) last.set(r.link_id, r.ts)
+    }
+    return sendHtml(reply, dashboardPage(req.ctx, { items, total, projects: listProjects(db, user.id), kind, project, q: search, page, perPage: PER_PAGE, last }))
   })
 
   app.get('/panel/links/new', { preHandler: userGuard }, async (req, reply) => {

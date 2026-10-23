@@ -3,7 +3,7 @@ import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '11'
+export const ASSET_VERSION = '13'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -12,7 +12,6 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
 <title>${title} · tubio</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
-<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/app.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
@@ -28,7 +27,7 @@ function langSwitch(ctx: Ctx, path: string): SafeHtml {
 export type NavKey = 'links' | 'qr' | 'stats' | 'data' | 'projects' | 'account' | 'admin'
 
 function tab(active: NavKey | undefined, key: NavKey, href: string, label: string, ic: string): SafeHtml {
-  return html`<a class="tab" href="${href}"${active === key ? html` aria-current="page"` : ''}>${icon(ic)}<span class="tab-l">${label}</span></a>`
+  return html`<a class="tab" href="${href}"${active === key ? html` aria-current="page"` : ''}><span class="tab-i">${icon(ic)}</span><span class="tab-l">${label}</span></a>`
 }
 
 export function panelLayout(
@@ -62,6 +61,7 @@ ${head(ctx, opts.title, opts.head)}
     ${langSwitch(ctx, opts.path)}
     <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
   </div>
+  <a class="icon-btn top-search" href="/panel?buscar=1" aria-label="${t('links.search')}">${icon('search')}</a>
   <details class="more-menu">
     <summary aria-label="${t('nav.more')}">${icon('more')}</summary>
     <ul class="menu">
@@ -93,22 +93,23 @@ ${user && !ctx.member && !user.email_verified_at
 ${flashBox(ctx)}
 ${opts.body}
 </main>
+<details class="create fab-wrap">
+  <summary class="fab" aria-label="${t('nav.create')}">${icon('plus')}</summary>
+  <div class="sheet" role="menu">
+    <span class="sheet-grip" aria-hidden="true"></span>
+    <p class="sheet-title">${t('nav.create')}</p>
+    <a role="menuitem" href="/panel/links/new?kind=bio"><span class="tipo-ic">${icon('bio')}</span><span><b>${t('links.kind_bio')}</b><small>${t('create.bio')}</small></span></a>
+    <a role="menuitem" href="/panel/links/new?kind=short"><span class="tipo-ic">${icon('short')}</span><span><b>${t('links.kind_short')}</b><small>${t('create.short')}</small></span></a>
+    <a role="menuitem" href="/panel/qr/new"><span class="tipo-ic">${icon('qr')}</span><span><b>${t('nav.qr')}</b><small>${t('create.qr')}</small></span></a>
+    <a role="menuitem" href="/panel/links/bulk"><span class="tipo-ic">${icon('links')}</span><span><b>${t('bulk.short')}</b><small>${t('create.bulk')}</small></span></a>
+    <a role="menuitem" href="/panel/links/new?kind=file"><span class="tipo-ic">${icon('file')}</span><span><b>${t('links.kind_file')}</b><small>${t('create.file')}</small></span></a>
+    <a role="menuitem" href="/panel/links/new?kind=vcard"><span class="tipo-ic">${icon('card')}</span><span><b>${t('links.kind_vcard')}</b><small>${t('create.vcard')}</small></span></a>
+    <a role="menuitem" href="/panel/links/new?kind=event"><span class="tipo-ic">${icon('event')}</span><span><b>${t('links.kind_event')}</b><small>${t('create.event')}</small></span></a>
+  </div>
+</details>
 <nav class="tabbar" aria-label="${t('nav.main')}">
   ${tab(opts.active, 'links', '/panel', t('nav.links'), 'links')}
   ${tab(opts.active, 'qr', '/panel/qr', 'QR', 'qr')}
-  <details class="create">
-    <summary aria-label="${t('nav.create')}"><span class="create-btn">${icon('plus')}</span><span class="tab-l">${t('nav.create')}</span></summary>
-    <div class="sheet" role="menu">
-      <p class="sheet-title">${t('nav.create')}</p>
-      <a role="menuitem" href="/panel/links/new?kind=bio">${icon('bio')}<span>${t('links.kind_bio')}</span></a>
-      <a role="menuitem" href="/panel/links/new?kind=short">${icon('short')}<span>${t('links.kind_short')}</span></a>
-      <a role="menuitem" href="/panel/links/bulk">${icon('links')}<span>${t('bulk.short')}</span></a>
-      <a role="menuitem" href="/panel/qr/new">${icon('qr')}<span>${t('nav.qr')}</span></a>
-      <a role="menuitem" href="/panel/links/new?kind=file">${icon('file')}<span>${t('links.kind_file')}</span></a>
-      <a role="menuitem" href="/panel/links/new?kind=vcard">${icon('card')}<span>${t('links.kind_vcard')}</span></a>
-      <a role="menuitem" href="/panel/links/new?kind=event">${icon('event')}<span>${t('links.kind_event')}</span></a>
-    </div>
-  </details>
   ${tab(opts.active, 'stats', '/panel/stats', t('nav.stats'), 'stats')}
   ${tab(opts.active, 'account', '/panel/account', t('nav.account'), 'user')}
 </nav>

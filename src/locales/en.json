@@ -1376,5 +1376,16 @@
   "self.body": "When you open your pages while signed in, they do not count in your stats. To also skip visits from this phone or computer when signed out, exclude it.",
   "self.turn_on": "Do not count visits from this device",
   "self.turn_off": "Count them again",
-  "self.on": "This device is excluded from stats."
+  "self.on": "This device is excluded from stats.",
+  "create.bio": "Your page with all your links",
+  "create.short": "A short address that points elsewhere",
+  "create.qr": "To print on your shop or flyer",
+  "create.bulk": "Many short links at once",
+  "create.file": "Share a PDF or file",
+  "create.vcard": "So people save your contact",
+  "create.event": "So people add it to their calendar",
+  "time.today": "today",
+  "time.yesterday": "yesterday",
+  "links.chip_bio": "Pages",
+  "links.chip_short": "Short"
 }

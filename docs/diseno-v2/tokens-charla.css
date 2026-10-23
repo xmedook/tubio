@@ -1,0 +1,29 @@
+/* tubio v2 · tokens «Charla» con crema cascarón (Alejandro, 23-oct-2026). Letra del sistema.
+   Verde propio de tubio: NO usar los verdes de WhatsApp (#25D366/#075E54/#128C7E). Crema: --bg #F2EEE3 · marfil: --surface #FBF9F4. */
+:root{
+  /* tipografía */
+  --f-display:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif, ui-serif, serif; --f-body:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif, system-ui, sans-serif; --f-num:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif, ui-monospace, monospace;
+  --dispw:700;
+  /* escala (móvil · se escala ×1.125 desde 768px) */
+  --t-xs:14px; --t-sm:15px; --t-base:16px; --t-md:18px; --t-lg:22px; --t-xl:30px; --t-2xl:40px; --t-kpi:52px;
+  /* radios con intención: sm controles chicos · md campos/chips · lg hojas · pill/btn botones */
+  --r-sm:8px; --r-md:12px; --r-lg:20px; --btnr:999px; --cardr:0px;
+  /* espaciado base 4 */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px; --s-10:40px; --s-12:48px;
+  /* sombras */
+  --shadow:none; --sheetshadow:0 -8px 30px -12px rgba(10,30,20,.35);
+  /* táctil */
+  --touch:44px;
+  /* claro */
+  --bg:#F2EEE3; --surface:#FBF9F4; --s2:#E7E2D4; --ink:#111A16; --ink2:#56594F;
+  --line:#DAD4C4; --accent:#14774A; --onaccent:#F6F3EA; --soft:#DCEADB; --ok:#14774A;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme=light]){
+  --bg:#0D1310; --surface:#151D19; --s2:#1E2823; --ink:#EFEBE0; --ink2:#ABAA9D;
+  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --ok:#5DD597;
+}}
+:root[data-theme=dark]{
+  --bg:#0D1310; --surface:#151D19; --s2:#1E2823; --ink:#EFEBE0; --ink2:#ABAA9D;
+  --line:#2A342D; --accent:#5DD597; --onaccent:#0D1310; --soft:#183829; --ok:#5DD597;
+}
+
