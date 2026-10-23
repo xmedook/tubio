@@ -99,6 +99,7 @@ ${opts.items.length === 0
       <a href="/panel/links/${l.id}/stats">${t('stats.title')}</a>
       <a href="/panel/qr/new?link=${l.id}">QR</a>
       <a href="${url}" target="_blank" rel="noopener">${t('links.open')}</a>
+      ${l.kind !== 'file' ? postButton(ctx, `/panel/links/${l.id}/duplicate`, t('links.duplicate'), { cls: '' }) : ''}
     </div>
   </details>
 </li>`

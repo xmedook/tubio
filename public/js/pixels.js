@@ -16,6 +16,10 @@ function load() {
       window.gtag = function () { window.dataLayer.push(arguments) }
       window.gtag('js', new Date()); window.gtag('config', id, { anonymize_ip: true })
       add(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`)
+    } else if (k === 'gtm') {
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' })
+      add(`https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(id)}`)
     } else if (k === 'tiktok') {
       const q = (window.ttq = window.ttq || []); q.methods = ['page', 'track']
       for (const m of q.methods) q[m] = function () { q.push([m, ...arguments]) }

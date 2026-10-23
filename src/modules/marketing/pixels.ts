@@ -6,7 +6,7 @@ import type { DB } from '../../db/index.ts'
  * a partir de atributos data-*; aquí sólo validamos IDs y listamos los orígenes para la CSP.
  */
 
-export const PIXEL_KINDS = ['meta', 'ga4', 'tiktok', 'linkedin', 'pinterest', 'x', 'snapchat', 'quora'] as const
+export const PIXEL_KINDS = ['meta', 'ga4', 'gtm', 'tiktok', 'linkedin', 'pinterest', 'x', 'snapchat', 'quora'] as const
 export type PixelKind = (typeof PIXEL_KINDS)[number]
 
 export type Pixel = { id: number; user_id: number; kind: PixelKind; name: string; pixel_id: string; created_at: number }
@@ -14,6 +14,7 @@ export type Pixel = { id: number; user_id: number; kind: PixelKind; name: string
 const ID_RE: Record<PixelKind, RegExp> = {
   meta: /^\d{10,20}$/,
   ga4: /^G-[A-Z0-9]{6,12}$/,
+  gtm: /^GTM-[A-Z0-9]{4,10}$/,
   tiktok: /^[A-Z0-9]{15,25}$/,
   linkedin: /^\d{5,10}$/,
   pinterest: /^\d{10,16}$/,
@@ -30,6 +31,8 @@ export function validPixelId(kind: PixelKind, id: string): boolean {
 export const PIXEL_ORIGINS: Record<PixelKind, { script: string[]; other: string[] }> = {
   meta: { script: ['https://connect.facebook.net'], other: ['https://www.facebook.com', 'https://connect.facebook.net'] },
   ga4: { script: ['https://www.googletagmanager.com'], other: ['https://www.google-analytics.com', 'https://*.google-analytics.com', 'https://www.googletagmanager.com'] },
+  // GTM carga lo que se configure en su contenedor; la CSP sólo deja pasar lo de Google (Analytics/Ads)
+  gtm: { script: ['https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://googleads.g.doubleclick.net'], other: ['https://www.google-analytics.com', 'https://*.google-analytics.com', 'https://www.googletagmanager.com', 'https://*.doubleclick.net', 'https://www.google.com'] },
   tiktok: { script: ['https://analytics.tiktok.com'], other: ['https://analytics.tiktok.com'] },
   linkedin: { script: ['https://snap.licdn.com'], other: ['https://px.ads.linkedin.com'] },
   pinterest: { script: ['https://s.pinimg.com'], other: ['https://ct.pinterest.com'] },

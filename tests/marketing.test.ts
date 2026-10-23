@@ -45,7 +45,9 @@ describe('marketing en enlaces', () => {
     await a.get('/panel/pixels')
     expect((await a.post('/panel/pixels', { kind: 'meta', pixel_id: '1234567890123', name: 'Meta' })).statusCode).toBe(303)
     expect((await a.post('/panel/pixels', { kind: 'ga4', pixel_id: 'malo', name: 'GA' })).statusCode).toBe(422)
-    const px = t.deps.db.prepare('SELECT id FROM pixels').pluck().get() as number
+    expect((await a.post('/panel/pixels', { kind: 'gtm', pixel_id: 'GTM-AB12CD', name: 'GTM' })).statusCode).toBe(303)
+    expect((await a.post('/panel/pixels', { kind: 'gtm', pixel_id: 'G-123', name: 'mal' })).statusCode).toBe(422)
+    const px = t.deps.db.prepare("SELECT id FROM pixels WHERE kind = 'meta'").pluck().get() as number
     await a.get('/panel/splashes')
     await a.postMultipart('/panel/splashes', { name: 'Promo', title: 'Antes de seguir…', seconds: '3' })
     const sp = t.deps.db.prepare('SELECT id FROM splashes').pluck().get() as number

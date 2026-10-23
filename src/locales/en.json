@@ -1346,5 +1346,10 @@
   "links.search_ph": "Search by name or address",
   "bio.view": "View",
   "bio.view_edit": "Edit",
-  "bio.search_blocks": "Search blocks…"
+  "bio.search_blocks": "Search blocks…",
+  "links.duplicate": "Duplicate",
+  "links.duplicated": "Done, we made a copy. You can change its address in Settings.",
+  "links.copy_suffix": "copy",
+  "links.dup_file": "File links cannot be duplicated; create a new one and upload the file.",
+  "mk.px_gtm": "Google Tag Manager"
 }

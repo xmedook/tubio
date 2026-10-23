@@ -1346,5 +1346,10 @@
   "links.search_ph": "Buscar por nombre o dirección",
   "bio.view": "Vista",
   "bio.view_edit": "Editar",
-  "bio.search_blocks": "Buscar bloque…"
+  "bio.search_blocks": "Buscar bloque…",
+  "links.duplicate": "Duplicar",
+  "links.duplicated": "Listo, hicimos una copia. Puedes cambiarle la dirección en Ajustes.",
+  "links.copy_suffix": "copia",
+  "links.dup_file": "Los enlaces de archivo no se duplican; crea uno nuevo y sube el archivo.",
+  "mk.px_gtm": "Google Tag Manager"
 }
