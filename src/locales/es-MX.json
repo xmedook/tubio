@@ -1517,5 +1517,13 @@
   "stats.vs_prev": "{pct} % contra los {n} días anteriores",
   "stats.ctr": "Tasa de clic",
   "stats.per_day": "Por día",
-  "stats.export": "Descargar"
+  "stats.export": "Descargar",
+  "mail.weekly_subject": "Tu semana en tubio: {views} visitas",
+  "mail.weekly_intro": "Así les fue a tus enlaces y páginas en los últimos 7 días:",
+  "mail.weekly_top": "Lo más visto:",
+  "mail.weekly_off": "¿No quieres este correo? Apágalo en Cuenta → Reporte semanal.",
+  "report.title": "Reporte semanal",
+  "report.body": "Cada lunes te mandamos por correo tus visitas y clics de la semana, si tuviste movimiento.",
+  "report.turn_off": "Dejar de recibirlo",
+  "report.turn_on": "Recibirlo cada lunes"
 }

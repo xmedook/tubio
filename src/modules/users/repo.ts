@@ -23,6 +23,7 @@ export type User = {
   ref_code: string | null
   referred_by: number | null
   founder_no: number | null
+  report_weekly: number
   created_at: number
   updated_at: number
 }
@@ -79,6 +80,7 @@ const UPDATABLE = [
   'ref_code',
   'referred_by',
   'founder_no',
+  'report_weekly',
 ] as const
 type Updatable = Partial<Pick<User, (typeof UPDATABLE)[number]>>
 

@@ -1517,5 +1517,13 @@
   "stats.vs_prev": "{pct}% vs. the previous {n} days",
   "stats.ctr": "Click rate",
   "stats.per_day": "Per day",
-  "stats.export": "Download"
+  "stats.export": "Download",
+  "mail.weekly_subject": "Your week on tubio: {views} views",
+  "mail.weekly_intro": "Here is how your links and pages did in the last 7 days:",
+  "mail.weekly_top": "Most viewed:",
+  "mail.weekly_off": "Don’t want this email? Turn it off in Account → Weekly report.",
+  "report.title": "Weekly report",
+  "report.body": "Every Monday we email you your views and clicks for the week, if you had activity.",
+  "report.turn_off": "Stop receiving it",
+  "report.turn_on": "Receive it every Monday"
 }

@@ -88,6 +88,12 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
     : postButton(ctx, '/panel/account/self-exclude', t('self.turn_on'), { cls: 'btn', hidden: { on: '1' } })}
 </section>
 
+<section class="card" aria-labelledby="h-reports">
+  <h2 id="h-reports">${t('report.title')}</h2>
+  <p>${t('report.body')}</p>
+  ${postButton(ctx, '/panel/account/weekly-report', user.report_weekly ? t('report.turn_off') : t('report.turn_on'), { cls: 'btn', hidden: { on: user.report_weekly ? '0' : '1' } })}
+</section>
+
 <section class="card" aria-labelledby="h-data">
   <h2 id="h-data">${t('account.data')}</h2>
   <p>${t('account.export_body')}</p>
@@ -218,6 +224,12 @@ export function registerAccount(app: FastifyInstance, deps: AppDeps): void {
     audit(db, { actorId: actorOf(req), userId: user.id, action: 'user.2fa_disabled' }, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.2fa_disabled' })
     return reply.redirect('/panel/account', 303)
+  })
+
+  app.post('/panel/account/weekly-report', { preHandler: userGuard }, async (req, reply) => {
+    const u = (req.ctx.member ?? req.ctx.user) as User
+    updateUser(db, u.id, { report_weekly: field(req.body, 'on') === '1' ? 1 : 0 }, deps.now())
+    return reply.redirect('/panel/account#h-reports', 303)
   })
 
   // «no contar este dispositivo»: cookie de un año; no se guarda la IP
