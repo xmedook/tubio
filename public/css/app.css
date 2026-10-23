@@ -457,3 +457,15 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
   .sticky-actions { bottom: calc(72px + env(safe-area-inset-bottom)); margin: 0 -1rem; padding: .6rem 1rem; z-index: 11; border-top: 1px solid var(--border); }
   .sticky-actions .btn { flex: 1; min-height: 48px; }
 }
+
+/* reclama tu alias */
+.claim { display: grid; gap: .4rem; max-width: 520px; }
+.claim label { font-weight: 700; }
+.claim-row { display: flex; align-items: stretch; border: 2px solid var(--border); border-radius: 14px; background: var(--surface); overflow: hidden; }
+.claim-row:focus-within { border-color: var(--accent); }
+.claim-host { display: flex; align-items: center; padding: 0 0 0 .9rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.claim-row input { flex: 1; min-width: 0; border: 0; padding: .8rem .2rem; font: inherit; font-size: 16px; font-weight: 700; background: none; color: var(--text); outline: none; }
+.claim-row .btn { border-radius: 0; min-height: 52px; }
+.hero-alt { margin: .6rem 0 0; }
+.claim-ok { background: var(--ok-soft); color: var(--ok); padding: .6rem .8rem; border-radius: 10px; font-weight: 600; }
+.claim-bad { background: var(--danger-soft); color: var(--danger); padding: .6rem .8rem; border-radius: 10px; font-weight: 600; }

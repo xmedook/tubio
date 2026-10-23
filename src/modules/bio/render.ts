@@ -99,7 +99,9 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const preview = (req.query as Record<string, unknown>)._preview === '1' && req.ctx.user?.id === link.user_id
   if (web(d.leap_url) && !preview && redirectAllowed(deps.db, d.leap_url)) return reply.redirect(d.leap_url, 302)
 
-  const locale: Locale = owner && isLocale(owner.locale) ? owner.locale : 'es-MX'
+  const ownerLocale: Locale = owner && isLocale(owner.locale) ? owner.locale : 'es-MX'
+  // textos del sistema en el idioma declarado de la página si lo tenemos; si no, el de la cuenta
+  const locale: Locale = d.lang.startsWith('en') ? 'en' : d.lang.startsWith('es') ? 'es-MX' : ownerLocale
   const t = translator(locale)
   const ownerLim = owner ? limitsOf(deps.db, owner, deps.now()) : null
   const blocks = visibleBlocks(listBlocks(deps.db, link.id), deps.now()).filter((b) => blockTypeAllowed(ownerLim, b.type))
@@ -118,7 +120,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
     ? html`<div class="announce pos-${d.announce_position}">${web(d.announce_url) ? html`<a href="${d.announce_url}">${d.announce_text}</a>` : d.announce_text}</div>`
     : ''
 
-  const page: SafeHtml = html`<html lang="${locale}">
+  const page: SafeHtml = html`<html lang="${d.lang || locale}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

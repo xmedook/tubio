@@ -1351,5 +1351,13 @@
   "links.duplicated": "Done, we made a copy. You can change its address in Settings.",
   "links.copy_suffix": "copy",
   "links.dup_file": "File links cannot be duplicated; create a new one and upload the file.",
-  "mk.px_gtm": "Google Tag Manager"
+  "mk.px_gtm": "Google Tag Manager",
+  "bio.d.lang": "Page language",
+  "bio.d.lang_hint": "Used by search engines and screen readers.",
+  "bio.d.lang_account": "My account language",
+  "claim.title": "Claim your address",
+  "claim.placeholder": "yourname",
+  "claim.go": "Claim",
+  "claim.free": "{url} is available! Create your account and it is yours.",
+  "claim.taken": "“{alias}” is taken; try another."
 }

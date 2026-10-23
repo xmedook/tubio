@@ -108,6 +108,8 @@ export const designSchema = z.object({
   announce_bg: hex.default('#111827'),
   announce_color: hex.default('#ffffff'),
   announce_position: z.enum(['top', 'bottom']).default('top'),
+  /** idioma de la página (SEO y textos del sistema); '' = el de la cuenta */
+  lang: z.enum(['', 'es-MX', 'es', 'en', 'en-US', 'pt-BR', 'fr', 'de', 'it']).default(''),
   seo_title: text(70),
   seo_description: text(200),
   seo_keywords: text(200),

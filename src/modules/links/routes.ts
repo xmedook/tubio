@@ -6,6 +6,7 @@ import { listProjects } from '../projects/repo.ts'
 import { audit, getSetting } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { defaultValues, parseLinkForm, valuesFromLink } from './form.ts'
+import { aliasError, normalizeAlias } from '../../lib/alias.ts'
 import { aliasTaken, createLink, deleteLink, getOwnLink, LINK_KINDS, listLinks, updateLink, type Link, type LinkKind } from './repo.ts'
 import { dashboardPage, linkFormPage } from './views.ts'
 import { actorOf } from '../auth/routes.ts'
@@ -63,7 +64,10 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
   app.get('/panel/links/new', { preHandler: userGuard }, async (req, reply) => {
     const kind = asKind((req.query as { kind?: string }).kind) ?? 'short'
     const user = req.ctx.user as User
-    return sendHtml(reply, linkFormPage(req.ctx, { kind, values: defaultValues(), errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
+    const values = defaultValues()
+    const pre = normalizeAlias(String((req.query as { alias?: string }).alias ?? '')).slice(0, 60)
+    if (pre && !aliasError(pre)) values.alias = pre
+    return sendHtml(reply, linkFormPage(req.ctx, { kind, values, errors: {}, projects: listProjects(db, user.id), marketing: marketingOpts(user), domains: activeDomains(user) }))
   })
 
   app.post('/panel/links', { preHandler: userGuard }, async (req, reply) => {

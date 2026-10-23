@@ -38,3 +38,35 @@ describe('duplicar', () => {
     expect((await b.post(`/panel/links/${short.id}/duplicate`)).statusCode).toBe(404)
   })
 })
+
+describe('idioma declarado de la página', () => {
+  it('se refleja en <html lang> y en los textos del sistema', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=bio')
+    await a.postMultipart('/panel/links?kind=bio', { alias: 'english', title: 'Hi', is_enabled: '1' })
+    const l = findByAlias(t.deps.db, 'english')!
+    await a.get(`/panel/links/${l.id}/design`)
+    expect((await a.postMultipart(`/panel/links/${l.id}/design`, { theme: 'tinta', lang: 'en-US' })).statusCode).toBe(303)
+    const page = await a.get('/english')
+    expect(page.body).toContain('<html lang="en-US">')
+    expect((await a.postMultipart(`/panel/links/${l.id}/design`, { theme: 'tinta', lang: 'xx' })).statusCode).toBe(422)
+  })
+})
+
+describe('reclama tu alias', () => {
+  it('portada → registro con aviso de libre → crear página con el alias', async () => {
+    const { Agent } = await import('./helpers.ts')
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    expect((await v.get('/')).body).toContain('name="alias"')
+    const free = await v.get('/register?alias=Café Norte')
+    expect(free.body).toContain('tubio.test/cafe-norte está libre')
+    expect(free.body).toContain('name="claim" value="cafe-norte"')
+    expect((await v.get('/register?alias=panel')).body).toContain('claim-bad')
+    const r = await v.post('/register', { email: 'cafe@example.com', password: 'contrasena-segura', accept: '1', claim: 'cafe-norte' })
+    expect(r.headers.location).toBe('/panel/links/new?kind=bio&alias=cafe-norte')
+    expect((await v.get(String(r.headers.location))).body).toContain('value="cafe-norte"')
+  })
+})

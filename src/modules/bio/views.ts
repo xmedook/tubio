@@ -216,6 +216,7 @@ export function designPage(ctx: Ctx, link: Link, d: Design, errors: Errors = {},
       <details class="opt"><summary>${t('bio.d.seo')}</summary><div class="opt-body">
         ${input({ ctx, name: 'seo_title', label: t('bio.d.seo_title'), value: d.seo_title, maxlength: 70, error: errors.seo_title })}
         ${input({ ctx, name: 'seo_description', label: t('bio.d.seo_description'), value: d.seo_description, maxlength: 200 })}
+        ${select({ ctx, name: 'lang', label: t('bio.d.lang'), value: d.lang, hint: t('bio.d.lang_hint'), options: ['', 'es-MX', 'es', 'en', 'en-US', 'pt-BR', 'fr', 'de', 'it'].map((l) => ({ value: l, label: l ? new Intl.DisplayNames([ctx.locale], { type: 'language' }).of(l) ?? l : t('bio.d.lang_account') })) })}
         ${input({ ctx, name: 'seo_keywords', label: t('bio.d.seo_keywords'), value: d.seo_keywords, maxlength: 200 })}
         ${imageOpt(ctx, 'seo_image', t('bio.d.seo_image'), d.seo_image, t('bio.d.seo_image_hint'))}
         ${imageOpt(ctx, 'favicon', t('bio.d.favicon'), d.favicon)}
