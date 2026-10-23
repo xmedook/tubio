@@ -16,8 +16,8 @@ export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xm
 
 /** Fuentes del panel y del sitio (OFL-1.1, paquetes @fontsource), servidas por nosotros */
 const UI_FONTS: Record<string, string> = {
-  'bricolage-grotesque-latin-wght-normal.woff2': '@fontsource-variable/bricolage-grotesque',
-  'bricolage-grotesque-latin-ext-wght-normal.woff2': '@fontsource-variable/bricolage-grotesque',
+  'bricolage-grotesque-latin-wdth-normal.woff2': '@fontsource-variable/bricolage-grotesque',
+  'bricolage-grotesque-latin-ext-wdth-normal.woff2': '@fontsource-variable/bricolage-grotesque',
   'atkinson-hyperlegible-next-latin-wght-normal.woff2': '@fontsource-variable/atkinson-hyperlegible-next',
   'atkinson-hyperlegible-next-latin-ext-wght-normal.woff2': '@fontsource-variable/atkinson-hyperlegible-next',
 }

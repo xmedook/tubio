@@ -44,7 +44,7 @@ export function landingPage(ctx: Ctx, opts: { registrationOpen: boolean; joined?
 <meta property="og:description" content="${t('home.lead')}">
 <link rel="canonical" href="${ctx.baseUrl}/">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
-<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 </head>

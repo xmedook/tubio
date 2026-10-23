@@ -88,9 +88,9 @@ ${opts.items.length === 0
   <div class="grow">
     <a class="title" href="${main}">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${l.title || l.alias}</a>
     <div class="sub"><span class="tag">${kindLabel(ctx, l.kind)}</span>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}
-      <a class="short-url" href="${url}" target="_blank" rel="noopener">${url.replace(/^https?:\/\//, '')}</a>${l.kind === 'short' && l.target_url ? html`<span class="dest"> → ${l.target_url}</span>` : ''}</div>
+      <span class="short-url">${url.replace(/^https?:\/\//, '')}</span>${l.kind === 'short' && l.target_url ? html`<span class="dest"> → ${l.target_url}</span>` : ''}</div>
   </div>
-  <a class="num-link" href="/panel/links/${l.id}/stats" aria-label="${t('links.clicks_aria', { n: l.clicks })}"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></a>
+  <a class="num-link" href="/panel/links/${l.id}/stats"><strong>${formatNumber(ctx.locale, l.clicks)}</strong> <span class="muted">${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></a>
   <button type="button" class="icon-btn" data-copy="${url}" data-copied="${t('links.copied')}" aria-label="${t('links.copy')}: ${url.replace(/^https?:\/\//, '')}">${icon('copy')}</button>
   <details class="row-menu">
     <summary class="icon-btn" aria-label="${t('nav.more')}: ${l.title || l.alias}">${icon('more')}</summary>

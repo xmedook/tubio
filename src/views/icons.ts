@@ -21,5 +21,5 @@ const P: Record<string, string> = {
 
 export function icon(name: keyof typeof P | string, cls = 'ic'): SafeHtml {
   const fill = name === 'more' || name === 'grip'
-  return raw(`<svg class="${cls}" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="${fill ? 'currentColor' : 'none'}" stroke="${fill ? 'none' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[name] ?? ''}</svg>`)
+  return raw(`<svg class="${cls}" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false" fill="${fill ? 'currentColor' : 'none'}" stroke="${fill ? 'none' : 'currentColor'}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${P[name] ?? ''}</svg>`)
 }

@@ -1,26 +1,26 @@
 /* tubio — panel. Sin dependencias; claro/oscuro por preferencia del sistema. */
 /* v2 · dirección A «Mercado» (tipografía y forma; la paleta se decide aparte) */
-@font-face { font-family: "Bricolage Grotesque"; src: url(/_/uifont/bricolage-grotesque-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Bricolage Grotesque"; src: url(/_/uifont/bricolage-grotesque-latin-ext-wght-normal.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Bricolage Grotesque"; src: url(/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2) format("woff2"); font-weight: 200 800; font-stretch: 75% 100%; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Bricolage Grotesque"; src: url(/_/uifont/bricolage-grotesque-latin-ext-wdth-normal.woff2) format("woff2"); font-weight: 200 800; font-stretch: 75% 100%; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family: "Atkinson Hyperlegible Next"; src: url(/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Atkinson Hyperlegible Next"; src: url(/_/uifont/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
-  --bg: #f6f7f9;
-  --surface: #ffffff;
-  --surface-2: #f0f2f5;
-  --text: #14181f;
-  --muted: #5b6472;
-  --border: #dde1e7;
-  --accent: #1d4ed8;
-  --accent-ink: #ffffff;
-  --accent-soft: #e6edff;
+  --bg: #F2F0EE;
+  --surface: #FBFAF9;
+  --surface-2: #E7E3E0;
+  --text: #1F1A1C;
+  --muted: #5E5559;
+  --border: #D6CFCC;
+  --accent: #A3163F;
+  --accent-ink: #FFF7F9;
+  --accent-soft: #F4D7DF;
   --danger: #b42318;
   --danger-soft: #fdecea;
-  --ok: #067647;
+  --ok: #2F6B3F;
   --ok-soft: #e7f6ee;
   --warn-soft: #fff6dd;
   --radius: 22px;
-  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
+  --shadow: 0 1px 0 rgba(20,20,30,.06), 0 10px 24px -14px rgba(20,20,30,.30);
   --font: "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --f-display: "Bricolage Grotesque", "Atkinson Hyperlegible Next", system-ui, sans-serif;
   --t-xs: 14px; --t-sm: 15px; --t-base: 16px; --t-md: 18px; --t-lg: 22px; --t-xl: 30px; --t-2xl: 40px;
@@ -31,18 +31,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1218;
-    --surface: #171b23;
-    --surface-2: #1f2430;
-    --text: #e8ebf0;
-    --muted: #9aa3b2;
-    --border: #2c3341;
-    --accent: #7aa2ff;
-    --accent-ink: #0b1020;
-    --accent-soft: #1c2948;
+    --bg: #161214;
+    --surface: #201A1C;
+    --surface-2: #2C2427;
+    --text: #F2ECEE;
+    --muted: #BFB3B8;
+    --border: #3E3438;
+    --accent: #FF7A9C;
+    --accent-ink: #161214;
+    --accent-soft: #4A1E2B;
     --danger: #ff8a7a;
     --danger-soft: #3a1714;
-    --ok: #6fdba4;
+    --ok: #8CCB97;
     --ok-soft: #0f2a1d;
     --warn-soft: #2f2610;
     --shadow: none;
@@ -362,7 +362,7 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
   .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
   .tab, .create > summary { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; color: var(--muted); text-decoration: none; font-size: .75rem; font-weight: 600; border-radius: 12px; cursor: pointer; list-style: none; }
   .tab[aria-current="page"] { color: var(--accent); }
-  .tab[aria-current="page"] .ic { stroke-width: 2.4; }
+  .tab[aria-current="page"] .ic { stroke-width: 2.25; }
   .create > summary::-webkit-details-marker { display: none; }
   .create-btn { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--accent); color: var(--accent-ink); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent); }
   .create { position: static; }
@@ -417,7 +417,7 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
   .search-bar .field label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .search-bar .btn { min-height: 48px; }
   .link-list .link-item { gap: .5rem; padding: .6rem .4rem .6rem .75rem; flex-wrap: nowrap; }
-  .link-item .num-link .muted { display: none; }
+  .link-item .num-link .muted { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .link-item .tag { display: none; }
   .link-item .is-off .tag-off, .link-item.is-off .tag-off { display: inline-block; }
 }
@@ -480,7 +480,7 @@ table.plans .current { background: var(--accent-soft); } .ok { color: var(--ok);
 .claim-bad { background: var(--danger-soft); color: var(--danger); padding: .6rem .8rem; border-radius: 10px; font-weight: 600; }
 
 /* ===== v2 · forma y tipografía de «Mercado» ===== */
-h1, h2, h3, .brand, .kpi-n, .sheet-title, .link-item .title, .blocks .title { font-family: var(--f-display); font-weight: 700; letter-spacing: -0.015em; }
+h1, h2, h3, .brand, .kpi-n, .sheet-title, .link-item .title, .blocks .title { font-family: var(--f-display); font-weight: 700; font-stretch: 88%; letter-spacing: -0.01em; }
 h1 { font-size: var(--t-xl); line-height: 1.1; }
 h2 { font-size: var(--t-lg); }
 .brand { font-weight: 800; letter-spacing: -0.04em; }
@@ -491,6 +491,6 @@ h2 { font-size: var(--t-lg); }
 .list, .blocks, .card, details.opt, fieldset { border-radius: var(--cardr); }
 .list > li:first-child, .blocks > li:first-child { border-radius: var(--cardr) var(--cardr) 0 0; }
 .kind-ic, .icon-btn { border-radius: var(--r-md); }
-.sheet, .add-block[open] .add-sheet, .row-menu[open] .menu-body { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.sheet, .add-block[open] .add-sheet, .row-menu[open] .menu-body { border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: 0 -1px 0 rgba(20,20,30,.08), 0 -18px 40px -20px rgba(20,20,30,.40); }
 .tabs a { font-family: var(--f-display); }
 @media (min-width: 768px) { h1 { font-size: calc(var(--t-xl) * 1.125); } }

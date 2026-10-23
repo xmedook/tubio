@@ -3,7 +3,7 @@ import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '8'
+export const ASSET_VERSION = '9'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -12,7 +12,7 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
 <title>${title} · tubio</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
-<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/_/uifont/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/_/uifont/bricolage-grotesque-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
 <script type="module" src="/_/static/js/app.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
