@@ -36,6 +36,7 @@ export function valuesFromLink(link: Link, tz: string): FormValues {
     has_password: link.password_hash ? '1' : '',
     is_sensitive: link.is_sensitive ? '1' : '',
     forward_query: link.forward_query ? '1' : '',
+    open_app: link.data.open_app === false ? '' : '1',
     public_stats: link.public_stats ? '1' : '',
     domain_id: String(link.domain_id),
     pixel_ids: link.pixel_ids.join(','),
@@ -146,6 +147,7 @@ export async function parseLinkForm(
     else target = r.url
     const code = Number(f('redirect_code'))
     redirect = code === 301 || code === 307 || code === 308 ? code : 302
+    data = { ...data, open_app: checked(body, 'open_app') }
   } else if (kind === 'vcard') {
     const raw: Record<string, string> = {}
     for (const k of VCARD_FIELDS) raw[k] = f(`vc_${k}`)

@@ -2,7 +2,7 @@ import { createReadStream, existsSync } from 'node:fs'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { verifyPassword } from '../../lib/crypto.ts'
-import { html } from '../../lib/html.ts'
+import { html, raw } from '../../lib/html.ts'
 import { buildIcs, eventSchema } from '../../lib/ical.ts'
 import { findFile, findFileByKey, uploadPath } from '../../lib/uploads.ts'
 import { buildDestination, redirectAllowed } from '../../lib/urls.ts'
@@ -17,7 +17,8 @@ import { limitsOf, ownerLimits } from '../plans/limits.ts'
 import { resolveSiteFile, SITE_CSP, SITE_MIME } from '../sites/site.ts'
 import { findUserById } from '../users/repo.ts'
 import { findByAlias, incrementClicks, type Link } from '../links/repo.ts'
-import { recordEvent, visitFromRequest } from '../stats/record.ts'
+import { isBotVisit, recordEvent, visitFromRequest } from '../stats/record.ts'
+import { appFor, mobileOs } from './apps.ts'
 import { availability, isConfirmed, isUnlocked, okCookie, okValue, unlockCookie, unlockValue } from './gate.ts'
 
 /** Tipos que el navegador podría ejecutar: siempre se descargan como binario */
@@ -131,6 +132,11 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
         if (!dest) return unavailable(req.ctx, reply, 'missing')
         countVariant(req, link, chosen.variant)
         if (respondShort(deps, req, reply, link, dest)) return reply
+        // abrir en la app (activado por defecto) cuando se abre desde un teléfono
+        const os = link.data.open_app === false ? null : mobileOs(visit.ua)
+        const target = os && !isBotVisit(visit) ? appFor(dest) : null
+        const deep = target ? (os === 'android' ? target.android : target.ios) : null
+        if (target && deep) return sendHtml(reply, openAppPage(req.ctx, target.name, deep, dest))
         return reply.redirect(dest, link.redirect_code)
       }
       case 'bio': {
@@ -216,6 +222,19 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
     }
     return reply.redirect(`/${link.alias}`, 303)
   })
+}
+
+/** Intenta la app y, si no se abrió en 1.5 s (o no hay JS), sigue a la web */
+function openAppPage(ctx: Ctx, name: string, deep: string, web: string) {
+  const { t } = ctx
+  const js = (v: string) => JSON.stringify(v).replace(/</g, '\\u003c')
+  return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>${t('app.opening', { app: name })}</title>
+<noscript><meta http-equiv="refresh" content="0;url=${web}"></noscript>
+<style nonce="${ctx.nonce}">body{margin:0;min-height:100vh;display:grid;place-items:center;font:17px/1.5 system-ui,sans-serif;background:#F2EEE3;color:#111A16;text-align:center;padding:24px}a{display:inline-block;margin-top:12px;padding:12px 20px;border-radius:999px;background:#14774A;color:#F6F3EA;text-decoration:none;font-weight:700}@media(prefers-color-scheme:dark){body{background:#0D1310;color:#EFEBE0}a{background:#5DD597;color:#0D1310}}</style>
+</head><body><main><p>${t('app.opening', { app: name })}</p><a href="${web}">${t('app.continue')}</a></main>
+<script nonce="${ctx.nonce}">${raw(`(function(){var web=${js(web)};var t=setTimeout(function(){if(!document.hidden)location.replace(web)},1500);document.addEventListener('visibilitychange',function(){if(document.hidden)clearTimeout(t)});location.href=${js(deep)}})()`)}</script>
+</body></html>`
 }
 
 function readNoindex(link: Link): boolean {

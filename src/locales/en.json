@@ -1525,5 +1525,9 @@
   "report.title": "Weekly report",
   "report.body": "Every Monday we email you your views and clicks for the week, if you had activity.",
   "report.turn_off": "Stop receiving it",
-  "report.turn_on": "Receive it every Monday"
+  "report.turn_on": "Receive it every Monday",
+  "links.open_app": "Open in the app",
+  "links.open_app_hint": "If the destination is YouTube, Instagram, TikTok, Spotify, Facebook, X, Telegram, LinkedIn or Amazon and it is opened on a phone, the app opens (or the website if they do not have it).",
+  "app.opening": "Opening {app}…",
+  "app.continue": "If it did not open, continue on the web"
 }

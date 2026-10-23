@@ -1525,5 +1525,9 @@
   "report.title": "Reporte semanal",
   "report.body": "Cada lunes te mandamos por correo tus visitas y clics de la semana, si tuviste movimiento.",
   "report.turn_off": "Dejar de recibirlo",
-  "report.turn_on": "Recibirlo cada lunes"
+  "report.turn_on": "Recibirlo cada lunes",
+  "links.open_app": "Abrir en la app",
+  "links.open_app_hint": "Si el destino es YouTube, Instagram, TikTok, Spotify, Facebook, X, Telegram, LinkedIn o Amazon y lo abren desde el celular, se abre la app (si no la tienen, la página web).",
+  "app.opening": "Abriendo {app}…",
+  "app.continue": "Si no se abrió, continúa en la web"
 }
