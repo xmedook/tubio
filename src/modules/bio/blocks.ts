@@ -250,7 +250,7 @@ export const BLOCKS: BlockDef[] = [
     ],
     render: (_rc, b) => {
       const sep = s(b.data.sep)
-      const items = sep && sep !== 'none' ? s(b.data.text).split(/\s*[,|·]\s*/).filter(Boolean) : [s(b.data.text)]
+      const items = sep && sep !== 'none' ? s(b.data.text).split(s(b.data.text).includes('|') ? /\s*\|\s*/ : /\s*[,·]\s*/).filter(Boolean) : [s(b.data.text)]
       const glyph = sep === 'cross' ? CROSS : sep === 'dot' ? html`<i class="mq-sep">●</i>` : sep === 'star' ? html`<i class="mq-sep">✦</i>` : html``
       const run = html`<span class="mq-run">${items.map((x) => html`<span>${x}</span>${glyph}`)}</span>`
       return html`<div class="marquee sp-${s(b.data.speed) || 'normal'}${sep && sep !== 'none' ? ' has-sep' : ''}" role="marquee" aria-label="${items.join(', ')}"><div class="marquee-track" aria-hidden="true">${run}${run}${run}${run}</div></div>`
