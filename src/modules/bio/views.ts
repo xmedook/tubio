@@ -201,6 +201,8 @@ ${viewToggle(ctx)}
       <details class="opt"><summary>${t('bio.d.typography')}</summary><div class="opt-body">
         <div class="grid-2">
           ${select({ ctx, name: 'font', label: t('bio.d.font'), value: d.font, options: [{ value: 'theme', label: t('bio.f.use_theme') }, ...FONT_IDS.map((f) => ({ value: f, label: t(`bio.font_${f}`) }))] })}
+          ${select({ ctx, name: 'font_heading', label: t('bio.d.font_heading'), value: d.font_heading, options: [{ value: 'theme', label: t('bio.d.same_font') }, ...FONT_IDS.map((f) => ({ value: f, label: t(`bio.font_${f}`) }))] })}
+          ${select({ ctx, name: 'font_num', label: t('bio.d.font_num'), value: d.font_num, options: [{ value: 'theme', label: t('bio.d.same_font') }, ...FONT_IDS.map((f) => ({ value: f, label: t(`bio.font_${f}`) }))] })}
           ${input({ ctx, name: 'font_size', type: 'number', label: t('bio.d.font_size'), value: d.font_size, min: 14, max: 20 })}
         </div>
         ${colorOrTheme(ctx, 'text_color', t('bio.f.text_color'), d.text_color)}

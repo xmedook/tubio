@@ -43,6 +43,8 @@ export function valuesFromBlock(def: BlockDef, b: BlockRow | undefined, tz: stri
   v.style_bg_color = b?.style.bg_color ?? ''
   v.style_border_color = b?.style.border_color ?? ''
   v.style_align = b?.style.align ?? 'inherit'
+  v.style_frame = b?.style.frame ?? 'none'
+  v.style_tilt = String(b?.style.tilt ?? 0)
   return v
 }
 
@@ -151,6 +153,8 @@ export function blockFields(ctx: Ctx, def: BlockDef, v: BlockValues, e: Errors, 
     ${isButton ? colorOpt(ctx, 'style_bg_color', t('bio.f.bg_color'), v) : ''}
     ${isButton ? colorOpt(ctx, 'style_border_color', t('bio.f.border_color'), v) : ''}
   </div>
+  ${select({ ctx, name: 'style_frame', label: t('bio.f.frame'), value: v.style_frame, options: ['none', 'hard'].map((a) => ({ value: a, label: t(`bio.frame.${a}`) })) })}
+  ${select({ ctx, name: 'style_tilt', label: t('bio.f.tilt'), value: v.style_tilt, options: ['-2', '-1', '0', '1', '2'].map((a) => ({ value: a, label: a === '0' ? t('bio.tilt.none') : `${a}°` })) })}
   ${select({ ctx, name: 'style_align', label: t('bio.f.align'), value: v.style_align, options: ['inherit', 'left', 'center', 'right'].map((a) => ({ value: a, label: t(`bio.align.${a}`) })) })}
 </div></details>`
 }
@@ -345,6 +349,11 @@ export async function parseBlockForm(
   }
   const align = f('style_align')
   if (align === 'left' || align === 'center' || align === 'right') style.align = align
+  if (f('style_frame') === 'hard') style.frame = 'hard'
+  const tilt = Number(f('style_tilt'))
+  if ([-2, -1, 1, 2].includes(tilt)) style.tilt = tilt
+  values.style_frame = style.frame ?? 'none'
+  values.style_tilt = String(style.tilt ?? 0)
   values.style_text_color = style.text_color ?? ''
   values.style_bg_color = style.bg_color ?? ''
   values.style_border_color = style.border_color ?? ''
