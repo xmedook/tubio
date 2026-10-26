@@ -13,7 +13,7 @@ import { pixelCsp, pixelsForLink } from '../marketing/pixels.ts'
 import { pixelBar } from '../marketing/resolve.ts'
 import { findUserById } from '../users/repo.ts'
 import { BLOCK_BY_TYPE, type BlockRow, type RenderCtx } from './blocks.ts'
-import { FONTS, fontFaceCss, readDesign, themeById, type Design } from './design.ts'
+import { FONTS, fontFaceCss, readDesign, themeById, type Design, type FontId } from './design.ts'
 import { EMBED_ORIGINS } from './embeds.ts'
 import { listBlocks } from './repo.ts'
 
@@ -45,6 +45,8 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     ['--btn-r', `${d.btn_radius ?? Math.min(th.radius, 40)}px`],
     ['--btn-sh', shadowCss(d.btn_shadow === 'theme' ? th.shadow : d.btn_shadow)],
     ['--font', font],
+    ['--font-h', d.font_heading === 'theme' ? 'var(--font)' : FONTS[d.font_heading]],
+    ['--font-n', d.font_num === 'theme' ? 'var(--font-h)' : FONTS[d.font_num]],
     ['--fs', `${d.font_size}px`],
     ['--col', WIDTH[d.width]],
     ['--gap', GAP[d.spacing]],
@@ -53,7 +55,8 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     ['--ann-text', d.announce_color],
   ]
   const fontId = d.font === 'theme' ? th.font : d.font
-  let css = fontFaceCss(fontId) + `:root{${vars.map(([k, v]) => `${k}:${v}`).join(';')}}`
+ const faces = [...new Set([fontId, d.font_heading, d.font_num].filter((f) => f !== 'theme'))] as FontId[]
+  let css = faces.map(fontFaceCss).join('') + `:root{${vars.map(([k, v]) => `${k}:${v}`).join(';')}}`
   for (const b of blocks) {
     const st = b.style
     const rules: string[] = []
@@ -65,6 +68,16 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     if (b.type === 'html') css += `#b${b.id} .embed{height:${Math.min(1200, Math.max(60, Number(b.data.height) || 300))}px}`
   }
   return css
+}
+
+/** clases del contenedor: tipo + estilo de tarjeta (marco con sombra dura, giro) */
+export function blkClass(b: BlockRow): string {
+  let c = `blk blk-${b.type}`
+  if (b.style.frame === 'hard') c += ' fr-hard'
+  if (b.style.bg_color) c += ' has-bg'
+  const tilt = Number(b.style.tilt)
+  if (tilt && Number.isInteger(tilt) && Math.abs(tilt) <= 2) c += ` tilt-${tilt < 0 ? 'n' : 'p'}${Math.abs(tilt)}`
+  return c
 }
 
 export function visibleBlocks(blocks: BlockRow[], now: number): BlockRow[] {
@@ -149,7 +162,7 @@ ${d.share_button ? html`<button type="button" class="share-fab" data-share aria-
 <main class="col" data-title="${title}" data-url="${url}" data-copied="${t('links.copied')}">
 ${blocks.length === 0 ? html`<p class="para empty">${t('bio.empty_public')}</p>` : ''}
 ${d.pwa ? html`<button type="button" class="btn pwa-install" data-pwa hidden>${t('bio.pwa_install')}</button>` : ''}
-${blocks.map((b, i) => html`<div class="blk blk-${b.type}" id="b${b.id}" data-i="${Math.min(i, 15)}">${(BLOCK_BY_TYPE.get(b.type) as NonNullable<ReturnType<typeof BLOCK_BY_TYPE.get>>).render(rc, b)}</div>`)}
+${blocks.map((b, i) => html`<div class="${blkClass(b)}" id="b${b.id}" data-i="${Math.min(i, 15)}">${(BLOCK_BY_TYPE.get(b.type) as NonNullable<ReturnType<typeof BLOCK_BY_TYPE.get>>).render(rc, b)}</div>`)}
 ${showBrand
   ? html`<footer class="made">${!forced && d.brand_text
       ? web(d.brand_url) ? html`<a href="${d.brand_url}">${d.brand_text}</a>` : d.brand_text

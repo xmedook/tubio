@@ -33,6 +33,9 @@ export const FONTS = {
   lora: '"Lora Variable", Georgia, serif',
   caveat: '"Caveat Variable", cursive',
   jetbrains: '"JetBrains Mono Variable", ui-monospace, monospace',
+  familjen: '"Familjen Grotesk Variable", system-ui, sans-serif',
+  schibsted: '"Schibsted Grotesk Variable", system-ui, sans-serif',
+  chivo: 'Chivo, system-ui, sans-serif',
 } as const
 export type FontId = keyof typeof FONTS
 
@@ -49,6 +52,9 @@ export const WEB_FONTS: Partial<Record<FontId, { family: string; faces: { file: 
   lora: { family: 'Lora Variable', faces: [{ pkg: '@fontsource-variable/lora', file: 'lora-latin-wght-normal.woff2', weight: '400 700' }] },
   caveat: { family: 'Caveat Variable', faces: [{ pkg: '@fontsource-variable/caveat', file: 'caveat-latin-wght-normal.woff2', weight: '400 700' }] },
   jetbrains: { family: 'JetBrains Mono Variable', faces: [{ pkg: '@fontsource-variable/jetbrains-mono', file: 'jetbrains-mono-latin-wght-normal.woff2', weight: '100 800' }] },
+  familjen: { family: 'Familjen Grotesk Variable', faces: [{ pkg: '@fontsource-variable/familjen-grotesk', file: 'familjen-grotesk-latin-wght-normal.woff2', weight: '400 700' }] },
+  schibsted: { family: 'Schibsted Grotesk Variable', faces: [{ pkg: '@fontsource-variable/schibsted-grotesk', file: 'schibsted-grotesk-latin-wght-normal.woff2', weight: '400 900' }] },
+  chivo: { family: 'Chivo', faces: [{ pkg: '@fontsource/chivo', file: 'chivo-latin-900-normal.woff2', weight: '900' }] },
 }
 
 export function fontFaceCss(id: FontId): string {
@@ -90,6 +96,9 @@ export const designSchema = z.object({
   bg_brightness: z.coerce.number().int().min(40).max(140).default(100),
   text_color: optHex,
   font: z.enum(['theme', ...FONT_IDS]).default('theme'),
+  /** fuente de títulos y de cifras; 'theme' = la misma del texto */
+  font_heading: z.enum(['theme', ...FONT_IDS]).default('theme'),
+  font_num: z.enum(['theme', ...FONT_IDS]).default('theme'),
   font_size: z.coerce.number().int().min(14).max(20).default(16),
   width: z.enum(['narrow', 'normal', 'wide']).default('normal'),
   spacing: z.enum(['compact', 'normal', 'relaxed']).default('normal'),

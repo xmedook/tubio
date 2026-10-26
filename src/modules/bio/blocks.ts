@@ -36,7 +36,7 @@ export type BlockRow = {
   updated_at: number
 }
 
-export type BlockStyle = { text_color?: string | null; bg_color?: string | null; border_color?: string | null; align?: 'inherit' | 'left' | 'center' | 'right' }
+export type BlockStyle = { text_color?: string | null; bg_color?: string | null; border_color?: string | null; align?: 'inherit' | 'left' | 'center' | 'right'; frame?: 'hard'; tilt?: number }
 
 export type FieldSpec =
   | { name: string; kind: 'text'; label: string; max: number; required?: boolean; placeholder?: string }
@@ -99,7 +99,14 @@ export type BlockDef = {
 }
 
 const s = (v: unknown): string => (typeof v === 'string' ? v : '')
+const CROSS = raw('<svg class="mq-sep mq-x" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 8 25 24M25 8 7 24" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="square"/></svg>')
 const clickHref = (b: BlockRow, to?: string) => `/_/c/${b.id}${to ? `?to=${encodeURIComponent(to)}` : ''}`
+
+/** «==texto==» en un título se pinta resaltado (caja de color) */
+export function highlight(text: string): SafeHtml {
+  const parts = text.split(/==(.+?)==/)
+  return html`${parts.map((p, i) => (i % 2 ? html`<mark class="hl">${p}</mark>` : html`${p}`))}`
+}
 
 function badge(rc: RenderCtx): SafeHtml {
   if (!rc.verified || rc.badgeShown.v) return html``
@@ -155,7 +162,7 @@ export const BLOCKS: BlockDef[] = [
     ],
     render: (rc, b) => {
       const lv = /^h[1-6]$/.test(s(b.data.level)) ? s(b.data.level) : 'h2'
-      return raw(`<${lv} class="heading">${html`${s(b.data.text)}${badge(rc)}`.value}</${lv}>`)
+      return raw(`<${lv} class="heading">${html`${highlight(s(b.data.text))}${badge(rc)}`.value}</${lv}>`)
     },
     summary: (b) => s(b.data.text),
   },
@@ -239,8 +246,15 @@ export const BLOCKS: BlockDef[] = [
     fields: [
       { name: 'text', kind: 'text', label: 'bio.f.text', max: 200, required: true },
       { name: 'speed', kind: 'select', label: 'bio.f.speed', options: ['slow', 'normal', 'fast'], default: 'normal' },
+      { name: 'sep', kind: 'select', label: 'bio.f.marquee_sep', options: ['none', 'cross', 'dot', 'star'], default: 'none' },
     ],
-    render: (_rc, b) => html`<div class="marquee sp-${s(b.data.speed) || 'normal'}" role="marquee" aria-label="${s(b.data.text)}"><div class="marquee-track" aria-hidden="true"><span>${s(b.data.text)}</span><span>${s(b.data.text)}</span><span>${s(b.data.text)}</span><span>${s(b.data.text)}</span></div></div>`,
+    render: (_rc, b) => {
+      const sep = s(b.data.sep)
+      const items = sep && sep !== 'none' ? s(b.data.text).split(/\s*[,|·]\s*/).filter(Boolean) : [s(b.data.text)]
+      const glyph = sep === 'cross' ? CROSS : sep === 'dot' ? html`<i class="mq-sep">●</i>` : sep === 'star' ? html`<i class="mq-sep">✦</i>` : html``
+      const run = html`<span class="mq-run">${items.map((x) => html`<span>${x}</span>${glyph}`)}</span>`
+      return html`<div class="marquee sp-${s(b.data.speed) || 'normal'}${sep && sep !== 'none' ? ' has-sep' : ''}" role="marquee" aria-label="${items.join(', ')}"><div class="marquee-track" aria-hidden="true">${run}${run}${run}${run}</div></div>`
+    },
     summary: (b) => s(b.data.text),
   },
   {
@@ -306,6 +320,11 @@ export function blockTarget(b: BlockRow, to?: string): string | null {
   if (b.type === 'socials') {
     const links = (b.data.links ?? {}) as Record<string, string>
     return to && typeof links[to] === 'string' ? links[to] : null
+  }
+  if (b.type === 'chips') {
+    const items = Array.isArray(b.data.items) ? (b.data.items as Record<string, unknown>[]) : []
+    const it = to !== undefined && /^\d{1,2}$/.test(to) ? items[Number(to)] : undefined
+    return it && typeof it.url === 'string' && it.url ? it.url : null
   }
   const def = BLOCK_BY_TYPE.get(b.type)
   return def?.clickable && typeof b.data.url === 'string' && b.data.url ? b.data.url : null
