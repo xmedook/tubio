@@ -275,8 +275,12 @@ iframe.cloak { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; 
 mark.hl { background: var(--btn-bg); color: var(--btn-text); padding: 0 .18em; border-radius: .14em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* estilo de bloque: marco con sombra dura y giro ligero */
-.fr-hard .btn, .fr-hard .art-card, .fr-hard .stat, .fr-hard .cta-box, .fr-hard .steps li, .fr-hard .chip-l { border: 2px solid var(--b-bc, var(--text)); box-shadow: 5px 5px 0 var(--b-bc, var(--text)); }
-.fr-hard .art-card, .fr-hard .stat, .fr-hard .cta-box { border-radius: 20px; }
+.fr-hard .btn, .fr-hard .art-card, .fr-hard .stat, .fr-hard .cta-box, .fr-hard .steps li, .fr-hard .chip-l, .fr-hard .list { border: 2px solid var(--b-bc, var(--text)); box-shadow: 5px 5px 0 var(--b-bc, var(--text)); }
+.fr-hard .art-card, .fr-hard .stat, .fr-hard .cta-box, .fr-hard .list { border-radius: 20px; }
+/* lista como tarjeta cuando el bloque tiene fondo propio */
+.has-bg .list { display: block; background: var(--b-bg); color: var(--b-text, inherit); padding: 18px 20px; border-radius: 20px; }
+.has-bg .list.st-number { padding-left: 2.6em; }
+.has-bg .list.st-check li { padding-left: 1.5em; text-indent: -1.5em; }
 .tilt-n2 > * { rotate: -2deg; } .tilt-n1 > * { rotate: -1deg; } .tilt-p1 > * { rotate: 1deg; } .tilt-p2 > * { rotate: 2deg; }
 .hov-lift .fr-hard .art-card:hover, .hov-lift .fr-hard .btn:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--b-bc, var(--text)); }
 
