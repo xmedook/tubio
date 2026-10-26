@@ -17,7 +17,7 @@ PLANES = [
 ]
 
 FUNCIONES = [
-    ("btn", "Página bio", "Botones, redes, horario, ubicación, videos y más: 22 bloques que acomodas arrastrando. Lista en minutos desde el celular."),
+    ("btn", "Página bio", "Botones, redes, horario, ubicación, videos y más: más de 60 tipos de bloque que acomodas arrastrando. Lista en minutos desde el celular."),
     ("link", "Enlaces cortos", "tubio.link/tu-promo, con fecha de inicio y fin, tope de clics, contraseña y UTM. También archivos, tarjetas de contacto y eventos."),
     ("qr", "Códigos QR que no caducan", "Con tus colores y tu logo. Si cambias el destino, el QR que ya imprimiste sigue funcionando."),
     ("chart", "Estadísticas sin espiar", "Visitas, países, dispositivos y de dónde llegan, sin guardar direcciones IP ni usar cookies de rastreo."),
@@ -34,7 +34,7 @@ FAQ = [
     ("¿Qué es eso de «fundadores»?", "Las primeras 100 cuentas que confirmen su correo reciben un año del plan Negocio sin costo. El contador de arriba dice cuántos lugares quedan."),
     ("¿Los precios incluyen IVA?", "Sí, están en pesos mexicanos con IVA incluido. Pagar el año cuesta lo mismo que 10 meses."),
     ("¿Puedo usar mi propio dominio?", "Sí, desde el plan Pro (1 dominio) y en Negocio (hasta 10). Tu página se ve en tunegocio.com en vez de tubio.link."),
-    ("¿Qué guardan de mis visitantes?", "Contamos visitas, clics, país y tipo de dispositivo. No guardamos direcciones IP ni usamos cookies de rastreo, así que no necesitas aviso de cookies."),
+    ("¿Qué guardan de mis visitantes?", "Contamos visitas, clics, país y tipo de dispositivo. No guardamos direcciones IP ni usamos cookies de rastreo, así que no necesitas aviso de cookies. Si activas píxeles de publicidad, tubio pide permiso al visitante antes de cargarlos."),
     ("¿Por qué software libre?", "El código de tubio es público bajo licencia AGPL. Cualquiera puede revisarlo, y si algún día quieres, puedes instalarlo en tu propio servidor con tus datos."),
 ]
 
