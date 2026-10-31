@@ -85,6 +85,13 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
         const lab = t(c.label)
         if (c.type === 'textarea') return textarea({ ctx, name, label: lab, value: v[name], maxlength: c.max, rows: 2, error: e[name] })
         if (c.type === 'select') return select({ ctx, name, label: lab, value: v[name], options: (c.options ?? []).map((o) => ({ value: o, label: optLabel(t, `bio.o.${type}.${c.name}.${o}`, o) })) })
+        if (c.type === 'image') {
+          const cur = v[name]
+          return html`<div class="img-field">${cur ? html`<img class="img-preview" src="${imageUrl(cur)}" alt="">` : ''}
+  <input type="hidden" name="${name}__keep" value="${cur ?? ''}">
+  ${input({ ctx, name, type: 'file', label: cur ? t('bio.f.replace_image') : lab, error: e[name], accept: 'image/png,image/jpeg,image/webp,image/gif,image/avif' })}
+  ${cur ? checkbox({ name: `${name}__remove`, label: t('bio.f.remove_image') }) : ''}</div>`
+        }
         return input({ ctx, name, label: lab, value: v[name], maxlength: c.max, type: c.type === 'time' ? 'time' : c.type === 'number' ? 'number' : c.type === 'url' ? 'url' : 'text', error: e[name] })
       })}</div></li>`)}</ol>
 </fieldset>`
@@ -185,6 +192,7 @@ export async function parseBlockForm(
   for (const [k, val] of Object.entries(body)) if (k !== '_csrf') values[k] = Array.isArray(val) ? (val[0] ?? '') : val
   const data: Record<string, unknown> = {}
   const pendingImages: { name: string; buf: Buffer; filename: string; spec: Extract<FieldSpec, { kind: 'image' }> }[] = []
+  const pendingRowImages: { row: Record<string, unknown>; col: string; key: string; buf: Buffer; filename: string; maxDim: number }[] = []
   const pendingMulti: { name: string; buf: Buffer; filename: string; maxDim: number }[] = []
   let pendingFile: { name: string; buf: Buffer; filename: string; spec: Extract<FieldSpec, { kind: 'file' }> } | null = null
 
@@ -241,11 +249,27 @@ export async function parseBlockForm(
       }
       case 'rows': {
         const rows: Record<string, unknown>[] = []
+        const prevRowImages = new Set<string>()
+        for (const r of Array.isArray(existing?.data[spec.name]) ? (existing?.data[spec.name] as Record<string, unknown>[]) : []) for (const x of Object.values(r)) if (typeof x === 'string' && /^[\w-]+\.webp$/.test(x)) prevRowImages.add(x)
         for (let i = 0; i < spec.maxRows + 3; i++) {
           const row: Record<string, unknown> = {}
           let any = false
           for (const c of spec.columns) {
             const key = `${spec.name}__${i}__${c.name}`
+            if (c.type === 'image') {
+              // una imagen por fila: la nueva si la hay; si no, la que ya tenía el bloque (sólo llaves propias)
+              const up = mp.files.find((x) => x.field === key)
+              const keep = f(`${key}__keep`)
+              const own = /^[\w-]+\.webp$/.test(keep) && prevRowImages.has(keep) && !checked(body, `${key}__remove`) ? keep : ''
+              row[c.name] = own
+              values[key] = own
+              if (own) any = true
+              if (up) {
+                any = true
+                pendingRowImages.push({ row, col: c.name, key, buf: up.buffer, filename: up.filename, maxDim: c.maxDim ?? 900 })
+              }
+              continue
+            }
             const val = f(key).trim()
             if (val) any = true
             if (c.max && val.length > c.max) errors[key] = 'err.too_long'
@@ -367,6 +391,13 @@ export async function parseBlockForm(
         data[p.name] = stored.key
       } catch (e) {
         errors[p.name] = e instanceof UploadError ? e.key : 'err.upload_not_image'
+      }
+    }
+    for (const p of pendingRowImages) {
+      try {
+        p.row[p.col] = (await storeImage(deps, user.id, p.buf, p.filename, { maxDim: p.maxDim })).key
+      } catch (e) {
+        errors[p.key] = e instanceof UploadError ? e.key : 'err.upload_not_image'
       }
     }
     for (const p of pendingMulti) {

@@ -63,7 +63,7 @@ export type FieldSpec =
   /** a qué destinos de aviso del usuario se manda lo recogido */
   | { name: string; kind: 'targets'; label: string }
 
-export type RowColumn = { name: string; label: string; type: 'text' | 'textarea' | 'url' | 'number' | 'time' | 'select'; max?: number; options?: string[]; required?: boolean }
+export type RowColumn = { name: string; label: string; type: 'text' | 'textarea' | 'url' | 'number' | 'time' | 'select' | 'image'; max?: number; options?: string[]; required?: boolean; /** image: lado mayor en px */ maxDim?: number }
 
 export type RenderCtx = {
   t: T
@@ -324,7 +324,7 @@ export const MAX_BLOCKS_PER_PAGE = 100
 
 /** ¿A dónde manda un clic de este bloque? (to = red social) */
 export function blockTarget(b: BlockRow, to?: string, site: { wa: string } = { wa: '' }): string | null {
-  if (b.type === 'action_panel' || b.type === 'location') return msTarget(b, to, site.wa)
+  if (['action_panel', 'location', 'profile', 'category_grid', 'photo_cards', 'video_carousel'].includes(b.type)) return msTarget(b, to, site.wa)
   if (b.type === 'socials') {
     const links = (b.data.links ?? {}) as Record<string, string>
     return to && typeof links[to] === 'string' ? links[to] : null

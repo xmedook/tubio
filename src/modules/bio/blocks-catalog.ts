@@ -62,6 +62,7 @@ function catalogHtml(rc: RenderCtx, b: BlockRow, kind: 'menu' | 'services'): Saf
     const price = parsePrice(it.precio)
     const key = `${b.id}:${it.nombre}`
     return html`<li class="mnu-i${it.ok ? '' : ' off'}" data-mnu-i data-name="${it.nombre}" data-text="${`${it.nombre} ${it.desc} ${c}`.toLowerCase()}"${price !== null ? html` data-price="${price}"` : ''} data-key="${key}">
+      ${it.foto ? html`<img class="mnu-img" src="${imageUrl(it.foto) ?? ''}" alt="" width="96" height="96" loading="lazy" decoding="async">` : ''}
       <div class="mnu-r"><span class="mnu-n">${it.nombre}${it.tags.map((g) => html` <span class="mnu-tag">${TAGS.includes(g) ? rc.t(`ms.cat.tag.${g}`) : g.replace(/_/g, ' ')}</span>`)}</span>${it.precio ? html`<span class="mnu-p">${it.precio}</span>` : ''}</div>
       ${it.desc ? html`<p class="mnu-d">${it.desc}</p>` : ''}
       ${it.dur ? html`<p class="mnu-m">${rc.t('ms.cat.min', { n: it.dur })}</p>` : ''}
@@ -95,7 +96,7 @@ export const CATALOG_BLOCKS: BlockDef[] = [
         kind: 'rows',
         label: 'ms.f.cat_menu_items',
         maxRows: 80,
-        columns: [...COMMON_COLS, { name: 'etiquetas', label: 'ms.f.cat_etiquetas', type: 'text', max: 60 }, { name: 'disponible', label: 'ms.f.cat_disponible', type: 'select', options: ['si', 'no'] }],
+        columns: [...COMMON_COLS, { name: 'foto', label: 'ms.f.cat_foto', type: 'image', maxDim: 600 }, { name: 'etiquetas', label: 'ms.f.cat_etiquetas', type: 'text', max: 60 }, { name: 'disponible', label: 'ms.f.cat_disponible', type: 'select', options: ['si', 'no'] }],
       },
     ],
     render: (rc, b) => catalogHtml(rc, b, 'menu'),

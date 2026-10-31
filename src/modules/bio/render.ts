@@ -184,6 +184,7 @@ ${d.pwa && !link.password_hash ? html`<link rel="manifest" href="/_/pwa/${link.a
 <script type="module" src="/_/static/js/bio.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>
 ${sb || usesSiteBlocks ? html`<script type="module" src="/_/static/js/site.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => b.type === 'wa_request') ? html`<script type="module" src="/_/static/js/wa.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
+${blocks.some((b) => b.type === 'video_carousel') ? html`<script type="module" src="/_/static/js/salud.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => b.type === 'menu' || b.type === 'services' || b.type === 'menu_pdf') ? html`<script type="module" src="/_/static/js/catalog.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </head>

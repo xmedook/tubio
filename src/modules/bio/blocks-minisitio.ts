@@ -6,6 +6,7 @@ import type { BlockDef, BlockRow, RenderCtx } from './blocks.ts'
 import { DAYS, openNow, TZ } from './blocks-business.ts'
 import { WA_BLOCK } from './wa-request.ts'
 import { CATALOG_BLOCKS } from './blocks-catalog.ts'
+import { SALUD_BLOCKS, saludTarget } from './blocks-salud.ts'
 
 const s = (v: unknown): string => (typeof v === 'string' ? v : '')
 const rows = (b: BlockRow, name: string): Record<string, unknown>[] => (Array.isArray(b.data[name]) ? (b.data[name] as Record<string, unknown>[]) : [])
@@ -58,6 +59,8 @@ function panelUrl(a: Record<string, unknown>, wa: string): string | null {
 
 /** Destino de un clic en `/_/c/:id?to=` para los bloques de minisitio */
 export function msTarget(b: BlockRow, to: string | undefined, wa: string): string | null {
+  if (b.type === 'profile') return to === 'verif' && /^https?:\/\//.test(s(b.data.enlace_verificacion)) ? s(b.data.enlace_verificacion) : null
+  if (b.type === 'category_grid' || b.type === 'photo_cards' || b.type === 'video_carousel') return saludTarget(b, to)
   if (b.type === 'action_panel') {
     const a = to !== undefined && /^\d{1,2}$/.test(to) ? rows(b, 'acciones')[Number(to)] : undefined
     return a ? panelUrl(a, wa) : null
@@ -179,6 +182,7 @@ const HOUR_COLS = [
 export const MS_BLOCKS: BlockDef[] = [
   WA_BLOCK,
   ...CATALOG_BLOCKS,
+  ...SALUD_BLOCKS,
   {
     type: 'hero',
     group: 'site',
