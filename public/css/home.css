@@ -11,7 +11,7 @@ img, svg { display: block; }
 .saltar:focus { top: 8px; }
 
 /* contenedor: 16 px de lado en móvil, máx 1120 */
-.cab-in, .hero, .pasos, .funciones, .privacidad, .planes, .libre, .faq, .cierre, .pie-in {
+.cab-in, .hero, .pasos, .funciones, .privacidad, .planes, .libre, .faq, .cierre, .pie-in, .ejemplos, .incluye, .giros, .asist-page, .gp-otros {
 	width: 100%; max-width: 1152px; margin-inline: auto; padding-inline: 16px;
 }
 
@@ -95,7 +95,7 @@ img, svg { display: block; }
 
 /* secciones */
 section > h2, .f-txt h2, .privacidad h2 { font: 700 clamp(28px, 6.4vw, 40px)/1.1 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
-.pasos, .funciones, .privacidad, .planes, .libre, .faq { padding-top: 56px; padding-bottom: 56px; border-top: 1px solid var(--line); }
+.pasos, .funciones, .privacidad, .planes, .libre, .faq, .ejemplos, .incluye, .giros, .gp-otros { padding-top: 56px; padding-bottom: 56px; border-top: 1px solid var(--line); }
 .pasos ol { display: flex; flex-direction: column; margin-top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
 .pasos li { display: flex; gap: 14px; align-items: flex-start; padding: 16px; border-top: 1px solid var(--line); }
 .pasos li:first-child { border-top: 0; }
@@ -161,7 +161,7 @@ section > h2, .f-txt h2, .privacidad h2 { font: 700 clamp(28px, 6.4vw, 40px)/1.1
 
 /* tableta */
 @media (min-width: 768px) {
-	.cab-in, .hero, .pasos, .funciones, .privacidad, .planes, .libre, .faq, .cierre, .pie-in { padding-inline: 32px; }
+	.cab-in, .hero, .pasos, .funciones, .privacidad, .planes, .libre, .faq, .cierre, .pie-in, .ejemplos, .incluye, .giros, .asist-page, .gp-otros { padding-inline: 32px; }
 	.cab-nav { display: flex; gap: 4px; margin-right: 8px; }
 	.cab-nav a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; font-size: 15px; text-decoration: none; color: var(--ink2); }
 	.cab-nav a:hover { color: var(--ink); }
@@ -188,3 +188,85 @@ section > h2, .f-txt h2, .privacidad h2 { font: 700 clamp(28px, 6.4vw, 40px)/1.1
 .flash, .flash-ok { margin: 12px auto; max-width: 1120px; padding: 12px 16px; border-radius: var(--r-md); background: var(--soft); color: var(--ink); font-size: 15px; }
 .error { color: #A3291C; font-size: 15px; margin: 8px 0 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- minisitios por giro (PLAN-HELLOLINK §4) ---- */
+.cab-wa { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-size: 15px; font-weight: 600; color: var(--accent-on-soft, var(--accent)); text-decoration: none; }
+.cab-wa span:not(.sr-only) { display: none; }
+@media (min-width: 480px) { .cab-wa span:not(.sr-only) { display: inline; } }
+.r-asist { font-weight: 600; text-decoration: none; }
+.chips { border: 0; padding: 0; margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.chips .r-l { width: 100%; padding: 0; float: none; margin-bottom: 4px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); font: 600 15px/1.2 var(--f-body); cursor: pointer; }
+.chip input:checked + label { background: var(--accent); border-color: var(--accent); color: var(--onaccent); }
+.chip input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.demo-l { position: absolute; left: 0; right: 0; top: -28px; text-align: center; font-size: 14px; font-weight: 600; color: var(--ink2); }
+.demo { margin-top: 28px; }
+.dg { display: none; }
+.dg-restaurante, .dg.solo { display: block; }
+.hero:has(input[name=giro]:checked:not(#g-restaurante)) .dg-restaurante { display: none; }
+.hero:has(#g-belleza:checked) .dg-belleza, .hero:has(#g-salud:checked) .dg-salud, .hero:has(#g-inmobiliaria:checked) .dg-inmobiliaria,
+.hero:has(#g-fitness:checked) .dg-fitness, .hero:has(#g-servicios:checked) .dg-servicios { display: block; }
+.pb { position: relative; padding-top: 112px; }
+.pb-cov { position: absolute; inset: 0 0 auto 0; height: 128px; background: linear-gradient(160deg, var(--c1), var(--c2)); }
+.pb-av { position: relative; margin-top: -36px; box-shadow: 0 0 0 4px var(--bg); }
+.pb-btn.alt { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line); }
+
+.p-sub { max-width: 40em; }
+.ejs { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 2px 16px; margin-top: 20px; -webkit-overflow-scrolling: touch; }
+.ej { flex: none; width: 200px; min-height: 264px; scroll-snap-align: start; border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; color: #fff; text-decoration: none;
+	background: linear-gradient(to top, rgba(0, 0, 0, .62), rgba(0, 0, 0, .1) 65%), linear-gradient(160deg, var(--c1), var(--c2)); }
+.ej b { font-size: 20px; line-height: 1.15; }
+.ej-g { font-size: 14px; font-weight: 600; opacity: .92; }
+.ej-go { font-size: 15px; font-weight: 700; margin-top: 8px; }
+.ej:focus-visible { outline-color: var(--ink); }
+@media (hover: hover) { .ej:hover { filter: brightness(1.08); } }
+
+.asist { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; padding: 20px; background: var(--soft); border-radius: var(--r-lg); }
+.asist h3 { font-size: 20px; }
+.asist p { color: var(--ink2); margin-top: 4px; max-width: 36em; }
+@media (min-width: 768px) { .asist { flex-direction: row; align-items: center; justify-content: space-between; } }
+
+.checks { display: grid; gap: 4px 32px; margin-top: 20px; }
+.checks li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); font-size: 17px; }
+.checks .ic { flex: none; color: var(--accent); margin-top: 2px; }
+@media (min-width: 768px) { .checks { grid-template-columns: 1fr 1fr; } }
+
+.giro-cards { display: grid; gap: 16px; margin-top: 24px; }
+.giro-card { display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.giro-card h3 { font-size: 20px; }
+.giro-card ul { display: flex; flex-direction: column; gap: 8px; }
+.giro-card li { display: flex; gap: 8px; font-size: 15px; color: var(--ink2); }
+.giro-card .ic { flex: none; color: var(--accent); margin-top: 3px; }
+.giro-card > a { margin-top: auto; min-height: 44px; display: inline-flex; align-items: center; font-weight: 700; color: var(--accent-on-soft, var(--accent)); text-underline-offset: 3px; }
+@media (min-width: 768px) { .giro-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1080px) { .giro-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.cierre-b { display: flex; flex-wrap: wrap; gap: 12px; }
+.barra-m { position: fixed; inset: auto 0 0 0; z-index: 15; display: flex; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
+.barra-m .btn { flex: 1; }
+@media (max-width: 767px) { body.con-barra { padding-bottom: 76px; } }
+@media (min-width: 768px) { .barra-m { display: none; } }
+
+/* página de un giro */
+.gp-otros h2 { font: 700 clamp(24px, 5vw, 30px)/1.15 var(--f-display); }
+.gp-otros ul { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.gp-otros a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); text-decoration: none; font-weight: 600; font-size: 15px; }
+.gp-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+/* «lo armamos por ti» */
+.asist-page { padding-top: 40px; padding-bottom: 64px; max-width: 720px; }
+.asist-page h1 { font: 700 clamp(30px, 7vw, 44px)/1.08 var(--f-display); letter-spacing: -.02em; }
+.asist-page .lead { margin-bottom: 24px; }
+.f-asist { display: grid; gap: 16px; }
+.f-asist label { display: block; font-weight: 600; margin-bottom: 6px; }
+.f-asist input, .f-asist select, .f-asist textarea { width: 100%; min-height: 48px; padding: 10px 14px; font: 400 16px var(--f-body); color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r-md); }
+.f-asist textarea { min-height: 120px; resize: vertical; }
+.f-asist input:focus-visible, .f-asist select:focus-visible, .f-asist textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.f-asist .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.f-asist .hint { font-size: 14px; color: var(--ink2); }
+.f-asist .error { margin: 6px 0 0; }
+.asist-ok { padding: 24px; background: var(--soft); border-radius: var(--r-lg); }
+.asist-ok h1 { font-size: clamp(26px, 6vw, 36px); }

@@ -19,6 +19,7 @@ ${claim ? html`<p class="${claim.error ? 'claim-bad' : 'claim-ok'}" role="status
 <form method="post" action="/register" novalidate${powAttr(pow)}>
   ${csrfField(ctx)}
   ${claim && !claim.error ? html`<input type="hidden" name="claim" value="${claim.alias}">` : ''}
+  ${values.giro ? html`<input type="hidden" name="giro" value="${values.giro}">` : ''}
   ${errors._form ? html`<p class="error" role="alert">${t(errors._form)}</p>` : ''}
   ${input({ ctx, name: 'name', label: t('auth.name'), value: values.name, error: errors.name, autocomplete: 'name', maxlength: 80 })}
   ${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: values.email, error: errors.email, required: true, autocomplete: 'email' })}

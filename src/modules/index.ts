@@ -11,6 +11,7 @@ import { registerMinisitio } from './minisitio/routes.ts'
 import { registerWaRequest } from './capture/wa.ts'
 import { registerCapture } from './capture/routes.ts'
 import { registerDomains } from './domains/routes.ts'
+import { registerAssisted } from './home/assisted.ts'
 import { registerHome } from './home/routes.ts'
 import { registerLegal } from './legal/routes.ts'
 import { registerLinks } from './links/routes.ts'
@@ -34,6 +35,7 @@ import { registerTeam } from './team/routes.ts'
 /** Orden importa: el resolvedor público /:alias va al final. */
 export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerHome(app, deps)
+  registerAssisted(app, deps)
   registerLegal(app, deps)
   registerSite(app, deps)
   registerGrowth(app, deps)

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
+import type { DB } from '../../db/index.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
 import { html } from '../../lib/html.ts'
 import { readMultipart, storeImage, UploadError } from '../../lib/uploads.ts'
@@ -12,6 +13,7 @@ import { field } from '../../web/forms.ts'
 import { actorOf } from '../auth/routes.ts'
 import { defaultBioData, themeById } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
+import { applyGiro, GIROS, GIRO_META, isGiro } from '../minisitio/giros.ts'
 import { normalizeSocial } from '../bio/socials.ts'
 import { aliasTaken, createLink, getOwnLink, linkUrl } from '../links/repo.ts'
 import { dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
@@ -33,6 +35,14 @@ ${opts.full ? html`<p class="flash flash-error" role="alert">${t('err.plan_bio_p
 ${opts.errors._form ? html`<p class="flash flash-error" role="alert">${t(opts.errors._form)}</p>` : ''}
 <form method="post" action="/panel/start?_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate class="start">
   <fieldset class="start-step"><legend><span class="p-n">1</span> ${t('start.s1')}</legend>
+    <p class="start-group">${t('start.group_biz')}</p>
+    <div class="start-tpls">
+      ${GIROS.map((g) => {
+        const th = themeById(GIRO_META[g].theme)
+        return html`<label class="start-tpl"><input type="radio" name="tpl" value="giro:${g}"${v.tpl === `giro:${g}` ? html` checked` : ''}><span class="tpl-sw" style="background:${th.bg}" aria-hidden="true"><span style="background:${th.btnBg}"></span><span style="background:${th.btnBg}"></span><span style="background:${th.btnBg}"></span></span><span>${t(`giro.${g}`)}</span></label>`
+      })}
+    </div>
+    <p class="start-group">${t('start.group_links')}</p>
     <div class="start-tpls">
       ${opts.tpls.map((tp) => {
         const th = themeById(tp.theme)
@@ -47,6 +57,7 @@ ${opts.errors._form ? html`<p class="flash flash-error" role="alert">${t(opts.er
       ${opts.errors.alias ? html`<p class="error" id="st-alias-e">${t(opts.errors.alias)}</p>` : ''}</div>
     ${input({ ctx, name: 'name', label: t('start.name'), value: v.name, required: true, maxlength: 120, error: opts.errors.name, autocomplete: 'organization' })}
     ${input({ ctx, name: 'whatsapp', type: 'tel', label: t('start.whatsapp'), value: v.whatsapp, hint: t('start.whatsapp_hint'), error: opts.errors.whatsapp, inputmode: 'tel', autocomplete: 'tel' })}
+    ${input({ ctx, name: 'address', label: t('start.address'), value: v.address, hint: t('start.address_hint'), error: opts.errors.address, maxlength: 160, autocomplete: 'street-address' })}
     ${input({ ctx, name: 'instagram', label: 'Instagram', value: v.instagram, placeholder: '@tunegocio', error: opts.errors.instagram, autocomplete: 'off' })}
     ${input({ ctx, name: 'photo', type: 'file', label: t('start.photo'), hint: t('start.photo_hint'), error: opts.errors.photo, accept: 'image/png,image/jpeg,image/webp' })}
   </fieldset>
@@ -55,7 +66,12 @@ ${opts.errors._form ? html`<p class="flash flash-error" role="alert">${t(opts.er
   })
 }
 
-function donePage(ctx: Ctx, opts: { id: number; url: string; name: string }) {
+/** Primera sección de la portada de un sitio recién armado (ahí van las redes) */
+function firstSectionId(db: DB, linkId: number): number | null {
+  return (db.prepare('SELECT s.id FROM ms_sections s JOIN ms_pages p ON p.id = s.page_id WHERE p.link_id = ? ORDER BY p.position, s.position LIMIT 1').pluck().get(linkId) as number | undefined) ?? null
+}
+
+function donePage(ctx: Ctx, opts: { id: number; url: string; name: string; site?: boolean }) {
   const { t } = ctx
   const share = `https://wa.me/?text=${encodeURIComponent(`${opts.name}: ${opts.url}`)}`
   return panelLayout(ctx, {
@@ -68,9 +84,9 @@ function donePage(ctx: Ctx, opts: { id: number; url: string; name: string }) {
   <button type="button" class="btn btn-primary btn-lg" data-copy="${opts.url}" data-copied="${t('links.copied')}">${icon('copy')} ${t('links.copy')}</button>
   <a class="btn btn-lg" href="${share}" target="_blank" rel="noopener">${icon('chat')} ${t('start.share_wa')}</a>
   <a class="btn btn-lg" href="/panel/qr/new?link=${opts.id}">${icon('qr')} ${t('start.qr')}</a>
-  <a class="btn btn-lg" href="/panel/links/${opts.id}/blocks">${icon('edit')} ${t('start.keep_editing')}</a>
+  <a class="btn btn-lg" href="${opts.site ? `/panel/links/${opts.id}/site` : `/panel/links/${opts.id}/blocks`}">${icon('edit')} ${t('start.keep_editing')}</a>
 </div>
-<p class="hint">${t('start.done_hint')}</p></section>`,
+<p class="hint">${opts.site ? t('start.done_site_hint') : t('start.done_hint')}</p></section>`,
   })
 }
 
@@ -81,9 +97,10 @@ export function registerStart(app: FastifyInstance, deps: AppDeps): void {
 
   app.get('/panel/start', { preHandler: userGuard }, async (req, reply) => {
     const u = req.ctx.user as User
-    const q = req.query as { alias?: string }
+    const q = req.query as { alias?: string; giro?: string }
     const alias = normalizeAlias(String(q.alias ?? '')).slice(0, 60)
-    return sendHtml(reply, startPage(req.ctx, { tpls: tpls(u), values: { alias: aliasError(alias) ? '' : alias, name: u.name ?? '' }, errors: {}, full: full(u) }))
+    const giro = isGiro(q.giro) ? `giro:${q.giro}` : ''
+    return sendHtml(reply, startPage(req.ctx, { tpls: tpls(u), values: { alias: aliasError(alias) ? '' : alias, name: u.name ?? '', tpl: giro }, errors: {}, full: full(u) }))
   })
 
   app.post('/panel/start', { preHandler: userGuard, config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } }, async (req, reply) => {
@@ -96,7 +113,7 @@ export function registerStart(app: FastifyInstance, deps: AppDeps): void {
       throw e
     }
     const f = (k: string) => field(mp.fields, k).trim()
-    const values = { tpl: f('tpl'), alias: f('alias'), name: f('name').slice(0, 120), whatsapp: f('whatsapp'), instagram: f('instagram') }
+    const values = { tpl: f('tpl'), alias: f('alias'), name: f('name').slice(0, 120), whatsapp: f('whatsapp'), instagram: f('instagram'), address: f('address').slice(0, 160) }
     const errors: Record<string, string> = {}
     if (full(u)) return sendHtml(reply, startPage(req.ctx, { tpls: tpls(u), values, errors: {}, full: true }), 402)
     if (dailyCapHit(db, u, deps.now())) errors._form = 'err.daily_cap'
@@ -120,8 +137,21 @@ export function registerStart(app: FastifyInstance, deps: AppDeps): void {
     }
     if (Object.keys(errors).length) return sendHtml(reply, startPage(req.ctx, { tpls: tpls(u), values, errors }), 422)
 
-    const tp = values.tpl ? getUsableTemplate(db, Number(values.tpl), u.id) : undefined
+    const giro = values.tpl.startsWith('giro:') && isGiro(values.tpl.slice(5)) ? (values.tpl.slice(5) as (typeof GIROS)[number]) : null
+    const tp = values.tpl && !giro ? getUsableTemplate(db, Number(values.tpl), u.id) : undefined
     const now = deps.now()
+    if (giro) {
+      // minisitio completo del giro elegido; lo escrito en el asistente reemplaza lo de ejemplo
+      const meta = GIRO_META[giro]
+      const id = db.transaction(() => {
+        const link = createLink(db, u.id, { kind: 'bio', alias, title: values.name, target_url: null, redirect_code: 302, data: { ...defaultBioData(values.name, u.name, meta.theme), seo_title: values.name, category: meta.category }, is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false, project_id: null }, now)
+        applyGiro(db, link.id, giro, { name: values.name, whatsapp: waNum, address: values.address, logo: photoKey }, now)
+        if (ig) createBlock(db, link.id, { type: 'socials', is_enabled: true, starts_at: null, ends_at: null, data: { links: { instagram: ig }, colored: false, size: 'md' }, style: {} }, now, firstSectionId(db, link.id))
+        return link.id
+      })()
+      audit(db, { actorId: actorOf(req), userId: u.id, action: 'link.create', target: `link:${id}`, meta: { kind: 'bio', start: true, giro } }, now)
+      return reply.redirect(`/panel/start/done?id=${id}&site=1`, 303)
+    }
     const lim = limitsOf(db, u, now)
     const design = tp ? { ...tp.design } : defaultBioData(values.name, u.name, getSetting(db, 'default_theme'))
     let blocks: TemplateBlock[] = tp ? tp.blocks.map((b) => ({ ...b, data: { ...b.data } })) : []
@@ -159,6 +189,6 @@ export function registerStart(app: FastifyInstance, deps: AppDeps): void {
     const u = req.ctx.user as User
     const link = getOwnLink(db, Number((req.query as { id?: string }).id), u.id)
     if (!link) return reply.redirect('/panel', 303)
-    return sendHtml(reply, donePage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), name: link.title || link.alias }))
+    return sendHtml(reply, donePage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), name: link.title || link.alias, site: (req.query as { site?: string }).site === '1' }))
   })
 }

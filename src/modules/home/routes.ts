@@ -6,6 +6,8 @@ import { isLocale } from '../../lib/i18n.ts'
 import { cookieOpts, LANG_COOKIE, powOk, safeNext, sendHtml } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { getSetting } from '../settings/repo.ts'
+import { GIROS, GIRO_META } from '../minisitio/giros.ts'
+import { giroPage } from './giro-page.ts'
 import { landingPage } from './landing.ts'
 import { footerPages } from '../site/routes.ts'
 import { updateUser } from '../users/repo.ts'
@@ -22,12 +24,21 @@ export function registerHome(app: FastifyInstance, deps: AppDeps): void {
       return l && l.domain_id === req.ctx.domainId ? reply.redirect(`/${l.alias}`, 302) : reply.callNotFound()
     }
     const joined = (req.query as { joined?: string }).joined === '1'
-    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL, pages: footerPages(deps, req.ctx.locale), foundersLeft: getSetting(deps.db, 'founders_open') ? foundersLeft(deps) : 0, plans: listPlans(deps.db, true) }))
+    return sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), joined, sourceUrl: SOURCE_URL, pages: footerPages(deps, req.ctx.locale), salesWhatsapp: getSetting(deps.db, 'sales_whatsapp'), foundersLeft: getSetting(deps.db, 'founders_open') ? foundersLeft(deps) : 0, plans: listPlans(deps.db, true) }))
   })
+
+  // páginas por giro: /restaurantes, /belleza, /salud…
+  for (const g of GIROS) {
+    const slug = GIRO_META[g].slug
+    app.get(`/${slug}`, async (req, reply) => {
+      if (req.ctx.domainId) return reply.callNotFound() // en dominios propios la ruta es de la persona
+      return sendHtml(reply, giroPage(req.ctx, g, { registrationOpen: getSetting(deps.db, 'registration_open'), pages: footerPages(deps, req.ctx.locale), salesWhatsapp: getSetting(deps.db, 'sales_whatsapp') }))
+    })
+  }
 
   app.post('/waitlist', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {
     const page = (error: string) =>
-      sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), error, sourceUrl: SOURCE_URL, plans: listPlans(deps.db, true) }), 422)
+      sendHtml(reply, landingPage(req.ctx, { registrationOpen: getSetting(deps.db, 'registration_open'), error, sourceUrl: SOURCE_URL, plans: listPlans(deps.db, true), salesWhatsapp: getSetting(deps.db, 'sales_whatsapp') }), 422)
     if (!powOk(deps, req.body)) return page('err.pow')
     const email = field(req.body, 'email').trim().toLowerCase()
     if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return page('err.email')

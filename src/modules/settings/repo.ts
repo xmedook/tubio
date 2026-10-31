@@ -23,6 +23,8 @@ export const SETTING_DEFAULTS = {
   founders_max: 100,
   founders_plan: 'business',
   founders_days: 365,
+  /** WhatsApp de ventas de tubio (E.164 sin +): botón de la portada; vacío = sin botón */
+  sales_whatsapp: '',
 }
 export type Settings = typeof SETTING_DEFAULTS
 export type SettingKey = keyof Settings
