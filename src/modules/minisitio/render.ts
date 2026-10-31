@@ -78,6 +78,8 @@ type BodyArgs = {
   alias: string
   /** nombre mostrado cuando la cabecera no trae uno */
   title: string
+  /** secciones a pintar en lugar de las del sitio (ficha de propiedad, que no es una página guardada) */
+  sections?: MsSection[]
   /** bloques visibles de la página, ya filtrados por plan, agrupados por sección */
   grouped: Map<number, BlockRow[]>
   renderBlock: (b: BlockRow, i: number) => SafeHtml
@@ -88,7 +90,7 @@ type BodyArgs = {
 export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bottom: SafeHtml; hasBar: boolean; hasDock: boolean } {
   const { t, site, page, alias, title } = a
   const c = site.config
-  const sections = sectionsOf(site, page.id).filter((s) => s.is_enabled && (a.grouped.get(s.id)?.length || !s.data.classic || s.data.titulo))
+  const sections = (a.sections ?? sectionsOf(site, page.id)).filter((s) => s.is_enabled && (a.grouped.get(s.id)?.length || !s.data.classic || s.data.titulo))
   const home = pageHref(alias, homePage(site).slug)
 
   // navegación de la cabecera

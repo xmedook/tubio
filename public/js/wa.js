@@ -66,8 +66,9 @@ for (const root of document.querySelectorAll('[data-wa]')) {
   })
   root.addEventListener('tb:wa-open', (e) => {
     const d = e.detail ?? {}
-    // el servicio puede ser «servicio» (cita) o «programa» (clase muestra)
-    show(d.servicio ? (form.querySelector('[name="servicio"]') ? { servicio: d.servicio } : { programa: d.servicio }) : undefined)
+    // el valor puede ser un «servicio» (cita), un «programa» (clase muestra) o una «propiedad» (visita)
+    const campo = ['servicio', 'programa', 'propiedad'].find((k) => form.querySelector(`[name="${k}"]`))
+    show(d.servicio && campo ? { [campo]: d.servicio } : undefined)
   })
   form.addEventListener('input', () => {
     touched = true

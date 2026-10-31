@@ -22,6 +22,7 @@
     "seed-wa": "node src/cli/seed-wa.ts",
     "seed-catalog": "node src/cli/seed-catalog.ts",
     "seed-salud": "node src/cli/seed-salud.ts",
+    "seed-inmueble": "node src/cli/seed-inmueble.ts",
     "backup-db": "node src/cli/backup-db.ts",
     "a11y": "node scripts/a11y.ts",
     "mobile-audit": "node scripts/mobile-audit.ts"

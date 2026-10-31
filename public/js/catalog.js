@@ -174,9 +174,46 @@ for (const root of document.querySelectorAll('[data-mnu][data-cart]')) {
 document.addEventListener('click', (e) => {
   const b = e.target instanceof Element ? e.target.closest('[data-wa-book]') : null
   if (!b) return
-  const wa = document.querySelector('[data-wa][data-preset="cita"]') ?? document.querySelector('[data-wa][data-preset="clase"]') ?? document.querySelector('[data-wa]')
+  const pref = b.dataset.waPref ? document.querySelector(`[data-wa][data-preset="${b.dataset.waPref}"]`) : null
+  const wa = pref ?? document.querySelector('[data-wa][data-preset="cita"]') ?? document.querySelector('[data-wa][data-preset="clase"]') ?? document.querySelector('[data-wa][data-preset="visita"]') ?? document.querySelector('[data-wa]')
   if (wa) wa.dispatchEvent(new CustomEvent('tb:wa-open', { detail: { servicio: b.dataset.waBook } }))
 })
+
+// ------------------------------------------------------------ propiedades: filtros en el navegador (sin JS se ven todas)
+for (const root of document.querySelectorAll('[data-prl]')) {
+  const f = root.querySelector('[data-prl-f]')
+  if (!f) continue
+  f.hidden = false
+  const n = root.querySelector('[data-prl-n]')
+  const apply = () => {
+    const op = f.elements.op?.value ?? ''
+    const tipo = f.elements.tipo?.value ?? ''
+    const rec = Number(f.elements.rec?.value || 0)
+    let shown = 0
+    for (const li of root.querySelectorAll('[data-pr]')) {
+      const ok = (!op || li.dataset.op === op) && (!tipo || li.dataset.tipo === tipo) && Number(li.dataset.rec) >= rec
+      li.hidden = !ok
+      if (ok) shown++
+    }
+    n.textContent = `${shown} / ${root.querySelectorAll('[data-pr]').length}`
+  }
+  f.addEventListener('change', apply)
+  f.addEventListener('submit', (e) => e.preventDefault())
+  apply()
+}
+
+// ------------------------------------------------------------ horario de clases: primero el día de hoy (el resto en orden)
+for (const root of document.querySelectorAll('[data-sch]')) {
+  const today = (new Date().getDay() + 6) % 7 // lunes = 0
+  for (const d of root.querySelectorAll('[data-day]')) {
+    const day = Number(d.dataset.day)
+    d.style.order = String((day - today + 7) % 7)
+    if (day === today) {
+      d.classList.add('is-today')
+      d.querySelector('.sch-today')?.removeAttribute('hidden')
+    }
+  }
+}
 
 // ------------------------------------------------------------ menú en PDF: visor a pantalla completa
 for (const root of document.querySelectorAll('[data-mpdf]')) {

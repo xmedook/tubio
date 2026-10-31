@@ -17,6 +17,8 @@ import { FONTS, fontFaceCss, readDesign, themeById, type Design, type FontId } f
 import { EMBED_ORIGINS } from './embeds.ts'
 import { listBlocks } from './repo.ts'
 import { groupBlocks, isClassic, loadSite, pageBySlug, sectionsOf } from '../minisitio/repo.ts'
+import { findProperty } from './blocks-inmueble.ts'
+import { sectionDataSchema } from '../minisitio/schema.ts'
 import { renderSiteBody, siteCss } from '../minisitio/render.ts'
 
 const WIDTH = { narrow: '420px', normal: '560px', wide: '720px' }
@@ -128,10 +130,20 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   // minisitio: sitio con páginas y secciones; una bio sin filas de sitio (o sin nada añadido) sale idéntica a siempre
   const site = override ? null : loadSite(deps.db, link.id)
   const classic = !site || isClassic(site)
-  const page = site && !classic ? pageBySlug(site, pageSlug) : undefined
-  if ((classic && pageSlug) || (!classic && (!page || !page.is_enabled))) return reply.callNotFound()
-  const grouped = site && page ? groupBlocks(site, visible) : null
-  const pageSections = site && page ? sectionsOf(site, page.id).filter((s) => s.is_enabled) : []
+  // ficha de propiedad: /<alias>/propiedad/<n> (página automática; vale también en un sitio «clásico»)
+  const propN = /^propiedad\/(\d{1,2})$/.exec(pageSlug)?.[1]
+  const found = propN && site ? findProperty(deps.db, link.id, Number(propN)) : null
+  if (propN && !found) return reply.callNotFound()
+  const detailSection = { id: -1, page_id: -1, position: 0, is_enabled: 1, data: sectionDataSchema.parse({ ancho: 'normal' }) }
+  const page = found
+    ? { id: -1, link_id: link.id, slug: pageSlug, title: found.prop.titulo, position: 0, is_enabled: 1, data: { seo_title: `${found.prop.titulo} · ${link.title || link.alias}`.slice(0, 70), seo_description: (found.prop.desc || found.prop.titulo).slice(0, 200), seo_image: found.prop.fotos[0] ?? null } }
+    : site && !classic ? pageBySlug(site, pageSlug) : undefined
+  if (!found && ((classic && pageSlug) || (!classic && (!page || !page.is_enabled)))) return reply.callNotFound()
+  const detailBlock: BlockRow | null = found
+    ? { id: -1, link_id: link.id, section_id: -1, type: 'listing_detail', position: 0, is_enabled: 1, starts_at: null, ends_at: null, data: { ...found.prop, back: found.backSlug, wa: (found.block.data.numero ? String(found.block.data.numero).replace(/\D/g, '') : '') || (site?.config.whatsapp ?? '') }, style: {}, clicks: 0, created_at: 0, updated_at: 0 }
+    : null
+  const grouped = detailBlock ? new Map([[-1, [detailBlock]]]) : site && page ? groupBlocks(site, visible) : null
+  const pageSections = detailBlock ? [detailSection] : site && page ? sectionsOf(site, page.id).filter((s) => s.is_enabled) : []
   const blocks = grouped ? pageSections.flatMap((s) => grouped.get(s.id) ?? []) : visible
   const host = new URL(deps.config.baseUrl).hostname
   const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
@@ -160,7 +172,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
     : ''
   const reportHtml = html`<p class="report"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a> · <a href="/terms" rel="nofollow">${t('legal.terms')}</a> · <a href="/privacy" rel="nofollow">${t('legal.privacy')}</a></p>`
   const usesSiteBlocks = blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'site')
-  const sb = site && page ? renderSiteBody({ t, site, page, alias: link.alias, title: link.title || link.alias, grouped: grouped as Map<number, BlockRow[]>, renderBlock, legal: html`${madeHtml}${reportHtml}` }) : null
+  const sb = site && page ? renderSiteBody({ t, site, page, alias: link.alias, title: link.title || link.alias, grouped: grouped as Map<number, BlockRow[]>, sections: detailBlock ? [detailSection] : undefined, renderBlock, legal: html`${madeHtml}${reportHtml}` }) : null
 
   const doc: SafeHtml = html`<html lang="${d.lang || locale}">
 <head>
@@ -185,7 +197,7 @@ ${d.pwa && !link.password_hash ? html`<link rel="manifest" href="/_/pwa/${link.a
 ${sb || usesSiteBlocks ? html`<script type="module" src="/_/static/js/site.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => b.type === 'wa_request') ? html`<script type="module" src="/_/static/js/wa.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => b.type === 'video_carousel') ? html`<script type="module" src="/_/static/js/salud.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
-${blocks.some((b) => b.type === 'menu' || b.type === 'services' || b.type === 'menu_pdf') ? html`<script type="module" src="/_/static/js/catalog.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
+${blocks.some((b) => ['menu', 'services', 'menu_pdf', 'listings', 'class_schedule', 'programs'].includes(b.type)) ? html`<script type="module" src="/_/static/js/catalog.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </head>
 <body class="bio al-${d.align} anim-${d.animation} hov-${d.hover}${d.bg_type === 'image' && d.bg_image ? ' has-bg-img' : ''}${sb ? ` ms${sb.hasBar ? ' has-bar' : ''}${sb.hasDock ? ' has-dock' : ''}` : ''}"${sb ? html` data-title="${title}" data-url="${url}" data-copied="${t('links.copied')}"` : ''}>

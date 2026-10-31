@@ -7,6 +7,7 @@ import { DAYS, openNow, TZ } from './blocks-business.ts'
 import { WA_BLOCK } from './wa-request.ts'
 import { CATALOG_BLOCKS } from './blocks-catalog.ts'
 import { SALUD_BLOCKS, saludTarget } from './blocks-salud.ts'
+import { INMUEBLE_BLOCKS } from './blocks-inmueble.ts'
 
 const s = (v: unknown): string => (typeof v === 'string' ? v : '')
 const rows = (b: BlockRow, name: string): Record<string, unknown>[] => (Array.isArray(b.data[name]) ? (b.data[name] as Record<string, unknown>[]) : [])
@@ -183,6 +184,7 @@ export const MS_BLOCKS: BlockDef[] = [
   WA_BLOCK,
   ...CATALOG_BLOCKS,
   ...SALUD_BLOCKS,
+  ...INMUEBLE_BLOCKS,
   {
     type: 'hero',
     group: 'site',

@@ -98,7 +98,7 @@ ${viewToggle(ctx)}
       <div class="add-sheet">
       <p class="sheet-title">${t('bio.add_block')}</p>
       ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : html`<div class="field pick-search"><label class="sr-only" for="pick-q">${t('bio.search_blocks')}</label><input id="pick-q" type="search" placeholder="${t('bio.search_blocks')}" data-pick-search autocomplete="off"></div>${GROUPS.map(
-        (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
+        (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g && !b.hidden).map(
           (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="tipo-ic" aria-hidden="true">${icon(blockIcon(b.type, b.group))}</span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
         )}</div>`,
       )}`}

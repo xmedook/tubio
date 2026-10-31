@@ -93,6 +93,8 @@ export type RenderCtx = {
 
 export type BlockDef = {
   type: string
+  /** no sale en el selector de «Añadir bloque» (bloques internos, como la ficha de propiedad) */
+  hidden?: boolean
   group: 'basic' | 'social' | 'media' | 'business' | 'capture' | 'site'
   fields: FieldSpec[]
   /** ¿El bloque es un enlace que cuenta clics? */

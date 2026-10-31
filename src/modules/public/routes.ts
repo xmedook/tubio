@@ -185,7 +185,7 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
     if (link?.kind === 'bio') {
       const slug = (rest ?? '').replace(/\/+$/, '')
       if (!slug) return reply.redirect(`/${link.alias}`, 301)
-      if (!SLUG_RE.test(slug)) return reply.callNotFound()
+      if (!SLUG_RE.test(slug) && !/^propiedad\/\d{1,2}$/.test(slug)) return reply.callNotFound()
       if (!(await gate(req, reply, link))) return reply
       reply.header('Cache-Control', 'private, no-store')
       reply.header('X-Robots-Tag', readNoindex(link) ? 'noindex' : 'all')
