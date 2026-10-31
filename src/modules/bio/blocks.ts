@@ -24,6 +24,8 @@ import { EMBED_BLOCKS } from './blocks-embeds.ts'
 export type BlockRow = {
   id: number
   link_id: number
+  /** sección del minisitio; null = suelto (cae en la primera sección de inicio) */
+  section_id: number | null
   type: string
   position: number
   is_enabled: number

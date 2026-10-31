@@ -1,0 +1,70 @@
+/* tubio — minisitio: cabecera, secciones a todo el ancho, barra inferior y pie.
+   Se apoya en las variables del tema de bio.css (--bg, --text, --btn-*, --font*, --gap). Móvil primero. */
+body.ms { --ms-line: color-mix(in srgb, var(--text) 16%, transparent); --ms-pad: 1.1rem; --ms-w-angosto: 520px; --ms-w-normal: 760px; --ms-w-ancho: 1120px; --ms-bar-h: 0px; }
+body.ms.has-bar { --ms-bar-h: 64px; }
+body.ms.al-center .ms-in.al-izquierda { text-align: left; }
+
+/* ---- cabecera fija */
+.ms-bar { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: 1px solid var(--ms-line); -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px); padding-top: env(safe-area-inset-top); }
+.ms-bar-in { max-width: var(--ms-w-ancho); margin: 0 auto; padding: 0 var(--ms-pad); min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.ms-logo { display: inline-flex; align-items: center; gap: .6rem; min-height: 44px; color: var(--text); text-decoration: none; font: 700 1.15em/1.1 var(--font-h, var(--font)); letter-spacing: -.01em; }
+.ms-logo-img { height: 32px; width: auto; max-width: 140px; object-fit: contain; }
+.ms-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 1rem; border-radius: var(--btn-r); background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); font: 600 .92em/1 var(--font); text-decoration: none; white-space: nowrap; }
+.ms-nav { max-width: var(--ms-w-ancho); margin: 0 auto; padding: 0 calc(var(--ms-pad) - .6rem); display: flex; gap: .2rem; overflow-x: auto; scrollbar-width: none; border-top: 1px solid var(--ms-line); }
+.ms-nav::-webkit-scrollbar { display: none; }
+.ms-nav a { flex: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 .6rem; color: var(--text); text-decoration: none; font: 500 .9em/1 var(--font); border-bottom: 2px solid transparent; }
+.ms-nav a[aria-current="true"] { border-bottom-color: currentColor; font-weight: 700; }
+.ms-bar a:focus-visible, .ms-dock a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (min-width: 860px) {
+  .ms-bar-in { min-height: 72px; }
+  .ms-bar:has(.ms-nav) .ms-bar-in { display: grid; grid-template-columns: auto 1fr auto; }
+  .ms-bar:has(.ms-nav) .ms-nav { grid-column: 2; grid-row: 1; border-top: 0; justify-content: center; position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); height: 72px; pointer-events: none; }
+  .ms-bar:has(.ms-nav) .ms-nav a { pointer-events: auto; }
+}
+
+/* ---- secciones a todo el ancho */
+.ms-main { display: block; }
+.ms-sec { scroll-margin-top: calc(var(--ms-bar-h) + 12px); }
+.ms-fx { width: 100%; padding: 3rem 0; position: relative; isolation: isolate; }
+.has-veil .ms-fx::before { content: ""; position: absolute; inset: 0; background: var(--ms-veil, rgb(0 0 0 / 35%)); z-index: -1; }
+.alto-media .ms-fx, .alto-completa .ms-fx { display: flex; align-items: center; }
+.alto-media .ms-fx { min-height: 60vh; min-height: 60svh; }
+.alto-completa .ms-fx { min-height: 100vh; min-height: 100svh; }
+.ms-in { width: 100%; margin: 0 auto; padding: 0 var(--ms-pad); display: flex; flex-direction: column; gap: 1.6rem; min-width: 0; }
+.ms-in.w-angosto { max-width: calc(var(--ms-w-angosto) + 2 * var(--ms-pad)); }
+.ms-in.w-normal { max-width: calc(var(--ms-w-normal) + 2 * var(--ms-pad)); }
+.ms-in.w-ancho { max-width: calc(var(--ms-w-ancho) + 2 * var(--ms-pad)); }
+.ms-in.al-centro { text-align: center; }
+.ms-in.al-centro .ms-head { margin-inline: auto; }
+.ms-head { max-width: 46rem; display: flex; flex-direction: column; gap: .5rem; }
+.ms-k { margin: 0; font: 700 .72em/1.3 var(--font); letter-spacing: .14em; text-transform: uppercase; opacity: .78; }
+.ms-h { margin: 0; font: 700 clamp(1.7rem, 5.4vw, 2.6rem)/1.08 var(--font-h, var(--font)); letter-spacing: -.02em; text-wrap: balance; }
+.ms-sub { margin: 0; font-size: 1.05em; opacity: .85; }
+.ms-blocks { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
+.ms-blocks > .blk { min-width: 0; }
+@media (min-width: 760px) {
+  .ms-fx { padding: 4.5rem 0; }
+  .ms-blocks.cols-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .ms-blocks.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+}
+
+/* sección heredada de una bio de siempre: se ve igual que el .col de antes */
+.is-classic .ms-fx { padding: max(2.5rem, env(safe-area-inset-top)) 0 2rem; }
+.is-classic .ms-in { max-width: calc(var(--col) + 2 * var(--ms-pad)); }
+
+/* ---- barra de acción inferior (sólo móvil) */
+.ms-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: .5rem; padding: .6rem var(--ms-pad) calc(.6rem + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 95%, transparent); border-top: 1px solid var(--ms-line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.ms-act { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 48px; padding: 0 .6rem; border-radius: var(--btn-r); border: 1.5px solid var(--text); color: var(--text); background: transparent; font: 600 .9em/1.15 var(--font); text-decoration: none; }
+.ms-act.primary { background: var(--btn-bg); color: var(--btn-text); border: var(--btn-bw) var(--btn-bs) var(--btn-bc); }
+.ms-dock.n1 .ms-act { grid-column: 1 / -1; }
+body.has-dock .ms-foot { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 860px) { .ms-dock { display: none; } body.has-dock .ms-foot { padding-bottom: 2rem; } }
+
+/* ---- pie */
+.ms-foot { border-top: 1px solid var(--ms-line); padding: 2rem 0; text-align: center; font-size: .88em; }
+.ms-foot p { margin: 0 0 .5rem; }
+.ms-foot-s { font-weight: 700; }
+.ms-foot .made, .ms-foot .report { margin-top: .75rem; }
+
+body.has-bar .share-fab { top: calc(var(--ms-bar-h) + .6rem); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }

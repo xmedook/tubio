@@ -12,6 +12,7 @@ import { csrfField, input } from '../../views/ui.ts'
 import { cookieOpts, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import { renderBioPage } from '../bio/render.ts'
+import { SLUG_RE } from '../minisitio/schema.ts'
 import { chooseDestination, respondShort } from '../marketing/resolve.ts'
 import { limitsOf, ownerLimits } from '../plans/limits.ts'
 import { resolveSiteFile, SITE_CSP, SITE_MIME } from '../sites/site.ts'
@@ -180,6 +181,18 @@ export function registerPublic(app: FastifyInstance, deps: AppDeps): void {
   app.get('/:alias/*', async (req, reply) => {
     const { alias, '*': rest } = req.params as { alias: string; '*': string }
     const link = findByAlias(db, alias, req.ctx.domainId)
+    // minisitio: /<alias>/<pagina> es una página del sitio de una bio
+    if (link?.kind === 'bio') {
+      const slug = (rest ?? '').replace(/\/+$/, '')
+      if (!slug) return reply.redirect(`/${link.alias}`, 301)
+      if (!SLUG_RE.test(slug)) return reply.callNotFound()
+      if (!(await gate(req, reply, link))) return reply
+      reply.header('Cache-Control', 'private, no-store')
+      reply.header('X-Robots-Tag', readNoindex(link) ? 'noindex' : 'all')
+      const out = await renderBioPage(deps, req, reply, link, undefined, slug)
+      if (reply.statusCode === 200) count(req, link)
+      return out
+    }
     if (!link || link.kind !== 'file' || !link.data.site) return reply.callNotFound()
     if (!(await gate(req, reply, link))) return reply
     const file = findFile(deps, Number(link.data.file_id))

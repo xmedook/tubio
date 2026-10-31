@@ -130,7 +130,7 @@ ${pages > 1
 }
 
 /** Pestañas de un enlace (editor / ajustes / estadísticas) */
-export function linkTabs(ctx: Ctx, link: Link, active: 'blocks' | 'design' | 'settings' | 'stats'): SafeHtml {
+export function linkTabs(ctx: Ctx, link: Link, active: 'blocks' | 'site' | 'design' | 'settings' | 'stats'): SafeHtml {
   const { t } = ctx
   const tab = (key: typeof active, href: string, label: string) =>
     html`<a href="${href}"${key === active ? html` aria-current="page"` : ''}>${label}</a>`
@@ -141,6 +141,7 @@ export function linkTabs(ctx: Ctx, link: Link, active: 'blocks' | 'design' | 'se
 </div>
 <nav class="tabs" aria-label="${t('links.sections')}">
   ${link.kind === 'bio' ? tab('blocks', `/panel/links/${link.id}/blocks`, t('bio.blocks')) : ''}
+  ${link.kind === 'bio' ? tab('site', `/panel/links/${link.id}/site`, t('ms.tab')) : ''}
   ${link.kind === 'bio' ? tab('design', `/panel/links/${link.id}/design`, t('bio.design')) : ''}
   ${tab('settings', `/panel/links/${link.id}`, t('links.settings'))}
   ${tab('stats', `/panel/links/${link.id}/stats`, t('stats.title'))}

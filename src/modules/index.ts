@@ -7,6 +7,7 @@ import { registerAdmin } from './admin/routes.ts'
 import { registerGoogle } from './auth/google.ts'
 import { registerAuth } from './auth/routes.ts'
 import { registerBio } from './bio/routes.ts'
+import { registerMinisitio } from './minisitio/routes.ts'
 import { registerCapture } from './capture/routes.ts'
 import { registerDomains } from './domains/routes.ts'
 import { registerHome } from './home/routes.ts'
@@ -50,6 +51,7 @@ export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerMarketing(app, deps)
   registerCheckout(app, deps)
   registerBio(app, deps)
+  registerMinisitio(app, deps)
   registerCapture(app, deps)
   registerDomains(app, deps, deps.dnsResolver)
   registerStats(app, deps)

@@ -37,5 +37,5 @@ export function snapshotBlocks(rows: BlockRow[]): TemplateBlock[] {
 
 /** Bloques en memoria para la vista previa (ids negativos: no son clicables) */
 export function previewBlocks(t: Template, now: number): BlockRow[] {
-  return t.blocks.map((b, i) => ({ id: -(i + 1), link_id: 0, type: b.type, position: i, is_enabled: b.is_enabled, starts_at: null, ends_at: null, data: b.data, style: b.style as BlockRow['style'], clicks: 0, created_at: now, updated_at: now }))
+  return t.blocks.map((b, i) => ({ id: -(i + 1), link_id: 0, section_id: null, type: b.type, position: i, is_enabled: b.is_enabled, starts_at: null, ends_at: null, data: b.data, style: b.style as BlockRow['style'], clicks: 0, created_at: now, updated_at: now }))
 }
