@@ -1,193 +1,192 @@
-# tubio → «minisitios por giro que rematan en WhatsApp» (plan, 30-oct-2026)
+# tubio → minisitios por giro que rematan en WhatsApp — especificación funcional (v2, 30-oct-2026)
 
-Pedido de Alejandro (#324 → master → rea #325): «tubio.link debe convertirse en lo que es hellolink.mx».
-Base: análisis de master (`remote/shared/proyectos/tubio/notas/2026-10-31-master-hellolink.md`), docs de tubio
-(SPEC, ROADMAP-V2, IDEAS-V3, V2-FUNCIONES) e inventario del código de tubio v1.0.0 + rama v2 (`src/modules/bio`,
-`templates`, `sites`, `plans`).
+Pedido de Alejandro vía master (#324 → #325, ajuste #326 → #329): **enfocar en el diseño funcional de los minisitios y
+del home**: qué secciones, bloques, plantillas por giro y CTA de WhatsApp necesita el motor de tubio para reproducir lo
+que hace hellolink.mx. **Esto es para `dev` (datos y comportamiento)**; el sistema visual lo hace `design` en paralelo.
+Precio: fuera de este documento (lo decide Alejandro aparte).
 
-**Sala limpia.** Este documento habla sólo de **funciones visibles**. No se miró ni se cita código de AltumCode (la
-referencia de la SPEC original) ni de hellolink (tema de Shopify). Nombres, textos, diseño y precios finales son propios.
+Fuentes: capturas de referencia en `remote/shared/proyectos/tubio/design/hellolink-ref-2026-10-31/` (home de hellolink,
+Dr. Pedro Mesina, Nail Room, Café Tal, Las Barbikas, Crunchill; 390 px y 1366 px), análisis de master
+(`shared/proyectos/tubio/notas/2026-10-31-master-hellolink.md`) e inventario de bloques de tubio (`src/modules/bio`).
+**Sala limpia:** sólo funciones observables; ni código de AltumCode ni del tema Shopify de hellolink; textos, nombres y
+diseño son propios.
 
 ---
 
-## 0. La tesis en una línea
-hellolink vende **el resultado hecho a mano** (minisitio por giro, contenido cargado por ellos, todo termina en
-WhatsApp, un precio). tubio vende **la herramienta**. Convertir tubio = **mismo resultado con la mitad del trabajo
-humano**: plantillas por giro con bloques tipados + bloques de «solicitud por WhatsApp» + un modo «lo armamos por ti»
-que usa esas mismas plantillas. Ganamos donde hellolink no puede: el cliente edita solo, dominio propio incluido,
-estadísticas, sin Shopify.
+## 1. Lo que muestran las capturas: dos arquetipos de minisitio
 
 ```mermaid
-flowchart LR
-  V[Visitante] -->|QR / Instagram / Google| P[Minisitio tubio<br/>plantilla por giro]
-  P --> B1[Menú / carta / servicios<br/>/ propiedades / programas]
-  P --> B2[Solicitud por WhatsApp<br/>cita · reservación · pedido · cotización · visita]
-  B2 -->|mensaje armado wa.me| W[(WhatsApp del negocio)]
-  P --> S[Estadísticas<br/>visitas · clics · solicitudes]
-  N[Negocio] -->|edita solo| P
-  K[koode «lo armamos por ti»] -->|arma con la misma plantilla| P
+flowchart TB
+  subgraph A["Arquetipo A · PORTAL (una pantalla) — Nail Room, Las Barbikas, Crunchill, Café Tal"]
+    A1[Fondo a pantalla completa<br/>video en bucle o foto] --> A2[Logo arriba · interruptor de sonido · «Entrar»]
+    A2 --> A3[Antetítulo: negocio · zona · ciudad]
+    A3 --> A4[Título corto o lema]
+    A4 --> A5[Pila de acciones grandes<br/>1 principal resaltada + 2–5 secundarias<br/>cada una con etiqueta chica y subtítulo]
+    A5 --> A6[Pie: giro/servicios · dirección · ©]
+  end
+  subgraph B["Arquetipo B · MINISITIO POR SECCIONES — Dr. Pedro Mesina"]
+    B1[Cabecera fija: logo + CTA + navegación por anclas] --> B2[Héroe: nombre, especialidad, foto, CTA principal,<br/>2 enlaces secundarios, línea de confianza]
+    B2 --> B3[«Conoce tus opciones»: cuadrícula numerada<br/>foto + categoría + sub-servicios + «ver más»]
+    B3 --> B4[Perfil: bio larga + credenciales<br/>formación · especialidad · cédula · certificación]
+    B4 --> B5[Tarjetas con foto que llevan a subpáginas]
+    B5 --> B6[Carrusel de videos verticales con «activar audio»]
+    B6 --> B7[Cierre: «Hablemos de ti» + CTA + ubicación con mapa]
+  end
+  A5 -->|«Ir al sitio» / «Ver menú» / «Entrar»| B
 ```
 
----
-
-## 1. Funciones de hellolink vs tubio
-
-Leyenda: ✅ existe · 🟡 parcial · ❌ falta. Esfuerzo (como en ROADMAP-V2): **S** ≈ 1 día · **M** ≈ 2–4 días · **L** ≈ 1–2 semanas.
-
-### 1.1 Lo incluido en el plan base de hellolink
-| Función hellolink | tubio hoy | Esf. | Nota |
-|---|---|---|---|
-| Sitio responsivo móvil primero | ✅ | — | v2 ya pasa `mobile-audit` |
-| Información / historia del negocio | ✅ | — | párrafo, markdown, portada, artículo |
-| Galería (≤20 fotos) | ✅ | — | `gallery`, `carousel` |
-| Ligas a redes y apps | ✅ | — | `socials`, apertura en la app |
-| Mapa interactivo + «Cómo llegar» | 🟡 | S | hay embed de mapa; falta bloque «Ubicación» con dirección, botón Cómo llegar (Google/Apple/Waze) |
-| Horarios | ✅ | — | `hours` con «abierto ahora» (mejor que hellolink) |
-| Teléfono y WhatsApp | 🟡 | S | hay `link`/`vcard`; falta **botón WhatsApp fijo** (flotante o barra inferior) con mensaje prellenado |
-| Publicación + hosting + liga | ✅ | — | `tubio.link/<alias>` |
-| Dominio propio | ✅ | — | **ventaja**: incluido y automático (hellolink lo hace a mano o no lo incluye) |
-| Hecho por la agencia, sin editor para el cliente | ❌ | M | modo «lo armamos por ti» (§2 F3); en tubio el cliente además puede editar |
-
-### 1.2 Paquetes por giro (contenido tipado)
-| Giro hellolink | tubio hoy | Esf. | Qué falta |
-|---|---|---|---|
-| Restaurantes: menú PDF existente + galería | 🟡 | S | plantilla `restaurante` existe; falta **visor de menú PDF** bonito (hay bloque `pdf`) y el menú interactivo (1.3) |
-| Belleza: carta ≤20 servicios con precio y duración + QR | 🟡 | M | `product` tiene precio, no **duración ni categorías**; falta bloque **Carta de servicios** y plantilla `belleza` |
-| Salud: perfil + ≤8 servicios | 🟡 | S | plantilla `consultorio` existe; falta perfil profesional (cédula, especialidad) y carta de servicios |
-| Inmobiliarias: ≤12 propiedades con precio/características | ❌ | M | bloque **Propiedades** (ficha: precio, recámaras, baños, m², fotos, ubicación) + plantilla `inmobiliaria` |
-| Fitness: ≤8 programas + horario semanal en bloques | ❌ | M | bloque **Horario de clases** (cuadrícula semanal) + **Programas** + plantilla `fitness` |
-| Servicios: ≤20 servicios + portafolio | 🟡 | S | galería sirve de portafolio; falta carta de servicios y plantilla `servicios` |
-
-### 1.3 Add-ons de hellolink
-| Add-on hellolink | tubio hoy | Esf. | Nota |
-|---|---|---|---|
-| QR con logo | ✅ | — | QR con logo, marco, dinámico y **con estadísticas** (mejor) |
-| Menú interactivo (40 productos / 8 categorías, sin carrito) | ❌ | M | bloque **Menú** (categorías, platillo, precio, foto opcional, etiquetas: picante/vegano) |
-| Motor de pedidos por WhatsApp (carrito sin cobro) | ❌ | M | el Menú/Catálogo con **carrito → mensaje wa.me** (IDEAS-V3 ya lo propone) |
-| Diseño de menú PDF | ❌ | — | servicio humano, no función (lo vende «lo armamos por ti») |
-| Solicitud de reservación (restaurante) | ❌ | S | bloque genérico **Solicitud por WhatsApp** con preset |
-| Preagenda por WhatsApp | ❌ | S | mismo bloque, preset «cita» (fecha/hora deseada, servicio) |
-| Gift card | ❌ | S | preset «tarjeta de regalo» (monto, para quién, mensaje) → WhatsApp |
-| Cita guiada (salud) | ❌ | S | preset con pasos (motivo, primera vez, horario) |
-| Buscador de propiedades | ❌ | S | filtros sobre el bloque Propiedades (tipo, precio, recámaras) |
-| Solicitud de visita (inmobiliaria) | ❌ | S | preset atado a una propiedad |
-| Clase muestra (fitness) | ❌ | S | preset atado a un programa/horario |
-| Cotizador orientativo (6 variables) | ❌ | M | bloque **Cotizador** (variables con precio/factor → rango estimado → WhatsApp) |
-| Solicitud de cotización guiada | ❌ | S | preset del bloque Solicitud |
-
-### 1.4 Venta y operación de hellolink
-| Función | tubio hoy | Esf. | Nota |
-|---|---|---|---|
-| Página de venta con casos reales por giro | 🟡 | M | portada de tubio existe; falta **landing por giro** con ejemplos vivos |
-| Cotizador público (giro → add-ons → datos → total) | ❌ | M | en tubio.link/precios; termina en checkout (Stripe/CLABE) o WhatsApp |
-| Precio setup + mensualidad | ❌ | S | hoy sólo mensual/anual; añadir **cargo único de alta** al plan y al checkout |
-| Todo CTA remata en WhatsApp | 🟡 | S | soporte hoy es Zammad hola@; añadir WhatsApp de ventas en portada y panel |
-| Onboarding «tú nos cuentas → lo hacemos → apruebas» | ❌ | M | formulario de alta asistida + panel interno para el equipo (§2 F3) |
-| Upsell a sitio a la medida | ❌ | S | enlace a nexo·digital desde el panel (lead calificado) |
-
-**Lo que tubio ya tiene y hellolink no:** editor self-service, dominio propio automático, estadísticas por bloque y
-por QR, links cortos, captura de datos con avisos, equipos, afiliados, directorio, sitios estáticos, open source AGPL,
-sin pagar Shopify. Eso no se esconde: es el argumento de venta («hellolink te lo hace; tubio te lo hace **y** lo
-puedes cambiar tú a las 11 de la noche»).
+Observaciones que cambian el motor de tubio:
+1. **Un sitio = varias páginas.** El portal es la puerta; «Ver menú», «Ir al sitio», «Café Tal» abren **subpáginas del
+   mismo negocio** (Café Tal vive dentro de Nail Room). Hoy una página bio de tubio es una sola página.
+2. **La página es una sucesión de secciones a todo lo ancho**, cada una con su fondo y su ancla; los bloques viven dentro.
+   Hoy tubio apila bloques en una columna angosta.
+3. **El héroe es media página o pantalla completa con video**, no un avatar redondo.
+4. **Las acciones son tarjetas-botón con jerarquía** (principal grande, secundarias en rejilla de 2), con etiqueta
+   («A DOMICILIO», «PEDIDO POR TELÉFONO») y subtítulo («Abrir plataforma», «Efectivo, tarjeta o transferencia»).
+5. **Todo termina en una acción concreta**: agendar, pedir, llamar, cómo llegar, abrir app de reparto, WhatsApp.
+6. **Contenido tipado por giro**: categorías de procedimientos, credenciales médicas, menú, servicios, ubicación.
 
 ---
 
-## 2. Plan por fases
+## 2. Cambios al motor (para `dev`)
+
+### 2.1 Sitio con páginas y secciones
+| Concepto | Hoy en tubio | Nuevo |
+|---|---|---|
+| Sitio | 1 página bio por alias | **Sitio** = alias + N páginas: `/<alias>` (inicio) y `/<alias>/<pagina>` (menú, servicios, el-doctor…); en dominio propio, `/` y `/<pagina>` |
+| Página | lista de bloques | lista de **secciones**; cada página tiene título SEO, OG y su propio orden |
+| Sección | — | contenedor a todo lo ancho: `ancla`, `antetitulo`, `titulo`, `subtitulo`, `fondo` (color / imagen / video / degradado del tema), `alto` (auto · media pantalla · pantalla completa), `ancho_contenido` (angosto · normal · ancho), `columnas` (1 · 2 · 3 en escritorio; 1 en móvil), `visible` |
+| Bloque | igual | vive dentro de una sección; los 60 tipos actuales siguen sirviendo |
+| Cabecera del sitio | — | opcional por sitio: logo, navegación **generada de las anclas** de la página (o lista manual), botón de acción principal; fija al hacer scroll |
+| Barra de acción fija | — | opcional por sitio: en móvil, barra inferior con 1–3 acciones (p. ej. «Agendar», WhatsApp, «Cómo llegar») |
+| Pie del sitio | — | dirección corta, línea de servicios, redes, © y el «hecho con tubio» según plan |
+
+Migración: cada página bio actual = sitio de 1 página con 1 sección angosta que contiene sus bloques → **nada se rompe**.
+
+### 2.2 Bloques nuevos o ampliados — datos que pide cada uno
+
+| Bloque | Datos (campos) | Comportamiento | Arquetipo |
+|---|---|---|---|
+| **Portada** (`hero`) | `medio` (video mp4/webm ≤ 15 MB, o imagen), `poster`, `logo`, `antetitulo`, `titulo`, `subtitulo`, `alineacion` (centro · abajo-izq), `oscurecer` (0–80 %), `sonido` (sí/no: muestra interruptor) | video en bucle, silenciado, `playsinline`; en ahorro de datos o `prefers-reduced-motion` muestra el póster | A, B |
+| **Panel de acciones** (`action_panel`) | lista de **acciones** (abajo); `disposicion` (pila · rejilla 2 · principal + rejilla) | la 1.ª puede ser «principal» (resaltada) | A |
+| Acción (elemento) | `etiqueta` (chica, mayúsculas: «A DOMICILIO»), `titulo` («UBER EATS»), `subtitulo` («Abrir plataforma»), `tipo` (enlace · WhatsApp · llamar · cómo llegar · página interna · ancla · app: Uber Eats/Rappi/DiDi), `destino`, `principal` (sí/no) | cuenta clics por acción; «app» intenta abrir la app nativa (ya existe «abrir en la app») | A, B |
+| **Navegación de secciones** | automática de la cabecera | resalta la sección visible | B |
+| **Categorías / opciones** (`category_grid`) | elementos: `foto`, `numero` (auto 01–n), `titulo`, `sub_items` (lista corta), `enlace` (página interna o ancla) y `texto_enlace` | cuadrícula 2 (móvil) / 3 (escritorio) | B |
+| **Perfil profesional** (`profile`) | `foto`, `nombre`, `especialidad`, `bio` (markdown), `credenciales` [{`etiqueta`: «Formación médica», `valor`: «Universidad de Colima», `nota`: «Cédula 7433985»}], `enlace_verificacion` (p. ej. buscador de cédulas SEP) | credenciales en tabla de 2 columnas | B (salud, servicios) |
+| **Línea de confianza** (`trust_line`) | 1–4 textos cortos («Consulta en Colima», «Certificación CMCPER 2278») | bajo el CTA del héroe | B |
+| **Tarjetas con foto** (`photo_cards`) | elementos: `foto`, `antetitulo`, `titulo`, `enlace` | flecha, toda la tarjeta es clic | B |
+| **Carrusel de videos** (`video_carousel`) | elementos: `video` (vertical) o URL de reel/short, `titulo`, `categoria`, `cta` opcional | deslizable, uno reproduce a la vez, botón «activar audio» | B |
+| **Menú** (`menu`) | `categorias` [{`nombre`, `platillos` [{`nombre`, `descripcion`, `precio`, `foto?`, `etiquetas` (picante, vegano, nuevo, favorito), `disponible`}]}], `moneda`, `nota` | buscador y saltos por categoría; con carrito (ver §3) se vuelve pedido | A→subpágina |
+| **Menú en PDF** (`menu_pdf`) | `archivo`, `portada` | visor a pantalla completa en móvil, descarga | A |
+| **Carta de servicios** (`services`) | `categorias` [{`nombre`, `servicios` [{`nombre`, `descripcion`, `precio` (o «desde»), `duracion_min`, `foto?`}]}] | cada servicio puede llevar «Agendar» → Solicitud de cita con el servicio precargado | belleza, salud, servicios |
+| **Propiedades** (`listings`) | elementos [{`titulo`, `operacion` (venta/renta), `precio`, `tipo`, `recamaras`, `banos`, `m2`, `colonia`, `fotos[]`, `descripcion`, `estado` (disponible/apartada/vendida)}] + `filtros` activos | filtros en el cliente; ficha en subpágina automática `/<alias>/propiedad/<id>` | inmobiliaria |
+| **Horario de clases** (`class_schedule`) | `clases` [{`nombre`, `dia` (L–D), `inicio`, `fin`, `instructor?`, `cupo?`}] | cuadrícula semanal en escritorio, lista por día en móvil, «hoy» primero | fitness |
+| **Programas** (`programs`) | elementos [{`nombre`, `descripcion`, `nivel`, `duracion`, `precio?`, `foto`}] | cada uno con «Clase muestra» | fitness |
+| **Ubicación** (`location`) | `nombre_lugar`, `direccion`, `lat/lng` (o geocodificar), `referencias`, `horario` (reusa `hours`), `estacionamiento` | mapa estático ligero (sin JS de Google hasta tocar) + botones Google Maps / Apple Maps / Waze + «Cómo llegar» | A, B |
+| **Plataformas de reparto** | dentro de Panel de acciones (`tipo: app`) | — | restaurantes |
+
+Bloques actuales que se reutilizan tal cual: galería, carrusel, horario (`hours`), FAQ, reseñas, video, socials,
+cupón, cuenta regresiva, formulario de contacto, markdown, CTA, portada simple (`cover_header`).
+
+### 2.3 CTA de WhatsApp con campos — «Solicitud por WhatsApp» (`wa_request`)
+
+Un bloque (o una acción del Panel) que abre una **hoja inferior** con 1–5 campos y termina en `wa.me`.
+
+| Campo de configuración | Ejemplo |
+|---|---|
+| `numero` (E.164; por defecto el del sitio) | +52 312 000 0000 |
+| `preset` | cita · reservación · pedido · cotización · visita · clase muestra · tarjeta de regalo · libre |
+| `titulo_hoja` / `texto_boton` | «Agenda tu valoración» / «Enviar por WhatsApp» |
+| `campos[]`: `{clave, etiqueta, tipo, requerido, opciones?, ayuda?}` | tipos: texto, número, fecha, hora, franja (mañana/tarde/noche), elegir uno, elegir varios, teléfono, servicio (lista tomada de Carta de servicios), propiedad (de Propiedades), personas |
+| `plantilla_mensaje` con variables | `Hola {negocio}, quiero agendar {servicio} el {fecha} por la {franja}. Soy {nombre}.` |
+| `guardar_copia` (sí por defecto) | guarda la solicitud como **dato capturado** (ya existe la bandeja + avisos) |
+| `aviso_legal` | «El negocio confirmará tu cita por WhatsApp» (siempre visible: es solicitud, no reserva) |
+
+Presets (campos por defecto):
+| Preset | Campos |
+|---|---|
+| Cita / valoración | servicio, fecha deseada, franja, nombre, ¿primera vez? |
+| Reservación | fecha, hora, personas, nombre, ocasión (opcional) |
+| Pedido | (viene del carrito del Menú) entrega: recoger/domicilio, dirección si domicilio, forma de pago (efectivo/tarjeta/transferencia), nombre |
+| Cotización guiada | 2–6 preguntas definidas por el negocio (elegir uno / número) + nombre |
+| Visita a propiedad | propiedad (precargada), día, franja, nombre |
+| Clase muestra | programa/clase (precargada), día, nombre |
+| Tarjeta de regalo | monto o servicio, para quién, de parte de quién, mensaje |
+
+Reglas: el mensaje se arma **en el navegador** (nada sale del sitio sin que la persona toque «Enviar»); mide aperturas
+de la hoja, envíos y abandono; en navegadores dentro de Instagram/TikTok usa el enlace universal de WhatsApp.
+
+### 2.4 Carrito sin cobro (pedido por WhatsApp)
+`menu` o `services` con `carrito: sí` → botón «+» por platillo, contador, nota por platillo, barra inferior «Ver pedido
+(3) · $245» → hoja con resumen → preset Pedido → mensaje con líneas `2× Hamburguesa clásica — $180`. Sin pago en línea
+(eso sigue siendo los bloques de pago existentes, aparte).
+
+---
+
+## 3. Plantillas por giro (estructura de secciones)
+
+Cada plantilla = sitio con páginas + secciones + bloques precargados con contenido de ejemplo propio. El asistente de
+primer uso (ya existe en v2) pregunta **el giro primero** y luego sólo pide lo que esa plantilla necesita.
+
+| Giro | Página inicio (arquetipo) | Subpáginas | Acción principal |
+|---|---|---|---|
+| **Restaurante / café** | A: Portada video + Panel (Pedir por WhatsApp ★, Llamar, Uber Eats, Rappi, Ver menú, Entrar al sitio) | **Menú** (menu + carrito, o menu_pdf) · **Sitio** (galería, historia, horario, ubicación, reseñas) | Pedido / Reservación |
+| **Belleza / uñas / barbería** | A: Portada video + Panel (Agendar ★, Ir al sitio) | **Sitio**: carta de servicios con «Agendar» por servicio, galería de trabajos, equipo, ubicación, horario | Cita |
+| **Salud (médico, dentista, psicólogo)** | B: cabecera con anclas · héroe con foto + Agendar valoración ★ · línea de confianza · categorías de tratamientos · perfil con credenciales · videos · ubicación + cierre | **Procedimiento** (una por categoría: descripción, FAQ, antes/después, CTA) | Cita / valoración |
+| **Inmobiliaria** | B: héroe + buscador (filtros) · propiedades destacadas · asesor (perfil) · ubicación | **Ficha de propiedad** (automática) | Visita |
+| **Fitness / estudio** | B: héroe video · programas · horario de clases · instructores · ubicación | **Programa** | Clase muestra |
+| **Servicios profesionales / oficios** | B: héroe · servicios con «Cotizar» · portafolio (galería) · reseñas · zona de cobertura | — | Cotización guiada |
+
+Contenido de ejemplo: negocios ficticios con fotos libres; nunca los clientes de hellolink.
+
+---
+
+## 4. Qué cambia en el home de tubio.link
 
 ```mermaid
-flowchart LR
-  F0[F0 Decidir<br/>precio · giros · marca] --> F1[F1 Bloques<br/>de giro]
-  F1 --> F2[F2 Solicitud<br/>por WhatsApp]
-  F1 --> F4[F4 Plantillas<br/>por giro ×6]
-  F2 --> F4
-  F4 --> F3[F3 «Lo armamos<br/>por ti»]
-  F4 --> F5[F5 Venta: landing<br/>+ cotizador público<br/>+ setup+mes]
-  F3 --> F5
-  F6[F6 tubio.site<br/>contenido de usuarios] -.independiente.-> F5
+flowchart TB
+  H0[Barra de anuncio] --> H1[Cabecera: logo · «Crear mi sitio» · WhatsApp de ventas]
+  H1 --> H2[Héroe: promesa + «Reclama tu dirección»<br/>campo alias con vista en vivo tubio.link/tunegocio<br/>+ «Elige tu giro» (6 chips)]
+  H2 --> H3[Vista previa viva: al elegir giro, un teléfono<br/>muestra la plantilla de ese giro con el nombre escrito]
+  H3 --> H4[Ejemplos por giro: carrusel de teléfonos<br/>giro · nombre · «Abrir ejemplo»]
+  H4 --> H5[Cómo funciona en 3 pasos:<br/>elige giro → llena lo básico → compártelo<br/>+ alternativa «lo armamos por ti»]
+  H5 --> H6[Qué incluye: checklist<br/>diseño, galería, mapa y horarios, WhatsApp, dominio propio, estadísticas]
+  H6 --> H7[Por giro: pestañas Restaurantes · Belleza · Salud · Inmobiliaria · Fitness · Servicios<br/>muestran los bloques de ese giro]
+  H7 --> H8[Preguntas frecuentes]
+  H8 --> H9[Cierre: «Crea tu sitio» + WhatsApp]
+  H9 -.móvil.-> H10[Barra inferior fija: «Crear mi sitio» + WhatsApp]
 ```
-
-### F0 — Decisiones de Alejandro (antes de construir; 1 sesión)
-1. **Precio**: ¿setup + mensualidad? Propuesta abajo (§2.1). ¿Se mantiene el plan gratis?
-2. **Giros de arranque**: los 6 de hellolink (restaurante, belleza, salud, inmobiliaria, fitness, servicios) o recortar a 3.
-3. **WhatsApp de ventas** de tubio (¿el de koode 5213314603933 o uno nuevo?) y quién atiende «lo armamos por ti».
-4. **Marca**: tubio sigue como marca (link-in-bio) y «minisitios» es la línea de producto, o se renombra la oferta.
-5. ¿Los add-ons son **bloques incluidos por plan** (recomendado: el cliente los enciende solo) o **pagos únicos** como hellolink?
-
-### F1 — Bloques de giro (M, ~1 semana)
-Nuevos bloques tipados, con datos estructurados (no texto libre) para que la plantilla y el modo asistido los llenen:
-**Menú** (categorías + platillos), **Carta de servicios** (precio, duración, categoría), **Propiedades** (ficha + filtros),
-**Horario de clases** (semana en bloques), **Programas**, **Ubicación** (mapa + Cómo llegar + horarios), **Botón WhatsApp
-fijo**, **Perfil profesional**. Cada uno con su vista móvil, sin JS pesado (presupuesto público < 15 KB).
-*Depende de*: nada. *Sale*: bloques en el catálogo «Negocio», con pruebas y `mobile-audit` en verde.
-
-### F2 — «Solicitud por WhatsApp» (M, ~4 días)
-Un solo bloque configurable con **presets**: cita, reservación, pedido (carrito desde Menú/Catálogo), cotización
-guiada, visita a propiedad, clase muestra, tarjeta de regalo, cita guiada. El visitante llena 2–5 campos → se arma el
-mensaje y abre `wa.me/<número>?text=…`. **Sin cobro ni agenda sincronizada** (igual que hellolink; la agenda real con
-disponibilidad queda como P1·L de V2-FUNCIONES para después).
-Además: se guarda una copia como **dato capturado** (ya existe la bandeja + avisos) → el negocio ve en tubio cuántas
-solicitudes llegaron, algo que hellolink no puede medir. **Cotizador** (variables → rango estimado) entra aquí.
-*Depende de*: F1 (pedido usa Menú/Catálogo; visita usa Propiedades).
-
-### F4 — Plantillas por giro ×6 (M, ~4 días; con `design`)
-Ya existen 4 plantillas (restaurante, consultorio, tienda, creador). Rehacerlas y sumar belleza, inmobiliaria, fitness,
-servicios con los bloques de F1/F2, **contenido de ejemplo creíble en español mexicano** y fotos libres. El asistente de
-primer uso (ya hecho en v2: tipo de página → básico → publicada) pregunta el **giro primero**.
-*Depende de*: F1, F2.
-
-### F3 — «Lo armamos por ti» (M, ~1 semana)
-- Formulario de alta asistida: giro, nombre, logo, fotos, textos, lista de servicios/menú (o subir PDF/foto del menú),
-  WhatsApp, dirección, horarios.
-- Cola interna en el admin de tubio: el equipo (o un rol de Peers, p. ej. `marketing`/`design`, con revisión humana)
-  arma la página **con la plantilla del giro**, la deja en borrador y manda el enlace de revisión.
-- El cliente revisa en el celular, comenta o aprueba → se publica. Después puede editar solo.
-- Opcional, después: el **asistente con IA** de IDEAS-V3 llena el borrador a partir del Instagram o del PDF del menú, y
-  la persona sólo corrige. Eso baja el costo del servicio a minutos.
-*Depende de*: F4.
-
-### F5 — Venta (M, ~4 días)
-- **Landing por giro** (`tubio.link/restaurantes`, `/belleza`…) con 2–3 ejemplos vivos.
-- **Cotizador público**: giro → paquete → extras → datos → total con setup + mes → pagar (Stripe/CLABE, ya existen) o
-  «platícalo por WhatsApp».
-- **Cargo de alta** en planes y checkout (tabla `plans` + recibo; CFDI sigue como pendiente de negocio).
-*Depende de*: F3, F4, decisiones de F0.
-
-### F6 — tubio.site para contenido de usuarios (S–M, en paralelo)
-Mover sitios estáticos, HTML propio y archivos de usuarios a `*.tubio.site` (o `tubio.site/<alias>`) para que un
-abuso no queme la reputación de tubio.link (IDEAS-V3 V2.4). Pasos: DNS del dominio (hoy en parking de DonDominio,
-`register-init`) → zona en Cloudflare con un token que la vea (el de `cloudflare-tubio.env` sólo ve tubio.link) →
-host `*.tubio.site` en la app con CSP estricta y cookies sin compartir → redirigir lo existente. **Los minisitios por giro
-siguen en tubio.link o en el dominio del cliente**: tubio.site es sólo para contenido arbitrario subido por usuarios.
-*Depende de*: decisión de dónde vive la zona (Cloudflare vs Plesk aws1).
-
-### Orden y tiempo
-F0 (1 sesión) → F1 (1 sem) → F2 (4 d) → F4 (4 d) → F3 (1 sem) → F5 (4 d). F6 en paralelo. **~5 semanas de sesión**
-hasta vender el primer minisitio con setup + mes; el primer piloto con un cliente real puede salir al cerrar F4
-(armado a mano por nosotros con las plantillas nuevas).
-
-### 2.1 Propuesta de precio (decide Alejandro)
-| Plan | Hoy | Propuesta | Contra hellolink |
-|---|---|---|---|
-| Gratis | sí | se queda (con marca tubio, sin dominio propio) | no tienen |
-| Negocio (self-service) | $299/mes · $2,990/año | igual; incluye bloques de giro y Solicitud por WhatsApp | ellos $299/mes **más** $3,000 de alta |
-| **Lo armamos por ti** | — | Negocio + **$1,990–2,490 de alta** (una vez); incluye carga de contenido y 1 ronda de cambios | ellos $3,000 + add-ons $790–2,490 c/u |
-| Menú en PDF, fotos, textos | — | servicio aparte de nexo·digital | ellos $990 |
-Argumento: «lo mismo que te cobran $3,000 + extras, por menos, y además lo editas tú y te damos tu dominio».
+| Elemento | Hoy (home link-in-bio) | Nuevo |
+|---|---|---|
+| Mensaje | herramienta de enlaces | **minisitio de tu negocio, listo hoy, que termina en WhatsApp** |
+| Reclamar alias | existe | se queda, con **vista previa en vivo** en un teléfono |
+| Giro | no | chips de giro en el héroe → cambia la vista previa y lleva a la plantilla al registrarse |
+| Ejemplos | no | 1 ejemplo vivo por giro (`tubio.link/ejemplo-restaurante`…), hechos con el motor real |
+| «Lo armamos por ti» | no | segunda vía en el héroe y en «cómo funciona»: formulario de alta asistida (giro, logo, fotos, textos, servicios/menú, WhatsApp, dirección) → cola interna |
+| Contacto de ventas | Zammad hola@ | **WhatsApp de ventas** visible (cabecera, cierre, barra móvil) + Zammad sigue |
+| Páginas por giro | no | `tubio.link/restaurantes`, `/belleza`, `/salud`… (misma estructura, ejemplo y bloques del giro; SEO local) |
+| Ventajas propias | — | dominio propio incluido, lo editas tú, estadísticas de visitas y solicitudes, QR con estadísticas |
 
 ---
 
-## 3. Qué NO copiar
-- **Shopify como motor** (carrito/checkout de Shopify para cotizar): costo fijo y dependencia; tubio ya cobra con Stripe/CLABE.
-- **Add-ons como pagos únicos por cada bloque**: en tubio son funciones del plan que el cliente enciende solo; cobrar
-  $790 por un formulario es justo lo que nos diferencia no hacer.
-- **Sin editor para el cliente**: el cuello de botella de hellolink es que cada cambio pasa por la agencia.
-- **Un solo precio con letra chica** (setup alto, mensualidad desde el 2.º mes): nosotros, precio claro y anual con descuento.
-- **Contenido de ejemplo de negocios reales** (sus casos de Colima): usamos ejemplos propios o clientes de koode con permiso.
-- **Su copy, diseño, nombres de paquetes y estructura de página**: inspiración de funciones, no de forma.
-- **Agenda «solicitud» presentada como reserva confirmada**: dejar claro en la UI que el negocio confirma por WhatsApp.
-- **Todo el contacto sólo por WhatsApp sin rastro**: guardamos cada solicitud como dato (métrica + respaldo).
+## 5. Orden de construcción para `dev`
+1. **Motor: sitio → páginas → secciones** (+ migración 1:1 de páginas bio). Cabecera, barra de acción fija y pie. *L*
+2. **Portada con video** + **Panel de acciones** + **Ubicación** → ya permite el arquetipo A completo. *M*
+3. **Solicitud por WhatsApp** (presets, campos, plantilla de mensaje, copia como dato). *M*
+4. **Menú** (+ carrito) y **Carta de servicios** → restaurante y belleza. *M*
+5. **Categorías**, **Perfil profesional**, **Línea de confianza**, **Tarjetas con foto**, **Carrusel de videos** → arquetipo B / salud. *M*
+6. **Propiedades**, **Horario de clases**, **Programas** → inmobiliaria y fitness. *M*
+7. **Plantillas ×6** con contenido de ejemplo (con `design`) y asistente «giro primero». *M*
+8. **Home nuevo** + páginas por giro + alta asistida «lo armamos por ti». *M*
 
-## 4. Decisiones de Alejandro (resumen)
-1. Precio y si hay cargo de alta (§2.1). 2. Giros de arranque (6 o 3). 3. WhatsApp de ventas y quién arma «lo armamos por ti».
-4. Marca/nombre de la oferta. 5. Add-ons incluidos (recomendado) vs pagos únicos. 6. Dónde vive la zona DNS de tubio.site.
-7. ¿Piloto con 1–2 clientes de koode al cerrar F4? ¿Cuáles?
+Presupuesto público que se mantiene: HTML del servidor, JS sólo donde hace falta (hoja de WhatsApp, carrito, carrusel,
+filtros), LCP < 1.5 s en 4G con póster en vez de video cuando no conviene.
+
+## 6. Qué NO copiar
+- Su forma: tipografías, colores, textos, nombres de secciones, el collage del home y los casos reales de Colima.
+- Video de fondo **sin póster** ni respeto a ahorro de datos (pesa y falla en 4G).
+- «Agendar» que parece reserva confirmada: en tubio siempre dice que el negocio confirma.
+- Sitios sin editor para el dueño: en tubio todo lo de arriba se edita desde el panel.
+- Shopify como motor de páginas y cotizador.
+
+*Precio: fuera de alcance de este documento; lo decide Alejandro.*
