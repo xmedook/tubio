@@ -46,12 +46,28 @@ for (const root of document.querySelectorAll('[data-wa]')) {
   const today = new Date().toISOString().slice(0, 10)
   for (const d of form.querySelectorAll('[data-wa-date]')) d.min = today
 
-  open.addEventListener('click', (e) => {
-    e.preventDefault()
+  // abrir desde el botón, o desde otro bloque (carta de servicios, carrito) con valores ya puestos
+  const show = (preset) => {
+    if (sheet.open) return
     sent = false
     touched = false
+    for (const [k, v] of Object.entries(preset ?? {})) {
+      const el = form.querySelector(`[name="${k}"]`)
+      if (!el) continue
+      if (el.tagName === 'SELECT' && ![...el.options].some((o) => o.value === v)) el.append(new Option(v, v))
+      el.value = v
+    }
     sheet.showModal()
     ping(root, 'open')
+  }
+  open.addEventListener('click', (e) => {
+    e.preventDefault()
+    show()
+  })
+  root.addEventListener('tb:wa-open', (e) => {
+    const d = e.detail ?? {}
+    // el servicio puede ser «servicio» (cita) o «programa» (clase muestra)
+    show(d.servicio ? (form.querySelector('[name="servicio"]') ? { servicio: d.servicio } : { programa: d.servicio }) : undefined)
   })
   form.addEventListener('input', () => {
     touched = true

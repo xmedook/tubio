@@ -20,6 +20,7 @@
     "seed-ms": "node src/cli/seed-minisitio.ts",
     "seed-portal": "node src/cli/seed-portal.ts",
     "seed-wa": "node src/cli/seed-wa.ts",
+    "seed-catalog": "node src/cli/seed-catalog.ts",
     "backup-db": "node src/cli/backup-db.ts",
     "a11y": "node scripts/a11y.ts",
     "mobile-audit": "node scripts/mobile-audit.ts"

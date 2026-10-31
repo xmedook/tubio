@@ -164,8 +164,7 @@ function optionsFromBlocks(rc: RenderCtx, b: BlockRow, tipo: 'servicio' | 'propi
   for (const r of rows) {
     try {
       const d = JSON.parse(r.data) as Record<string, unknown>
-      if (tipo === 'servicio') for (const c of Array.isArray(d.categorias) ? (d.categorias as Record<string, unknown>[]) : []) for (const x of Array.isArray(c.servicios) ? (c.servicios as Record<string, unknown>[]) : []) out.push(s(x.nombre))
-      else for (const x of Array.isArray(d.items) ? (d.items as Record<string, unknown>[]) : []) out.push(s(x.titulo))
+      for (const x of Array.isArray(d.items) ? (d.items as Record<string, unknown>[]) : []) out.push(s(tipo === 'servicio' ? x.nombre : x.titulo))
     } catch {
       /* dato corrupto: sin opciones */
     }
@@ -185,7 +184,7 @@ function render(rc: RenderCtx, b: BlockRow): SafeHtml {
   // sin JS (o antes de cargar) el botón es un enlace directo con un saludo
   const fallback = `https://wa.me/${num}?text=${encodeURIComponent(rc.t('ms.wa.hello', { negocio: rc.site.title }))}`
   const id = `wa-t-${b.id}`
-  return html`<div class="war" data-wa="${b.id}">
+  return html`<div class="war" data-wa="${b.id}" data-preset="${preset(b)}">
   <a class="btn war-open" href="${fallback}" target="_blank" rel="noopener" data-wa-open aria-haspopup="dialog">${boton}</a>
   <dialog class="wa-sheet" data-wa-sheet aria-labelledby="${id}">
     <form class="wa-form" data-wa-form data-num="${num}" data-tpl="${tpl}" data-negocio="${rc.site.title}" data-save="${b.data.guardar_copia === false ? '0' : '1'}" data-csrf="${rc.csrf}" data-block="${b.id}" data-miss="${rc.t('ms.wa.missing')}" novalidate>

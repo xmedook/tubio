@@ -420,7 +420,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   })
 
   app.get('/_/pdf/:id', async (req, reply) => {
-    const r = publicBlock(req, 'pdf')
+    const r = publicBlock(req, 'pdf') ?? publicBlock(req, 'menu_pdf')
     const meta = (r?.b.data.file ?? null) as { file_id?: number } | null
     const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
     if (!r || !f || f.user_id !== r.link.user_id || f.mime !== 'application/pdf') return reply.callNotFound()
