@@ -42,6 +42,7 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     ['--bg', bg],
     ['--bg-solid', solid],
     ['--text', d.text_color ?? th.text],
+    ['--page-text', d.text_color ?? th.text], // el de la página, para superficies que no heredan el de una sección (hoja de WhatsApp)
     ['--btn-bg', d.btn_bg ?? th.btnBg],
     ['--btn-text', d.btn_text ?? th.btnText],
     ['--btn-bc', d.btn_border_color ?? th.btnBorder],
@@ -134,7 +135,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const blocks = grouped ? pageSections.flatMap((s) => grouped.get(s.id) ?? []) : visible
   const host = new URL(deps.config.baseUrl).hostname
   const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
-    csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias, site: { alias: link.alias, wa: site?.config.whatsapp ?? loadSite(deps.db, link.id).config.whatsapp }, h1: { v: false },
+    csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias, site: { alias: link.alias, title: link.title || link.alias, wa: site?.config.whatsapp ?? loadSite(deps.db, link.id).config.whatsapp }, h1: { v: false },
     formError: (() => { const q = req.query as { err?: string; b?: string }; return q.err && /^\w{2,20}$/.test(q.err) && Number(q.b) ? { id: Number(q.b), key: q.err } : null })() }
   const url = linkUrl(deps.config.baseUrl, link) + (page?.slug ? `/${page.slug}` : '')
   const siteTitle = d.seo_title || link.title || link.alias
@@ -182,6 +183,7 @@ ${d.pwa && !link.password_hash ? html`<link rel="manifest" href="/_/pwa/${link.a
 <style nonce="${nonce}">${raw(pageCss(d, blocks) + (sb ? siteCss(pageSections) : ''))}</style>
 <script type="module" src="/_/static/js/bio.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>
 ${sb || usesSiteBlocks ? html`<script type="module" src="/_/static/js/site.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
+${blocks.some((b) => b.type === 'wa_request') ? html`<script type="module" src="/_/static/js/wa.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </head>
 <body class="bio al-${d.align} anim-${d.animation} hov-${d.hover}${d.bg_type === 'image' && d.bg_image ? ' has-bg-img' : ''}${sb ? ` ms${sb.hasBar ? ' has-bar' : ''}${sb.hasDock ? ' has-dock' : ''}` : ''}"${sb ? html` data-title="${title}" data-url="${url}" data-copied="${t('links.copied')}"` : ''}>

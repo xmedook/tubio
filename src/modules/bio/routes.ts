@@ -39,6 +39,9 @@ import {
   setBlockEnabled,
   updateBlock,
 } from './repo.ts'
+import { waTotals } from '../capture/wa.ts'
+import { waKeys } from './wa-request.ts'
+import { html } from '../../lib/html.ts'
 import { blockFormPage, designPage, editorPage, themeSwatchCss, type SectionChoice, type SiteView } from './views.ts'
 import { groupBlocks, homePage, loadSite, sectionInLink, sectionsOf, type Site } from '../minisitio/repo.ts'
 
@@ -266,7 +269,12 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     const def = BLOCK_BY_TYPE.get(own.b.type)
     if (!def) return reply.callNotFound()
     const sec = sectionChoices(req.ctx.t, loadSite(db, own.link.id))
-    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}, targetsOf(req), sec ? { options: sec, value: String(own.b.section_id ?? sec[0]?.value ?? '') } : undefined))
+    let note
+    if (own.b.type === 'wa_request') {
+      const w = waTotals(db, own.b.id, 30, deps.now())
+      note = html`<p class="muted">${req.ctx.t('ms.wa_stats', { opens: w.opens, sends: w.sends, abandons: w.abandons })}<br>${req.ctx.t('ms.wa_keys', { keys: waKeys(own.b).map((k) => `{${k}}`).join(' ') })}</p>`
+    }
+    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}, targetsOf(req), sec ? { options: sec, value: String(own.b.section_id ?? sec[0]?.value ?? '') } : undefined, note))
   })
 
   app.post('/panel/blocks/:id', { preHandler: userGuard }, async (req, reply) => {

@@ -126,7 +126,7 @@ export function registerCapture(app: FastifyInstance, deps: AppDeps): void {
   ${unread ? postButton(ctx, '/panel/data/read', t('data.mark_read', { n: unread }), { cls: 'btn' }) : ''}</div></div>
 <p class="muted">${t('data.intro')}</p>
 <form class="toolbar" method="get" action="/panel/data">
-  ${select({ ctx, name: 'kind', label: t('links.kind'), value: opts.kind ?? '', options: [{ value: '', label: t('links.all_kinds') }, ...['email', 'phone', 'contact', 'subscribe'].map((k) => ({ value: k, label: t(`data.kind_${k}`) }))] })}
+  ${select({ ctx, name: 'kind', label: t('links.kind'), value: opts.kind ?? '', options: [{ value: '', label: t('links.all_kinds') }, ...['email', 'phone', 'contact', 'subscribe', 'whatsapp'].map((k) => ({ value: k, label: t(`data.kind_${k}`) }))] })}
   ${select({ ctx, name: 'link', label: t('links.kind_bio'), value: opts.link ?? '', options: [{ value: '', label: t('links.all_kinds') }, ...bios.map((l) => ({ value: String(l.id), label: l.title || l.alias }))] })}
   <button class="btn" type="submit">${t('links.filter')}</button>
 </form>

@@ -84,7 +84,7 @@ export type RenderCtx = {
   cookies: Record<string, string | undefined>
   ownerName: string
   /** sitio al que pertenece la página: alias y WhatsApp por defecto del negocio */
-  site: { alias: string; wa: string }
+  site: { alias: string; wa: string; title: string }
   /** el h1 de la página ya se usó (portada) */
   h1: { v: boolean }
   /** error del último envío de un formulario (?err=…&b=…) */

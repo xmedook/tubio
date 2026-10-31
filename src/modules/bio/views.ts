@@ -140,7 +140,7 @@ function sectionsEditor(ctx: Ctx, link: Link, sv: SiteView, scheduled: (b: Block
   })}`
 }
 
-export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors, targets: { id: number; name: string; kind: string }[] = [], ms?: { options: SectionChoice[]; value: string }): SafeHtml {
+export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors, targets: { id: number; name: string; kind: string }[] = [], ms?: { options: SectionChoice[]; value: string }, note?: SafeHtml): SafeHtml {
   const { t } = ctx
   const action = block ? `/panel/blocks/${block.id}` : `/panel/links/${link.id}/blocks?type=${def.type}`
   const sep = action.includes('?') ? '&' : '?'
@@ -157,6 +157,7 @@ ${viewToggle(ctx)}
     <h2>${block ? t('bio.edit_block', { type: t(`bio.type_${def.type}`) }) : t('bio.new_block', { type: t(`bio.type_${def.type}`) })}</h2>
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="${action}${sep}_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
+      ${note ?? ''}
       ${ms ? select({ ctx, name: 'section_id', label: t('ms.move_to'), value: ms.value, options: ms.options }) : ''}
       ${blockFields(ctx, def, values, errors, targets)}
       <div class="btn-row sticky-actions">

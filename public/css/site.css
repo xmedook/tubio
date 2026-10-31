@@ -130,3 +130,30 @@ body.has-bar .share-fab { top: calc(var(--ms-bar-h) + .6rem); }
 body.has-bar .hero.alto-completa { min-height: calc(100vh - var(--ms-bar-h)); min-height: calc(100svh - var(--ms-bar-h)); }
 body.has-dock .hero-in { padding-bottom: 6rem; }
 @media (min-width: 860px) { body.has-dock .hero-in { padding-bottom: 4rem; } }
+
+/* ---- solicitud por WhatsApp: botón + hoja inferior (<dialog>) */
+.war { display: block; }
+.war-open { display: flex; justify-content: center; text-align: center; }
+.wa-sheet { position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 560px; max-height: 92vh; max-height: 92dvh; overflow-y: auto; padding: 0; border: 0; border-radius: 18px 18px 0 0; background: var(--bg-solid, #fff); --text: var(--page-text, #111); color: var(--page-text, #111); box-shadow: 0 -12px 40px rgb(0 0 0 / 28%); }
+.wa-sheet::backdrop { background: rgb(0 0 0 / 55%); }
+.wa-sheet[open] { animation: wa-up .22s ease-out; }
+@keyframes wa-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .wa-sheet[open] { animation: none; } }
+@media (min-width: 640px) { .wa-sheet { inset: 0; margin: auto; border-radius: 18px; height: fit-content; } }
+.wa-form { padding: 1.1rem 1.1rem calc(1.1rem + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: .9rem; }
+.wa-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.wa-title { margin: 0; font: 700 1.2em/1.2 var(--font-h, var(--font)); }
+.wa-x { width: 44px; height: 44px; border-radius: 50%; border: 0; background: color-mix(in srgb, var(--text) 10%, transparent); color: inherit; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.wa-fields { display: flex; flex-direction: column; gap: .8rem; }
+.wa-f, .wa-fs { display: flex; flex-direction: column; gap: .3rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.wa-l { font: 600 .9em/1.3 var(--font); }
+.wa-req { color: inherit; opacity: .7; }
+.wa-in { width: 100%; min-height: 48px; padding: .6rem .8rem; border-radius: 12px; border: 1.5px solid color-mix(in srgb, var(--text) 40%, transparent); background: transparent; color: inherit; font: inherit; }
+.wa-in:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.wa-opts { display: flex; flex-wrap: wrap; gap: .5rem; }
+.wa-o { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; padding: 0 .9rem; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--text) 40%, transparent); cursor: pointer; }
+.wa-o:has(input:checked) { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
+.wa-o input { accent-color: currentColor; }
+.wa-legal { margin: 0; font-size: .82em; opacity: .85; }
+.wa-err { margin: 0; font-weight: 600; }
+.wa-go { width: 100%; justify-content: center; }
