@@ -17,9 +17,7 @@ body.ms.al-center .ms-in.al-izquierda { text-align: left; }
 .ms-bar a:focus-visible, .ms-dock a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @media (min-width: 860px) {
   .ms-bar-in { min-height: 72px; }
-  .ms-bar:has(.ms-nav) .ms-bar-in { display: grid; grid-template-columns: auto 1fr auto; }
-  .ms-bar:has(.ms-nav) .ms-nav { grid-column: 2; grid-row: 1; border-top: 0; justify-content: center; position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); height: 72px; pointer-events: none; }
-  .ms-bar:has(.ms-nav) .ms-nav a { pointer-events: auto; }
+  .ms-nav { justify-content: center; }
 }
 
 /* ---- secciones a todo el ancho */
