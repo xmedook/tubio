@@ -36,8 +36,11 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
   else if (d.bg_type === 'gradient') bg = `linear-gradient(${d.bg_angle}deg, ${d.bg_color}, ${d.bg_color2})`
   else if (d.bg_type === 'image' && d.bg_image) bg = `${d.bg_color} url("/_/u/${d.bg_image}") center / cover no-repeat`
   const font = d.font === 'theme' ? FONTS[th.font] : FONTS[d.font]
+  // color liso para las capas translúcidas (cabecera, barra): un degradado no sirve dentro de color-mix()
+  const solid = d.bg_type === 'theme' ? (/^#[0-9a-f]{3,8}$/i.test(th.bg) ? th.bg : /#[0-9a-f]{6}/i.exec(th.bg)?.[0] ?? '#ffffff') : d.bg_color
   const vars: [string, string][] = [
     ['--bg', bg],
+    ['--bg-solid', solid],
     ['--text', d.text_color ?? th.text],
     ['--btn-bg', d.btn_bg ?? th.btnBg],
     ['--btn-text', d.btn_text ?? th.btnText],
@@ -93,7 +96,7 @@ export function bioCsp(nonce: string, preview: boolean, frameOrigins: string[] =
     `style-src 'self' 'nonce-${nonce}'`,
     "img-src 'self' data: https://i.ytimg.com",
     "font-src 'self'",
-    'media-src https:',
+    "media-src 'self' https:",
     `frame-src ${frameOrigins.length ? [...new Set(frameOrigins)].join(' ') : "'none'"}`,
     "connect-src 'self'",
     "form-action 'self'",
@@ -131,7 +134,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const blocks = grouped ? pageSections.flatMap((s) => grouped.get(s.id) ?? []) : visible
   const host = new URL(deps.config.baseUrl).hostname
   const rc: RenderCtx = { t, locale, host, verified: !!owner?.is_verified, badgeShown: { v: false }, now: deps.now(), db: deps.db,
-    csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias,
+    csrf: req.ctx.csrf, pow: req.ctx.pow, sent: Number((req.query as { sent?: string }).sent) || null, cookies: req.cookies, ownerName: owner?.name || link.title || link.alias, site: { alias: link.alias, wa: site?.config.whatsapp ?? loadSite(deps.db, link.id).config.whatsapp }, h1: { v: false },
     formError: (() => { const q = req.query as { err?: string; b?: string }; return q.err && /^\w{2,20}$/.test(q.err) && Number(q.b) ? { id: Number(q.b), key: q.err } : null })() }
   const url = linkUrl(deps.config.baseUrl, link) + (page?.slug ? `/${page.slug}` : '')
   const siteTitle = d.seo_title || link.title || link.alias
@@ -155,6 +158,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
         : html`<a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>tubio</b></a>`}</footer>`
     : ''
   const reportHtml = html`<p class="report"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a> · <a href="/terms" rel="nofollow">${t('legal.terms')}</a> · <a href="/privacy" rel="nofollow">${t('legal.privacy')}</a></p>`
+  const usesSiteBlocks = blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'site')
   const sb = site && page ? renderSiteBody({ t, site, page, alias: link.alias, title: link.title || link.alias, grouped: grouped as Map<number, BlockRow[]>, renderBlock, legal: html`${madeHtml}${reportHtml}` }) : null
 
   const doc: SafeHtml = html`<html lang="${d.lang || locale}">
@@ -173,11 +177,11 @@ ${seoDescription ? html`<meta property="og:description" content="${seoDescriptio
 ${ogImage ? html`<meta property="og:image" content="${ogImage}"><meta name="twitter:card" content="summary_large_image">` : html`<meta name="twitter:card" content="summary">`}
 <link rel="icon" href="${d.favicon ? imageUrl(d.favicon) : '/_/static/img/favicon.svg'}">
 <link rel="stylesheet" href="/_/static/css/bio.css?v=${ASSET_VERSION}">
-${sb ? html`<link rel="stylesheet" href="/_/static/css/site.css?v=${ASSET_VERSION}">` : ''}
+${sb || usesSiteBlocks ? html`<link rel="stylesheet" href="/_/static/css/site.css?v=${ASSET_VERSION}">` : ''}
 ${d.pwa && !link.password_hash ? html`<link rel="manifest" href="/_/pwa/${link.alias}/manifest.webmanifest"><link rel="apple-touch-icon" href="/_/pwa/${link.alias}/icon-192.png"><meta name="theme-color" content="${d.btn_bg ?? '#1d4ed8'}">` : ''}
 <style nonce="${nonce}">${raw(pageCss(d, blocks) + (sb ? siteCss(pageSections) : ''))}</style>
 <script type="module" src="/_/static/js/bio.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>
-${sb ? html`<script type="module" src="/_/static/js/site.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
+${sb || usesSiteBlocks ? html`<script type="module" src="/_/static/js/site.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 ${blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'capture') ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${nonce}"></script>` : ''}
 </head>
 <body class="bio al-${d.align} anim-${d.animation} hov-${d.hover}${d.bg_type === 'image' && d.bg_image ? ' has-bg-img' : ''}${sb ? ` ms${sb.hasBar ? ' has-bar' : ''}${sb.hasDock ? ' has-dock' : ''}` : ''}"${sb ? html` data-title="${title}" data-url="${url}" data-copied="${t('links.copied')}"` : ''}>

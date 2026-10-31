@@ -3,7 +3,7 @@ import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 
-export const ASSET_VERSION = '28'
+export const ASSET_VERSION = '30'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>

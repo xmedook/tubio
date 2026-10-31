@@ -140,6 +140,7 @@ function parseSection(b: unknown, cur: SectionData): { data: SectionData; errors
     ancho: field(b, 'ancho') || cur.ancho,
     columnas: field(b, 'columnas') || cur.columnas,
     alinear: field(b, 'alinear') || cur.alinear,
+    relleno: field(b, 'relleno') || cur.relleno,
   })
   if (!r.success) {
     for (const i of r.error.issues) errors[String(i.path[0])] = 'err.invalid'

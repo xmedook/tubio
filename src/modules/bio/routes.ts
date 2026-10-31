@@ -17,6 +17,7 @@ import { blockAddDenied, blockTypeAllowed, limitsOf, ownerLimits, PLAN_GATED_BLO
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
+import { VIDEO_MAX_BYTES } from './blocks-minisitio.ts'
 import { designSchema, readDesign, themeById, WEB_FONTS, type Design } from './design.ts'
 import sharp from 'sharp'
 import { esc } from '../../lib/html.ts'
@@ -40,6 +41,9 @@ import {
 } from './repo.ts'
 import { blockFormPage, designPage, editorPage, themeSwatchCss, type SectionChoice, type SiteView } from './views.ts'
 import { groupBlocks, homePage, loadSite, sectionInLink, sectionsOf, type Site } from '../minisitio/repo.ts'
+
+/** La portada admite un video de hasta 15 MB: el tope global de subida (10 MB) no alcanza */
+const bigUpload = (type: string) => (type === 'hero' ? { fileSize: VIDEO_MAX_BYTES + 1024 * 1024 } : undefined)
 
 const IMAGE_FIELDS = { bg_image: 1920, seo_image: 1200, favicon: 192 } as const
 
@@ -227,7 +231,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     }
     let mp: MultipartData
     try {
-      mp = await readMultipart(req)
+      mp = await readMultipart(req, bigUpload(def.type))
     } catch (e) {
       if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
@@ -273,7 +277,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!def) return reply.callNotFound()
     let mp: MultipartData
     try {
-      mp = await readMultipart(req)
+      mp = await readMultipart(req, bigUpload(def.type))
     } catch (e) {
       if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
@@ -426,6 +430,37 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     return reply.type('application/pdf').send(createReadStream(p))
   })
 
+  // video de la portada: sólo dentro de la página, con Range para que el navegador salte y reanude
+  app.get('/_/v/:id', async (req, reply) => {
+    const r = publicBlock(req, 'hero')
+    const meta = (r?.b.data.video ?? null) as { file_id?: number } | null
+    const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
+    if (!r || !f || f.user_id !== r.link.user_id || !['video/mp4', 'video/webm'].includes(f.mime)) return reply.callNotFound()
+    const p = uploadPath(deps, f.key)
+    if (!existsSync(p)) return reply.callNotFound()
+    const total = f.size
+    reply.header('Accept-Ranges', 'bytes')
+    reply.header('Content-Security-Policy', "default-src 'none'")
+    reply.header('X-Robots-Tag', 'noindex')
+    reply.header('Cache-Control', 'public, max-age=3600')
+    const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''))
+    if (m && (m[1] || m[2])) {
+      let start = m[1] ? Number(m[1]) : total - Number(m[2])
+      let end = m[1] && m[2] ? Number(m[2]) : total - 1
+      start = Math.max(0, start)
+      end = Math.min(total - 1, end)
+      if (!(start <= end) || start >= total) {
+        reply.header('Content-Range', `bytes */${total}`)
+        return reply.code(416).send()
+      }
+      reply.header('Content-Range', `bytes ${start}-${end}/${total}`)
+      reply.header('Content-Length', String(end - start + 1))
+      return reply.code(206).type(f.mime).send(createReadStream(p, { start, end }))
+    }
+    reply.header('Content-Length', String(total))
+    return reply.type(f.mime).send(createReadStream(p))
+  })
+
   // clic en un bloque: cuenta y redirige
   app.get('/_/c/:id', async (req, reply) => {
     const b = getBlock(db, Number((req.params as { id: string }).id))
@@ -433,7 +468,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!b || !link || availability(deps, link) !== 'ok' || !isUnlocked(deps, req, link) || !isConfirmed(deps, req, link)) return reply.callNotFound()
     if (!visibleBlocks([b], deps.now()).length) return reply.callNotFound()
     const to = (req.query as { to?: string }).to
-    const raw = blockTarget(b, typeof to === 'string' ? to : undefined)
+    const raw = blockTarget(b, typeof to === 'string' ? to : undefined, { wa: loadSite(db, link.id).config.whatsapp })
     const target = raw ? redirectAllowed(db, raw) : null
     if (!target) return reply.callNotFound()
     const preview = req.ctx.user?.id === link.user_id && String(req.headers.referer ?? '').includes('_preview=1')

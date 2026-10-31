@@ -16,7 +16,7 @@ import { sectionsOf } from '../minisitio/repo.ts'
 export type SiteView = { site: Site; page: MsPage; grouped: Map<number, BlockRow[]> }
 export type SectionChoice = { value: string; label: string }
 
-const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', 'media']
+const GROUPS: BlockDef['group'][] = ['site', 'basic', 'business', 'capture', 'social', 'media']
 
 /** Ícono de una fila de bloque o del catálogo */
 export function blockIcon(type: string, group?: string): string {

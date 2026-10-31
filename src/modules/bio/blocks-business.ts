@@ -12,7 +12,7 @@ const keys = (b: BlockRow, name: string): string[] => (Array.isArray(b.data[name
 const clickHref = (b: BlockRow) => `/_/c/${b.id}`
 
 export const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const
-const TZ = Intl.supportedValuesOf('timeZone')
+export const TZ = Intl.supportedValuesOf('timeZone')
 
 /** ¿Abierto ahora? según las filas {day, open, close} en la zona dada (cierre después de medianoche incluido) */
 export function openNow(list: Record<string, unknown>[], timeZone: string, now: number): boolean {

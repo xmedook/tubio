@@ -23,3 +23,48 @@ if (bar) {
     }
   }
 }
+
+// portada: el video sólo se carga si la persona no pidió menos movimiento ni ahorro de datos; con póster de respaldo
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const net = navigator.connection
+const saver = !!net && (net.saveData || /(^|-)2g$/.test(net.effectiveType || ''))
+for (const v of document.querySelectorAll('video[data-hero-src]')) {
+  if (reduce || saver) continue
+  const src = document.createElement('source')
+  src.src = v.dataset.heroSrc
+  src.type = v.dataset.heroType || 'video/mp4'
+  v.append(src)
+  v.load()
+  v.play().then(() => v.classList.add('on')).catch(() => {})
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((es) => {
+      for (const e of es) e.isIntersecting ? v.play().catch(() => {}) : v.pause()
+    }).observe(v)
+  }
+  const btn = v.closest('.hero')?.querySelector('[data-hero-sound]')
+  if (btn) {
+    btn.hidden = false
+    btn.addEventListener('click', () => {
+      v.muted = !v.muted
+      btn.setAttribute('aria-pressed', String(!v.muted))
+      btn.firstElementChild.textContent = v.muted ? '🔇' : '🔊'
+      v.play().catch(() => {})
+    })
+  }
+}
+
+// ubicación: el mapa de Google sólo se pide cuando alguien lo toca
+for (const m of document.querySelectorAll('[data-loc]')) {
+  const btn = m.querySelector('[data-loc-load]')
+  if (!btn) continue
+  btn.hidden = false
+  btn.addEventListener('click', () => {
+    const f = document.createElement('iframe')
+    f.src = m.dataset.src
+    f.title = m.dataset.title || 'Mapa'
+    f.loading = 'lazy'
+    f.referrerPolicy = 'no-referrer'
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups')
+    m.replaceChildren(f)
+  })
+}

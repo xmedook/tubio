@@ -120,6 +120,8 @@ export const sectionDataSchema = z.object({
   /** columnas en escritorio (en móvil siempre 1) */
   columnas: z.coerce.number().int().min(1).max(3).default(1),
   alinear: z.enum(['izquierda', 'centro']).default('izquierda'),
+  /** ninguno = sin relleno vertical (para portadas a pantalla completa) */
+  relleno: z.enum(['normal', 'ninguno']).default('normal'),
 })
 export type SectionData = z.infer<typeof sectionDataSchema>
 

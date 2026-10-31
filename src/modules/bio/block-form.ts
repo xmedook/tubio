@@ -1,6 +1,6 @@
 import type { AppDeps } from '../../app.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { imageUrl, storeFile, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
+import { deleteStoredFile, imageUrl, storeFile, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
 import { BUTTON_SCHEMES, checkTarget, isBlockedHost, WEB_SCHEMES } from '../../lib/urls.ts'
 import { checkbox, fromLocalInput, input, select, textarea, toLocalInput, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
@@ -109,7 +109,7 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
     case 'number':
       return input({ ctx, name: f.name, type: 'number', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })
     case 'file':
-      return html`${v[f.name] ? html`<p>${t('links.current_file')}: <strong>${v[f.name]}</strong></p>` : ''}${input({ ctx, name: f.name, type: 'file', label: v[f.name] ? t('links.replace_file') : label, error: e[f.name], required: f.required && !v[f.name] })}`
+      return html`${v[f.name] ? html`<p>${t('links.current_file')}: <strong>${v[f.name]}</strong></p>` : ''}${input({ ctx, name: f.name, type: 'file', label: v[f.name] ? t('links.replace_file') : label, error: e[f.name], required: f.required && !v[f.name], accept: f.mimes?.join(',') })}`
     case 'targets': {
       const chosen = new Set((v[f.name] ?? '').split(',').filter(Boolean))
       const list = targetsFor ?? []
@@ -186,7 +186,7 @@ export async function parseBlockForm(
   const data: Record<string, unknown> = {}
   const pendingImages: { name: string; buf: Buffer; filename: string; spec: Extract<FieldSpec, { kind: 'image' }> }[] = []
   const pendingMulti: { name: string; buf: Buffer; filename: string; maxDim: number }[] = []
-  let pendingFile: { name: string; buf: Buffer; filename: string } | null = null
+  let pendingFile: { name: string; buf: Buffer; filename: string; spec: Extract<FieldSpec, { kind: 'file' }> } | null = null
 
   for (const spec of def.fields) {
     const raw = f(spec.name).trim()
@@ -299,7 +299,8 @@ export async function parseBlockForm(
       case 'file': {
         const up = mp.files.find((x) => x.field === spec.name)
         const prev = existing?.data[spec.name] ?? null
-        if (up) pendingFile = { name: spec.name, buf: up.buffer, filename: up.filename }
+        if (up && spec.maxBytes && up.buffer.length > spec.maxBytes) errors[spec.name] = 'err.file_too_big'
+        else if (up) pendingFile = { name: spec.name, buf: up.buffer, filename: up.filename, spec }
         else data[spec.name] = prev
         if (spec.required && !up && !prev) errors[spec.name] = 'err.file_required'
         break
@@ -379,6 +380,10 @@ export async function parseBlockForm(
     if (pendingFile && !Object.keys(errors).length) {
       try {
         const stored = await storeFile(deps, user.id, pendingFile.buf, pendingFile.filename)
+        if (pendingFile.spec.mimes && !pendingFile.spec.mimes.includes(stored.mime)) {
+          deleteStoredFile(deps, stored)
+          throw new UploadError('err.file_type')
+        }
         data[pendingFile.name] = { file_id: stored.id, name: stored.original_name, size: stored.size, mime: stored.mime }
       } catch (e) {
         errors[pendingFile.name] = e instanceof UploadError ? e.key : 'err.invalid'

@@ -18,6 +18,7 @@
     "create-admin": "node src/cli/create-admin.ts",
     "seed-demo": "node src/cli/seed-demo.ts",
     "seed-ms": "node src/cli/seed-minisitio.ts",
+    "seed-portal": "node src/cli/seed-portal.ts",
     "backup-db": "node src/cli/backup-db.ts",
     "a11y": "node scripts/a11y.ts",
     "mobile-audit": "node scripts/mobile-audit.ts"

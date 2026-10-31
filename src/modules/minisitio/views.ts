@@ -12,7 +12,7 @@ import type { MsPage, MsSection, Site } from './repo.ts'
 import { sectionsOf } from './repo.ts'
 import { ACTION_TYPES, ALTOS, ANCHOS, FONDO_TIPOS, MS_MAX_NAV, MS_MAX_PAGES, MS_MAX_SECTIONS, type Action, type SectionData, type SiteConfig } from './schema.ts'
 
-const GROUPS = ['basic', 'business', 'capture', 'social', 'media'] as const
+const GROUPS = ['site', 'basic', 'business', 'capture', 'social', 'media'] as const
 
 const head = (ctx: Ctx) => html`<script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`
 
@@ -217,6 +217,7 @@ ${viewToggle(ctx)}
         ${select({ ctx, name: 'columnas', label: t('ms.s.columnas'), value: d.columnas, options: [1, 2, 3].map((n) => ({ value: String(n), label: String(n) })) })}
         ${select({ ctx, name: 'alinear', label: t('ms.s.alinear_t'), value: d.alinear, options: (['izquierda', 'centro'] as const).map((v) => ({ value: v, label: t(`ms.s.alinear.${v}`) })) })}
       </div>
+      ${select({ ctx, name: 'relleno', label: t('ms.s.relleno_t'), value: d.relleno, options: (['normal', 'ninguno'] as const).map((v) => ({ value: v, label: t(`ms.s.relleno.${v}`) })) })}
       ${checkbox({ name: 'is_enabled', label: t('ms.s.visible'), checked: enabled })}
       <div class="btn-row sticky-actions">
         <button class="btn btn-primary" type="submit">${t('common.save')}</button>
