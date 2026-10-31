@@ -8,6 +8,8 @@ export const RESERVED_ALIASES = new Set([
   'root', 'settings', 'signup', 'source', 'static', 'stats', 'status', 'support', 'soporte', 'terms',
   'terminos', 'tubio', 'verify', 'www', 'robots.txt', 'favicon.ico', 'sitemap.xml', 'manifest.json',
   'security.txt', '.well-known', 'acceptable-use', 'uso-aceptable', 'directory', 'directorio', 'referrals', 'afiliados', 'security', 'seguridad', 'help', 'ayuda',
+  // páginas por giro de la portada y alta asistida
+  'restaurantes', 'belleza', 'salud', 'inmobiliarias', 'fitness', 'servicios-profesionales', 'armamos-por-ti',
 ])
 
 export const ALIAS_MIN = 3

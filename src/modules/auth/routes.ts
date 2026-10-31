@@ -16,6 +16,7 @@ import { consumeAuthToken, createAuthToken, peekAuthToken } from './tokens.ts'
 import { forgotPage, loginPage, registerPage, resetPage, twoFactorPage, type Claim } from './views.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
 import { aliasTaken } from '../links/repo.ts'
+import { isGiro } from '../minisitio/giros.ts'
 
 export const passwordSchema = z.string().min(10, 'err.password_short').max(200, 'err.password_long')
 const emailSchema = z.string().trim().max(254, 'err.email').pipe(z.email('err.email'))
@@ -76,7 +77,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       return sendHtml(reply, messagePage(req.ctx, { title: req.ctx.t('auth.register_title'), message: req.ctx.t('auth.registration_closed') }), 403)
     }
     const raw = String((req.query as { alias?: string }).alias ?? '')
-    return sendHtml(reply, registerPage(req.ctx, {}, {}, raw ? checkClaim(raw) : null))
+    const giro = String((req.query as { giro?: string }).giro ?? '')
+    return sendHtml(reply, registerPage(req.ctx, isGiro(giro) ? { giro } : {}, {}, raw ? checkClaim(raw) : null))
   })
 
   app.post('/register', { config: AUTH_LIMIT }, async (req, reply) => {
@@ -84,7 +86,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     if (!getSetting(db, 'registration_open')) {
       return sendHtml(reply, messagePage(req.ctx, { title: t('auth.register_title'), message: t('auth.registration_closed') }), 403)
     }
-    const values = { name: field(req.body, 'name'), email: field(req.body, 'email') }
+    const giroIn = field(req.body, 'giro')
+    const values: Record<string, string> = { name: field(req.body, 'name'), email: field(req.body, 'email'), ...(isGiro(giroIn) ? { giro: giroIn } : {}) }
     const claimed = field(req.body, 'claim') ? checkClaim(field(req.body, 'claim')) : null
     const claimOk = claimed && !claimed.error ? claimed : null
     if (!powOk(deps, req.body)) return sendHtml(reply, registerPage(req.ctx, values, { _form: 'err.pow' }, claimOk), 422)
@@ -108,7 +111,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })
     // reclamó un alias en la portada: directo a crear su página con él
-    return reply.redirect(claimOk ? `/panel/start?alias=${encodeURIComponent(claimOk.alias)}` : '/panel/start', 303)
+    const q = [claimOk ? `alias=${encodeURIComponent(claimOk.alias)}` : '', values.giro ? `giro=${values.giro}` : ''].filter(Boolean).join('&')
+    return reply.redirect(q ? `/panel/start?${q}` : '/panel/start', 303)
   })
 
   app.get('/login', async (req, reply) => {

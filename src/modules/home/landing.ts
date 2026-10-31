@@ -1,33 +1,55 @@
 import { formatNumber } from '../../lib/i18n.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { ASSET_VERSION } from '../../views/layout.ts'
-import { csrfField, flashBox, powAttr, powField } from '../../views/ui.ts'
+import { csrfField, powAttr, powField } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
+import { GIROS, GIRO_META, type Giro } from '../minisitio/giros.ts'
 import type { Plan } from '../plans/limits.ts'
+import { GIRO_COPY } from './giro-copy.ts'
 import { hic } from './icons.ts'
+import { homeShell, salesLink } from './shell.ts'
 
-/** Portada pública (diseño «Charla» de design, 23-oct-2026). Sin JS salvo la prueba de trabajo de la lista de espera. */
+type Loc = 'es-MX' | 'en'
+const copyOf = (g: Giro, locale: string) => GIRO_COPY[g][locale === 'en' ? 'en' : 'es-MX']
+
+/** Teléfono de muestra de un giro; el nombre sigue lo que la persona escribe en el campo de alias (home.js) */
+export function giroPhone(ctx: Ctx, g: Giro, cls = ''): SafeHtml {
+  const m = GIRO_META[g]
+  const c = copyOf(g, ctx.locale)
+  const initials = m.exampleName.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()
+  return html`<div class="dg dg-${g}${cls}" data-giro="${g}"><div class="phone"><div class="pb" style="--c1:${m.c1};--c2:${m.c2}">
+    <span class="pb-cov" aria-hidden="true"></span>
+    <span class="pb-av">${initials}</span><span class="pb-n" data-eco="${m.exampleName}">${m.exampleName}</span><span class="pb-d">${c.tag}</span>
+    <span class="pb-btns">${c.btns.map((b, i) => html`<span class="pb-btn${i === 0 ? '' : ' alt'}">${hic(i === 0 ? 'wa' : i === 1 ? 'link' : 'map', 18)}<span>${b}</span></span>`)}</span>
+    <span class="pb-card"><span class="pb-h">${hic('clock', 16)} ${ctx.t('h2.demo_open')}</span><span class="pb-r">${ctx.t('h2.demo_hours')}</span></span>
+  </div></div></div>`
+}
+
+/** Portada pública (diseño «Charla» + minisitios por giro, PLAN-HELLOLINK §4). Sin JS salvo el eco del nombre y la prueba de trabajo de la lista de espera. */
 export function landingPage(
   ctx: Ctx,
-  opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string; pages?: { slug: string; title: string }[]; foundersLeft?: number; plans?: Plan[] },
+  opts: { registrationOpen: boolean; joined?: boolean; error?: string; sourceUrl: string; pages?: { slug: string; title: string }[]; foundersLeft?: number; plans?: Plan[]; salesWhatsapp?: string },
 ): SafeHtml {
   const { t, locale } = ctx
-  const other = locale === 'es-MX' ? 'en' : 'es-MX'
   const host = new URL(ctx.baseUrl).host
   const pow = ctx.pow()
   const n = (v: number) => formatNumber(locale, v)
   const money = (cents: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(cents / 100)
   const founders = opts.foundersLeft ?? 0
+  const sales = salesLink(opts.salesWhatsapp ?? '', locale === 'en' ? 'Hi, I want a site for my business' : 'Hola, quiero un sitio para mi negocio')
+  const chips = html`<fieldset class="chips"><legend class="r-l">${t('h3.pick_giro')}</legend>${GIROS.map((g, i) => html`<span class="chip"><input type="radio" name="giro" id="g-${g}" value="${g}"${i === 0 ? html` checked` : ''}><label for="g-${g}">${t(`giro.s_${g}`)}</label></span>`)}</fieldset>`
+  const createHref = ctx.user ? '/panel/start' : opts.registrationOpen ? '/register' : '#cierre'
 
   const start = ctx.user
-    ? html`<p><a class="btn btn-acento btn-grande" href="/panel">${t('home.go_panel')}</a></p>`
+    ? html`<form class="reclamar" method="get" action="/panel/start">${chips}<p><button class="btn btn-acento btn-grande" type="submit">${t('h3.close_cta')}</button></p></form>`
     : opts.registrationOpen
-      ? html`<form class="reclamar" method="get" action="/register" role="search" aria-label="${t('claim.title')}">
+      ? html`<form class="reclamar" id="crear" method="get" action="/register" aria-label="${t('claim.title')}">
+        ${chips}
         <label for="alias" class="r-l">${t('claim.title')}</label>
         <div class="r-fila"><span class="r-host" aria-hidden="true">${host}/</span>
-          <input id="alias" name="alias" required minlength="3" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${t('h2.claim_ph')}">
+          <input id="alias" name="alias" required minlength="3" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${t('h2.claim_ph')}" data-eco-input>
           <button class="btn btn-acento" type="submit">${t('claim.go')}</button></div>
         <p class="r-alt">${t('h2.or')} <a href="/register">${t('h2.with_email')}</a>${ctx.googleEnabled ? html` · <a href="/login/google">${t('h2.with_google')}</a>` : ''} · <a href="/login">${t('auth.login_link')}</a></p>
+        <p class="r-alt"><a class="r-asist" href="/armamos-por-ti">${t('h3.assisted_cta')} →</a></p>
       </form>`
       : opts.joined
         ? html`<p class="flash-ok" role="status">${t('home.waitlist_ok')}</p>`
@@ -62,71 +84,48 @@ export function landingPage(
   const mx = Math.max(...dias)
   const bw = 300 / dias.length
   const bars = dias.map((v, i) => html`<rect x="${(i * bw + 1).toFixed(1)}" y="${(96 - (v / mx) * 96).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${((v / mx) * 96).toFixed(1)}" rx="2"/>`)
-  const faq: [string, string][] = [1, 2, 3, 4, 5, 6].map((i) => [t(`h2.q${i}`), t(`h2.a${i}`)])
 
-  return html`<html lang="${locale}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>tubio · ${t('h2.title')}</title>
-<meta name="description" content="${t('h2.meta')}">
-<meta property="og:title" content="tubio · ${t('h2.title')}">
-<meta property="og:description" content="${t('h2.meta')}">
-<meta name="theme-color" content="#F2EEE3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0D1310" media="(prefers-color-scheme: dark)">
-<link rel="canonical" href="${ctx.baseUrl}/">
-<link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/_/static/css/home-tokens.css?v=${ASSET_VERSION}">
-<link rel="stylesheet" href="/_/static/css/home.css?v=${ASSET_VERSION}">
-${!opts.registrationOpen && !ctx.user ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>` : ''}
-</head>
-<body>
-<a class="saltar" href="#contenido">${t('a11y.skip')}</a>
-<header class="cab">
-  <div class="cab-in">
-    <a class="marca" href="/" aria-label="${t('h2.home_aria')}">tubio</a>
-    <nav class="cab-nav" aria-label="${t('nav.main')}">
-      <a href="#funciones">${t('h2.nav_features')}</a><a href="#planes">${t('h2.nav_plans')}</a><a href="#preguntas">${t('h2.nav_faq')}</a>
-    </nav>
-    <a class="cab-l" href="/lang/${other}?next=/" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>
-    <a class="btn btn-chico btn-borde" href="${ctx.user ? '/panel' : '/login'}">${ctx.user ? t('h2.my_panel') : t('auth.login_link')}</a>
-  </div>
-</header>
 
-<main id="contenido">
-  ${flashBox(ctx)}
+  const faq: [string, string][] = [1, 2, 3, 4, 5, 6].map((i) => [t(`h2.q${i}`), t(`h2.a${i}`)] as [string, string]).concat([[t('h3.q7'), t('h3.a7')], [t('h3.q8'), t('h3.a8')]])
+
+  const body = html`
   <section class="hero">
     <div class="hero-txt">
-      <p class="kicker">${hic('globe', 18)} ${t('h2.kicker')}</p>
-      <h1>${t('h2.title')}</h1>
-      <p class="lead">${t('h2.lead')}</p>
+      <p class="kicker">${hic('globe', 18)} ${t('h3.kicker')}</p>
+      <h1>${t('h3.title')}</h1>
+      <p class="lead">${t('h3.lead')}</p>
       ${founders ? html`<p class="fundadores" data-fundadores><span class="f-n" data-quedan>${n(founders)}</span><span><b>${t('h2.founders_left')}</b> ${t('h2.founders_body')}</span></p>` : ''}
       ${start}
     </div>
     <div class="demo" aria-hidden="true">
-      <div class="phone"><div class="pb">
-        <span class="pb-av">LC</span><span class="pb-n">Café La Ceiba</span><span class="pb-d">${t('h2.demo_desc')}</span>
-        <span class="pb-btns">${([['wa', 'h2.demo_wa'], ['link', 'h2.demo_menu'], ['map', 'h2.demo_map'], ['cal', 'h2.demo_book']] as const).map(([i, k]) => html`<span class="pb-btn">${hic(i, 18)}<span>${t(k)}</span></span>`)}</span>
-        <span class="pb-card"><span class="pb-h">${hic('clock', 16)} ${t('h2.demo_open')}</span><span class="pb-r">${t('h2.demo_hours')}</span></span>
-        <span class="pb-soc">${hic('ig', 20)}${hic('tt', 20)}${hic('fb', 20)}</span>
-      </div></div>
-      <div class="toast"><span class="t-av">${hic('chart', 18)}</span><span>${t('h2.demo_toast')}<small>${t('h2.demo_toast_when')}</small></span></div>
+      <p class="demo-l">${t('h3.preview_for')}</p>
+      ${GIROS.map((g) => giroPhone(ctx, g))}
+      <div class="toast"><span class="t-av">${hic('wa', 18)}</span><span>${t('h2.demo_toast')}<small>${t('h2.demo_toast_when')}</small></span></div>
     </div>
   </section>
 
-  <section class="pasos" aria-labelledby="t-pasos">
-    <h2 id="t-pasos">${t('h2.steps')}</h2>
-    <ol>${[1, 2, 3].map((i) => html`<li><span class="p-n">${i}</span><span><b>${t(`h2.step${i}`)}</b><span>${t(`h2.step${i}_body`, { host })}</span></span></li>`)}</ol>
+  <section class="ejemplos" aria-labelledby="t-ej">
+    <h2 id="t-ej">${t('h3.examples')}</h2><p class="p-sub">${t('h3.examples_sub')}</p>
+    <ul class="ejs">${GIROS.map((g) => html`<li><a class="ej" href="/${GIRO_META[g].example}" style="--c1:${GIRO_META[g].c1};--c2:${GIRO_META[g].c2}"><span class="ej-g">${t(`giro.${g}`)}</span><b>${GIRO_META[g].exampleName}</b><span class="ej-go">${t('h3.open_example')} →</span></a></li>`)}</ul>
   </section>
 
-  <section class="funciones" id="funciones" aria-labelledby="t-func">
-    <div class="f-txt">
-      <h2 id="t-func">${t('h2.features')}</h2>
-      <ul class="filas">${(['btn', 'link', 'qr', 'chart'] as const).map((i, k) => html`<li><span class="f-av">${hic(i, 22)}</span><span class="f-b"><b>${t(`h2.f${k + 1}`)}</b><span>${t(`h2.f${k + 1}_body`, { host })}</span></span></li>`)}</ul>
-    </div>
-    <div class="f-vis"><div class="phone sm" aria-hidden="true"><div class="pp"><span class="pp-top"><b>tubio</b>${hic('search', 18)}</span>
-      ${([['LC', 'Café La Ceiba', 'laceiba', '1 284'], ['link', t('h2.demo_menu'), 'ceiba-menu', '612'], ['qr', t('h2.demo_qr'), 'q/mesa', '388'], ['link', t('h2.demo_book'), 'ceiba-grupos', '97']] as const).map(([a, name, path, c]) => html`<span class="pp-row"><span class="pp-av">${a === 'LC' ? a : hic(a, 18)}</span><span class="pp-b"><b>${name}</b><span>${host}/${path}</span></span><span class="pp-c">${c}</span></span>`)}
-      <span class="pp-fab">${hic('plus', 22)}</span><span class="pp-tabs">${([['link', t('nav.links')], ['qr', 'QR'], ['chart', t('nav.stats')], ['user', t('nav.account')]] as const).map(([i, label], k) => html`<span class="pp-tab${k === 0 ? ' on' : ''}"><span class="pp-ti">${hic(i, 18)}</span>${label}</span>`)}</span></div></div></div>
+  <section class="pasos" id="como" aria-labelledby="t-pasos">
+    <h2 id="t-pasos">${t('h3.steps')}</h2>
+    <ol>${[1, 2, 3].map((i) => html`<li><span class="p-n">${i}</span><span><b>${t(`h3.step${i}`)}</b><span>${t(`h3.step${i}_body`, { host })}</span></span></li>`)}</ol>
+    <div class="asist"><div><h3>${t('h3.assisted')}</h3><p>${t('h3.assisted_body')}</p></div><a class="btn btn-borde" href="/armamos-por-ti">${t('h3.assisted_go')}</a></div>
+  </section>
+
+  <section class="incluye" aria-labelledby="t-inc">
+    <h2 id="t-inc">${t('h3.includes')}</h2>
+    <ul class="checks">${[1, 2, 3, 4, 5, 6, 7].map((i) => html`<li>${hic('check', 20)}<span>${t(`h3.inc${i}`)}</span></li>`)}</ul>
+  </section>
+
+  <section class="giros" id="giros" aria-labelledby="t-giros">
+    <h2 id="t-giros">${t('h3.giros')}</h2><p class="p-sub">${t('h3.giros_sub')}</p>
+    <div class="giro-cards">${GIROS.map((g) => {
+      const c = copyOf(g, locale)
+      return html`<article class="giro-card"><h3>${t(`giro.${g}`)}</h3><ul>${c.includes.slice(0, 3).map((x) => html`<li>${hic('check', 16)}<span>${x}</span></li>`)}</ul><a href="/${GIRO_META[g].slug}">${t('h3.see_giro')} →</a></article>`
+    })}</div>
   </section>
 
   <section class="privacidad" aria-labelledby="t-priv">
@@ -155,17 +154,18 @@ ${!opts.registrationOpen && !ctx.user ? html`<script type="module" src="/_/stati
     ${faq.map(([q, a]) => html`<details><summary>${q}${hic('plus', 20, 'ic mas')}</summary><p>${a}</p></details>`)}
   </section>
 
-  ${!ctx.user && opts.registrationOpen ? html`<section class="cierre"><h2>${t('h2.close')}</h2><a class="btn btn-acento btn-grande" href="/register">${t('h2.close_cta')}</a></section>` : ''}
-</main>
+  <section class="cierre" id="cierre"><h2>${t('h3.close')}</h2>
+    <div class="cierre-b">${!ctx.user && opts.registrationOpen ? html`<a class="btn btn-acento btn-grande" href="/register">${t('h3.close_cta')}</a>` : ctx.user ? html`<a class="btn btn-acento btn-grande" href="/panel/start">${t('h3.close_cta')}</a>` : ''}
+    ${sales ? html`<a class="btn btn-borde btn-grande" href="${sales}" target="_blank" rel="noopener">${hic('wa', 20)} ${t('h3.whatsapp')}</a>` : ''}</div></section>`
 
-<footer class="pie">
-  <div class="pie-in">
-    <div class="pie-marca"><span class="marca">tubio</span><p>${t('h2.foot_tag')}</p></div>
-    <nav aria-label="${t('h2.foot_product')}"><h3>${t('h2.foot_product')}</h3><a href="/directory">${t('dir.title')}</a><a href="/blog">${t('site.blog')}</a><a href="/help">${t('help.title')}</a><a href="#planes">${t('h2.nav_plans')}</a>${(opts.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a>`)}</nav>
-    <nav aria-label="${t('h2.foot_legal')}"><h3>${t('h2.foot_legal')}</h3><a href="/terms">${t('legal.terms')}</a><a href="/privacy">${t('legal.privacy')}</a><a href="/acceptable-use">${t('legal.aup')}</a><a href="/security">${t('legal.security')}</a></nav>
-    <nav aria-label="${t('h2.foot_code')}"><h3>${t('h2.foot_code')}</h3><a href="/source">${t('h2.foot_source')}</a><a href="/lang/${other}?next=/" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a></nav>
-  </div>
-</footer>
-</body>
-</html>`
+  return homeShell(ctx, {
+    title: `tubio · ${t('h3.title')}`,
+    description: t('h3.meta'),
+    path: '/',
+    body,
+    pages: opts.pages,
+    salesWhatsapp: opts.salesWhatsapp,
+    bar: ctx.user || opts.registrationOpen ? { label: t('h3.bar_create'), href: createHref } : undefined,
+    scripts: [...(!opts.registrationOpen && !ctx.user ? ['pow.js'] : []), 'home.js'],
+  })
 }

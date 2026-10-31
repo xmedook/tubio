@@ -11,7 +11,7 @@ const user = process.env.TUBIO_A11Y_USER
 const pass = process.env.TUBIO_A11Y_PASS
 const bio = process.env.TUBIO_A11Y_BIO ?? 'demo'
 
-const PUBLIC = ['/', '/login', '/register', '/forgot', '/help', '/help/primeros-pasos', '/help/contact', '/directory', '/blog', '/terms', '/security', `/${bio}`, '/no-existe-esta-pagina']
+const PUBLIC = ['/', '/restaurantes', '/salud', '/armamos-por-ti', '/ejemplo-restaurante', '/ejemplo-salud', '/ejemplo-fitness', '/login', '/register', '/forgot', '/help', '/help/primeros-pasos', '/help/contact', '/directory', '/blog', '/terms', '/security', `/${bio}`, '/no-existe-esta-pagina']
 const PANEL = ['/panel', '/panel/links', '/panel/links/new?kind=short', '/panel/links/new?kind=bio', '/panel/qr', '/panel/qr/new?kind=url', '/panel/stats', '/panel/account', '/panel/plan', '/panel/referrals']
 
 async function audit(page: Page, path: string, theme: string): Promise<number> {

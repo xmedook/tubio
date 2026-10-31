@@ -30,13 +30,14 @@ function adminNav(ctx: Ctx, active: string): SafeHtml {
     ['pages', '/admin/pages', t('site.admin')],
     ['referrals', '/admin/referrals', t('ref.title')],
     ['redeem', '/admin/redeem', t('redeem.admin')],
+    ['assisted', '/admin/assisted', t('admin.assisted')],
     ['hosts', '/admin/blocked-hosts', t('admin.blocked_hosts')],
     ['settings', '/admin/settings', t('admin.settings')],
   ]
   return html`<nav class="tabs" aria-label="${t('nav.admin')}">${items.map(([k, href, label]) => html`<a href="${href}"${k === active ? html` aria-current="page"` : ''}>${label}</a>`)}</nav>`
 }
 
-function page(ctx: Ctx, active: string, title: string, body: SafeHtml, path: string) {
+export function page(ctx: Ctx, active: string, title: string, body: SafeHtml, path: string) {
   return panelLayout(ctx, { title, active: 'admin', path, wide: true, body: html`<h1>${ctx.t('nav.admin')}</h1>${adminNav(ctx, active)}${body}` })
 }
 
@@ -315,6 +316,7 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
   ${input({ ctx, name: 'stats_retention_days', type: 'number', label: t('admin.retention'), value: s.stats_retention_days, min: 7, max: 3650, hint: t('admin.retention_hint') })}
   ${input({ ctx, name: 'announcement', label: t('site.announcement'), value: s.announcement, maxlength: 300, hint: t('site.announcement_hint') })}
   ${select({ ctx, name: 'announcement_level', label: t('site.announcement_level'), value: s.announcement_level, options: [{ value: 'info', label: t('site.level_info') }, { value: 'warn', label: t('site.level_warn') }] })}
+  ${input({ ctx, name: 'sales_whatsapp', type: 'tel', label: t('admin.sales_whatsapp'), value: s.sales_whatsapp, hint: t('admin.sales_whatsapp_hint'), inputmode: 'tel', maxlength: 15 })}
   ${input({ ctx, name: 'referral_percent', type: 'number', label: t('ref.percent'), value: s.referral_percent, min: 0, max: 90 })}
   ${checkbox({ name: 'maintenance', label: t('site.maintenance'), checked: s.maintenance, hint: t('site.maintenance_hint') })}
   ${checkbox({ name: 'registration_open', label: t('admin.registration_open'), checked: s.registration_open })}
@@ -340,6 +342,8 @@ ${hosts.length === 0 ? emptyState(t('admin.no_blocked'), '') : html`<ul class="l
     setSetting(db, 'maintenance', checked(b, 'maintenance'))
     const rp = Number(field(b, 'referral_percent'))
     if (Number.isInteger(rp) && rp >= 0 && rp <= 90) setSetting(db, 'referral_percent', rp)
+    const sw = field(b, 'sales_whatsapp').replace(/\D/g, '')
+    if (sw === '' || (sw.length >= 8 && sw.length <= 15)) setSetting(db, 'sales_whatsapp', sw.length === 10 ? `52${sw}` : sw)
     setSetting(db, 'branding_forced', checked(b, 'branding_forced'))
     const hidden = THEMES.map((th) => th.id).filter((id) => checked(b, `theme_off_${id}`))
     const def = field(b, 'default_theme')

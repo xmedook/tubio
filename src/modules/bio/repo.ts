@@ -128,6 +128,7 @@ export function imageKeysInUse(db: DB, userId: number): Set<string> {
   const add = (v: unknown) => {
     if (typeof v === 'string' && /^[\w-]+\.webp$/.test(v)) keys.add(v)
     else if (Array.isArray(v)) v.forEach(add)
+    else if (v && typeof v === 'object') Object.values(v).forEach(add) // filas con imagen propia (categorías, tarjetas, videos)
   }
   for (const d of db.prepare('SELECT b.data FROM bio_blocks b JOIN links l ON l.id = b.link_id WHERE l.user_id = ?').pluck().all(userId) as string[]) {
     try {
