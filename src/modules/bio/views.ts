@@ -10,8 +10,13 @@ import { linkTabs } from '../links/views.ts'
 import { blockFields, type BlockValues } from './block-form.ts'
 import { BLOCK_BY_TYPE, BLOCKS, MAX_BLOCKS_PER_PAGE, type BlockDef, type BlockRow } from './blocks.ts'
 import { FONT_IDS, FONTS, THEMES, type Design } from './design.ts'
+import type { MsPage, Site } from '../minisitio/repo.ts'
+import { sectionsOf } from '../minisitio/repo.ts'
 
-const GROUPS: BlockDef['group'][] = ['basic', 'business', 'capture', 'social', 'media']
+export type SiteView = { site: Site; page: MsPage; grouped: Map<number, BlockRow[]> }
+export type SectionChoice = { value: string; label: string }
+
+const GROUPS: BlockDef['group'][] = ['site', 'basic', 'business', 'capture', 'social', 'media']
 
 /** Ícono de una fila de bloque o del catálogo */
 export function blockIcon(type: string, group?: string): string {
@@ -29,7 +34,7 @@ export function blockIcon(type: string, group?: string): string {
 }
 
 /** Interruptor «Editar | Vista previa» (sólo en el celular; sin JS se ven las dos cosas una tras otra) */
-function viewToggle(ctx: Ctx): SafeHtml {
+export function viewToggle(ctx: Ctx): SafeHtml {
   const { t } = ctx
   return html`<div class="seg" role="group" aria-label="${t('bio.view')}" data-view-toggle hidden>
   <button type="button" class="seg-btn" data-view="edit" aria-pressed="true">${icon('edit')} ${t('bio.view_edit')}</button>
@@ -37,46 +42,18 @@ function viewToggle(ctx: Ctx): SafeHtml {
 </div>`
 }
 
-function preview(ctx: Ctx, link: Link): SafeHtml {
+export function preview(ctx: Ctx, link: Link, slug = ''): SafeHtml {
   const { t } = ctx
   return html`<aside class="editor-preview" aria-label="${t('bio.preview')}">
-  <div class="phone"><iframe src="/${link.alias}?_preview=1" title="${t('bio.preview')}" loading="lazy" data-preview></iframe></div>
+  <div class="phone"><iframe src="/${link.alias}${slug ? `/${slug}` : ''}?_preview=1" title="${t('bio.preview')}" loading="lazy" data-preview></iframe></div>
   <p class="muted center"><a href="${linkUrl(ctx.baseUrl, link)}" target="_blank" rel="noopener">${t('bio.open_page')} ↗</a></p>
 </aside>`
 }
 
-export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: string[] = [], maxBlocks = MAX_BLOCKS_PER_PAGE): SafeHtml {
+function blockRow(ctx: Ctx, b: BlockRow, i: number, total: number, scheduled: (b: BlockRow) => unknown): SafeHtml {
   const { t } = ctx
-  const now = ctx.now
-  const scheduled = (b: BlockRow) => (b.starts_at && now < b.starts_at) || (b.ends_at && now >= b.ends_at)
-  const full = blocks.length >= maxBlocks
-  return panelLayout(ctx, {
-    title: t('bio.blocks'),
-    active: 'links',
-    path: `/panel/links/${link.id}/blocks`,
-    wide: true,
-    head: html`<script src="/_/static/vendor/sortablejs/Sortable.min.js" defer nonce="${ctx.nonce}"></script><script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`,
-    body: html`${linkTabs(ctx, link, 'blocks')}
-${viewToggle(ctx)}
-<div class="editor" data-editor>
-  <section class="editor-main">
-    <details class="card add-block"${blocks.length === 0 ? html` open` : ''}>
-      <summary class="btn btn-primary btn-block">${icon('plus')} ${t('bio.add_block')}</summary>
-      <div class="add-sheet">
-      <p class="sheet-title">${t('bio.add_block')}</p>
-      ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : html`<div class="field pick-search"><label class="sr-only" for="pick-q">${t('bio.search_blocks')}</label><input id="pick-q" type="search" placeholder="${t('bio.search_blocks')}" data-pick-search autocomplete="off"></div>${GROUPS.map(
-        (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
-          (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="tipo-ic" aria-hidden="true">${icon(blockIcon(b.type, b.group))}</span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
-        )}</div>`,
-      )}`}
-      </div>
-    </details>
-    ${blocks.length === 0
-      ? html`<p class="muted">${t('bio.no_blocks')}</p>`
-      : html`<ol class="blocks" data-sortable data-order-url="/panel/links/${link.id}/blocks/order" data-csrf="${ctx.csrf}" aria-label="${t('bio.blocks')}">
-      ${blocks.map((b, i) => {
-        const def = BLOCK_BY_TYPE.get(b.type)
-        return html`<li data-id="${b.id}" class="blk${b.is_enabled ? '' : ' off'}">
+  const def = BLOCK_BY_TYPE.get(b.type)
+  return html`<li data-id="${b.id}" class="blk${b.is_enabled ? '' : ' off'}">
         <span class="handle" title="${t('bio.drag')}" aria-hidden="true">${icon('grip')}</span>
         <a class="grow block-main" href="/panel/blocks/${b.id}">
           <span class="av s" aria-hidden="true">${icon(blockIcon(b.type, def?.group))}</span>
@@ -93,12 +70,44 @@ ${viewToggle(ctx)}
           <div class="menu-body">
             <a href="/panel/blocks/${b.id}">${t('common.edit')}</a>
             ${i > 0 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button type="submit">${t('bio.move_up')}</button></form>` : ''}
-            ${i < blocks.length - 1 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button type="submit">${t('bio.move_down')}</button></form>` : ''}
+            ${i < total - 1 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button type="submit">${t('bio.move_down')}</button></form>` : ''}
             ${postButton(ctx, `/panel/blocks/${b.id}/delete`, t('common.delete'), { cls: 'danger', confirm: t('bio.delete_confirm') })}
           </div>
         </details>
       </li>`
-      })}
+}
+
+export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: string[] = [], maxBlocks = MAX_BLOCKS_PER_PAGE, sv?: SiteView): SafeHtml {
+  const { t } = ctx
+  const now = ctx.now
+  const scheduled = (b: BlockRow) => (b.starts_at && now < b.starts_at) || (b.ends_at && now >= b.ends_at)
+  const full = blocks.length >= maxBlocks
+  return panelLayout(ctx, {
+    title: t('bio.blocks'),
+    active: 'links',
+    path: `/panel/links/${link.id}/blocks`,
+    wide: true,
+    head: html`<script src="/_/static/vendor/sortablejs/Sortable.min.js" defer nonce="${ctx.nonce}"></script><script type="module" src="/_/static/js/editor.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`,
+    body: html`${linkTabs(ctx, link, 'blocks')}
+${viewToggle(ctx)}
+<div class="editor" data-editor>
+  <section class="editor-main">
+    ${sv ? sectionsEditor(ctx, link, sv, scheduled, full, maxBlocks) : html``}
+    ${sv ? '' : html`<details class="card add-block"${blocks.length === 0 ? html` open` : ''}>
+      <summary class="btn btn-primary btn-block">${icon('plus')} ${t('bio.add_block')}</summary>
+      <div class="add-sheet">
+      <p class="sheet-title">${t('bio.add_block')}</p>
+      ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : html`<div class="field pick-search"><label class="sr-only" for="pick-q">${t('bio.search_blocks')}</label><input id="pick-q" type="search" placeholder="${t('bio.search_blocks')}" data-pick-search autocomplete="off"></div>${GROUPS.map(
+        (g) => html`<h3 data-pick-group>${t(`bio.group_${g}`)}</h3><div class="picker">${BLOCKS.filter((b) => b.group === g).map(
+          (b) => html`<a class="pick${locked.includes(b.type) ? ' locked' : ''}" href="${locked.includes(b.type) ? '/panel/plan' : `/panel/links/${link.id}/blocks/new?type=${b.type}`}"><span class="tipo-ic" aria-hidden="true">${icon(blockIcon(b.type, b.group))}</span>${t(`bio.type_${b.type}`)}${locked.includes(b.type) ? html` <span class="tag">${t('plan.upgrade_short')}</span>` : ''}</a>`,
+        )}</div>`,
+      )}`}
+      </div>
+    </details>`}
+    ${sv ? '' : blocks.length === 0
+      ? html`<p class="muted">${t('bio.no_blocks')}</p>`
+      : html`<ol class="blocks" data-sortable data-order-url="/panel/links/${link.id}/blocks/order" data-csrf="${ctx.csrf}" aria-label="${t('bio.blocks')}">
+      ${blocks.map((b, i) => blockRow(ctx, b, i, blocks.length, scheduled))}
     </ol>`}
     <details class="opt save-tpl"><summary>${t('tpl.save')}</summary><div class="opt-body">
       <form method="post" action="/panel/links/${link.id}/save-template">${csrfField(ctx)}
@@ -108,12 +117,30 @@ ${viewToggle(ctx)}
       </form>
     </div></details>
   </section>
-  ${preview(ctx, link)}
+  ${preview(ctx, link, sv?.page.slug ?? '')}
 </div>`,
   })
 }
 
-export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors, targets: { id: number; name: string; kind: string }[] = []): SafeHtml {
+function sectionsEditor(ctx: Ctx, link: Link, sv: SiteView, scheduled: (b: BlockRow) => unknown, full: boolean, maxBlocks: number): SafeHtml {
+  const { t } = ctx
+  const sections = sectionsOf(sv.site, sv.page.id)
+  return html`${sv.site.pages.length > 1
+    ? html`<nav class="tabs ms-pagetabs" aria-label="${t('ms.pages')}">${sv.site.pages.map((p) => html`<a href="/panel/links/${link.id}/blocks?p=${p.id}"${p.id === sv.page.id ? html` aria-current="page"` : ''}>${p.slug === '' ? t('ms.page_home') : p.title || p.slug}</a>`)}</nav>`
+    : ''}
+  <p class="muted"><a href="/panel/ms/pages/${sv.page.id}">${t('ms.edit_sections')}</a></p>
+  ${sections.map((s, n) => {
+    const list = sv.grouped.get(s.id) ?? []
+    return html`<section class="card ms-seccard${s.is_enabled ? '' : ' off'}" id="s${s.id}">
+    <div class="ms-seccard-head"><h3>${s.data.titulo || t('ms.section_n', { n: n + 1 })}${s.data.ancla ? html` <small class="muted">#${s.data.ancla}</small>` : ''}</h3>
+      <a class="btn btn-sm" href="/panel/ms/sections/${s.id}">${t('ms.section_edit')}</a></div>
+    ${list.length === 0 ? html`<p class="muted">${t('ms.empty_section')}</p>` : html`<ol class="blocks" data-sortable data-order-url="/panel/links/${link.id}/blocks/order" data-csrf="${ctx.csrf}" aria-label="${t('bio.blocks')}">${list.map((b, i) => blockRow(ctx, b, i, list.length, scheduled))}</ol>`}
+    ${full ? html`<p class="error">${t('bio.max_blocks', { n: maxBlocks })}</p>` : html`<a class="btn btn-primary btn-block" href="/panel/links/${link.id}/blocks/pick?s=${s.id}">${icon('plus')} ${t('bio.add_block')}</a>`}
+  </section>`
+  })}`
+}
+
+export function blockFormPage(ctx: Ctx, link: Link, def: BlockDef, block: BlockRow | undefined, values: BlockValues, errors: Errors, targets: { id: number; name: string; kind: string }[] = [], ms?: { options: SectionChoice[]; value: string }, note?: SafeHtml): SafeHtml {
   const { t } = ctx
   const action = block ? `/panel/blocks/${block.id}` : `/panel/links/${link.id}/blocks?type=${def.type}`
   const sep = action.includes('?') ? '&' : '?'
@@ -130,6 +157,8 @@ ${viewToggle(ctx)}
     <h2>${block ? t('bio.edit_block', { type: t(`bio.type_${def.type}`) }) : t('bio.new_block', { type: t(`bio.type_${def.type}`) })}</h2>
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="${action}${sep}_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
+      ${note ?? ''}
+      ${ms ? select({ ctx, name: 'section_id', label: t('ms.move_to'), value: ms.value, options: ms.options }) : ''}
       ${blockFields(ctx, def, values, errors, targets)}
       <div class="btn-row sticky-actions">
         <button class="btn btn-primary" type="submit">${block ? t('common.save') : t('bio.add')}</button>

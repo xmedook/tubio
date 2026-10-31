@@ -151,10 +151,10 @@ export type MultipartData = {
 }
 
 /** Lee un formulario multipart completo; los archivos vacíos (input sin elegir) se ignoran. */
-export async function readMultipart(req: FastifyRequest): Promise<MultipartData> {
+export async function readMultipart(req: FastifyRequest, opts: { fileSize?: number } = {}): Promise<MultipartData> {
   const fields: Record<string, string | string[]> = {}
   const files: MultipartData['files'] = []
-  for await (const part of req.parts()) {
+  for await (const part of req.parts(opts.fileSize ? { limits: { fileSize: opts.fileSize } } : undefined)) {
     if (part.type === 'file') {
       const buffer = await part.toBuffer()
       if (part.file.truncated) throw new UploadError('err.upload_too_big')

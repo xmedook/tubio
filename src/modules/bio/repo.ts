@@ -1,5 +1,6 @@
 import { addBlockClick } from '../stats/buffer.ts'
 import type { DB } from '../../db/index.ts'
+import { siteImageKeys } from '../minisitio/repo.ts'
 import type { BlockRow, BlockStyle } from './blocks.ts'
 
 type Raw = Omit<BlockRow, 'data' | 'style'> & { data: string; style: string }
@@ -50,14 +51,14 @@ export type BlockInput = {
   style: BlockStyle
 }
 
-export function createBlock(db: DB, linkId: number, b: BlockInput, now: number): BlockRow {
+export function createBlock(db: DB, linkId: number, b: BlockInput, now: number, sectionId: number | null = null): BlockRow {
   const pos = (db.prepare('SELECT COALESCE(MAX(position), -1) + 1 FROM bio_blocks WHERE link_id = ?').pluck().get(linkId) as number) ?? 0
   const info = db
     .prepare(
-      `INSERT INTO bio_blocks (link_id, type, position, is_enabled, starts_at, ends_at, data, style, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO bio_blocks (link_id, type, position, is_enabled, starts_at, ends_at, data, style, section_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(linkId, b.type, pos, b.is_enabled ? 1 : 0, b.starts_at, b.ends_at, JSON.stringify(b.data), JSON.stringify(b.style), now, now)
+    .run(linkId, b.type, pos, b.is_enabled ? 1 : 0, b.starts_at, b.ends_at, JSON.stringify(b.data), JSON.stringify(b.style), sectionId, now, now)
   return getBlock(db, Number(info.lastInsertRowid)) as BlockRow
 }
 
@@ -90,13 +91,31 @@ export function reorderBlocks(db: DB, linkId: number, ids: number[]): void {
   db.transaction(() => ordered.forEach((id, i) => upd.run(i, id)))()
 }
 
+/** Reordena sólo un subconjunto (los bloques de una sección): reparte entre ellos las posiciones que ya tenían */
+export function reorderSubset(db: DB, linkId: number, ids: number[]): void {
+  const rows = db.prepare('SELECT id, position FROM bio_blocks WHERE link_id = ?').all(linkId) as { id: number; position: number }[]
+  const own = new Map(rows.map((r) => [r.id, r.position]))
+  const wanted = [...new Set(ids)].filter((id) => own.has(id))
+  const slots = wanted.map((id) => own.get(id) as number).sort((a, b) => a - b)
+  const upd = db.prepare('UPDATE bio_blocks SET position = ? WHERE id = ?')
+  db.transaction(() => wanted.forEach((id, i) => upd.run(slots[i], id)))()
+}
+
+export function setBlockSection(db: DB, id: number, sectionId: number | null): void {
+  db.prepare('UPDATE bio_blocks SET section_id = ? WHERE id = ?').run(sectionId, id)
+}
+
 export function moveBlock(db: DB, linkId: number, id: number, dir: -1 | 1): void {
-  const ids = listBlocks(db, linkId).map((b) => b.id)
+  const all = listBlocks(db, linkId)
+  const me = all.find((b) => b.id === id)
+  if (!me) return
+  // dentro de su sección: mover «arriba» no puede cruzar a los bloques de otra sección
+  const ids = all.filter((b) => b.section_id === me.section_id).map((b) => b.id)
   const i = ids.indexOf(id)
   const j = i + dir
   if (i < 0 || j < 0 || j >= ids.length) return
   ;[ids[i], ids[j]] = [ids[j] as number, ids[i] as number]
-  reorderBlocks(db, linkId, ids)
+  reorderSubset(db, linkId, ids)
 }
 
 export function incrementBlockClicks(db: DB, id: number): void {
@@ -140,5 +159,6 @@ export function imageKeysInUse(db: DB, userId: number): Set<string> {
       /* ignora */
     }
   }
+  for (const k of siteImageKeys(db, userId)) keys.add(k)
   return keys
 }

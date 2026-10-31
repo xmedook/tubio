@@ -1,5 +1,5 @@
 // tubio — editor de bloques: ordenar arrastrando (SortableJS) y refrescar la vista previa.
-const list = document.querySelector('[data-sortable]')
+const lists = [...document.querySelectorAll('[data-sortable]')]
 const frame = document.querySelector('[data-preview]')
 
 function refreshPreview() {
@@ -7,7 +7,11 @@ function refreshPreview() {
 }
 
 function init() {
-  if (!list || !('Sortable' in window)) return
+  if (!lists.length || !('Sortable' in window)) return
+  for (const list of lists) makeSortable(list)
+}
+
+function makeSortable(list) {
   window.Sortable.create(list, {
     handle: '.handle',
     animation: 150,

@@ -1,3 +1,4 @@
+import { copySite } from '../minisitio/repo.ts'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { deleteStoredFile, findFile, readMultipart, UploadError } from '../../lib/uploads.ts'
@@ -160,7 +161,10 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     const id = db.transaction(() => {
       const cols = (db.prepare('PRAGMA table_info(links)').all() as { name: string }[]).map((c) => c.name).filter((c) => !['id', 'alias', 'title', 'clicks', 'hits', 'created_at', 'updated_at', 'dir_hidden'].includes(c))
       const newId = Number(db.prepare(`INSERT INTO links (${cols.join(', ')}, alias, title, created_at, updated_at) SELECT ${cols.join(', ')}, ?, ?, ?, ? FROM links WHERE id = ?`).run(alias, `${link.title || link.alias} (${req.ctx.t('links.copy_suffix')})`.slice(0, 120), now, now, link.id).lastInsertRowid)
-      db.prepare('INSERT INTO bio_blocks (link_id, type, position, is_enabled, starts_at, ends_at, data, style, created_at, updated_at) SELECT ?, type, position, is_enabled, starts_at, ends_at, data, style, ?, ? FROM bio_blocks WHERE link_id = ? ORDER BY position, id').run(newId, now, now, link.id)
+      // sitio con páginas/secciones: copia también su estructura y reubica los bloques; si no, sólo los bloques
+      if (!copySite(db, link.id, newId, now)) {
+        db.prepare('INSERT INTO bio_blocks (link_id, type, position, is_enabled, starts_at, ends_at, data, style, created_at, updated_at) SELECT ?, type, position, is_enabled, starts_at, ends_at, data, style, ?, ? FROM bio_blocks WHERE link_id = ? ORDER BY position, id').run(newId, now, now, link.id)
+      }
       return newId
     })()
     audit(db, { actorId: actorOf(req), userId: user.id, action: 'link.duplicate', target: `link:${id}`, meta: { from: link.id } }, now)

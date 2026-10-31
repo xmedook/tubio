@@ -17,6 +17,7 @@ import { blockAddDenied, blockTypeAllowed, limitsOf, ownerLimits, PLAN_GATED_BLO
 import { parseBlockForm, valuesFromBlock } from './block-form.ts'
 import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
+import { VIDEO_MAX_BYTES } from './blocks-minisitio.ts'
 import { designSchema, readDesign, themeById, WEB_FONTS, type Design } from './design.ts'
 import sharp from 'sharp'
 import { esc } from '../../lib/html.ts'
@@ -33,11 +34,19 @@ import {
   incrementBlockClicks,
   listBlocks,
   moveBlock,
-  reorderBlocks,
+  reorderSubset,
+  setBlockSection,
   setBlockEnabled,
   updateBlock,
 } from './repo.ts'
-import { blockFormPage, designPage, editorPage, themeSwatchCss } from './views.ts'
+import { waTotals } from '../capture/wa.ts'
+import { waKeys } from './wa-request.ts'
+import { html } from '../../lib/html.ts'
+import { blockFormPage, designPage, editorPage, themeSwatchCss, type SectionChoice, type SiteView } from './views.ts'
+import { groupBlocks, homePage, loadSite, sectionInLink, sectionsOf, type Site } from '../minisitio/repo.ts'
+
+/** La portada admite un video de hasta 15 MB: el tope global de subida (10 MB) no alcanza */
+const bigUpload = (type: string) => (type === 'hero' ? { fileSize: VIDEO_MAX_BYTES + 1024 * 1024 } : undefined)
 
 const IMAGE_FIELDS = { bg_image: 1920, seo_image: 1200, favicon: 192 } as const
 
@@ -104,6 +113,17 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
   const targetsOf = (req: FastifyRequest) => listTargets(deps, (req.ctx.user as User).id).map((x) => ({ id: x.id, name: x.name, kind: x.kind }))
   const host = () => new URL(deps.config.baseUrl).hostname
+
+  /** Editor por secciones sólo cuando el sitio ya tiene estructura propia (más de 1 página o 1 sección) */
+  const multi = (site: Site) => site.materialized && (site.pages.length > 1 || site.sections.length > 1)
+  /** Opciones de «Sección» para el formulario de un bloque; null si el sitio es el de siempre */
+  function sectionChoices(t: (k: string, v?: Record<string, string | number>) => string, site: Site): SectionChoice[] | null {
+    if (!multi(site)) return null
+    return site.pages.flatMap((p) =>
+      sectionsOf(site, p.id).map((s, i) => ({ value: String(s.id), label: `${p.slug === '' ? t('ms.page_home') : p.title || p.slug} · ${s.data.titulo || t('ms.section_n', { n: i + 1 })}` })),
+    )
+  }
+  const pageOfSection = (site: Site, sid: number | null) => site.pages.find((p) => site.sections.some((s) => s.id === sid && s.page_id === p.id))
 
   // archivos de fuentes web (sólo los de la lista blanca)
   const fontFiles = new Map<string, string>()
@@ -175,7 +195,19 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!link) return
     const lim = limitsOf(db, req.ctx.user as User, deps.now())
     const locked = Object.entries(PLAN_GATED_BLOCKS).filter(([, f]) => !lim[f]).map(([type]) => type)
-    return sendHtml(reply, editorPage(req.ctx, link, listBlocks(db, link.id), locked, lim.blocks_per_page < 0 ? MAX_BLOCKS_PER_PAGE : Math.min(MAX_BLOCKS_PER_PAGE, lim.blocks_per_page)))
+    const max = lim.blocks_per_page < 0 ? MAX_BLOCKS_PER_PAGE : Math.min(MAX_BLOCKS_PER_PAGE, lim.blocks_per_page)
+    const site = loadSite(db, link.id)
+    let sv: SiteView | undefined
+    if (multi(site)) {
+      // bloques sueltos (creados por la API o una plantilla): se asignan a la primera sección de inicio
+      const first = sectionsOf(site, homePage(site).id)[0]
+      if (first) db.prepare('UPDATE bio_blocks SET section_id = ? WHERE link_id = ? AND section_id IS NULL').run(first.id, link.id)
+      const all = listBlocks(db, link.id)
+      const wanted = Number((req.query as { p?: string }).p)
+      sv = { site, page: site.pages.find((p) => p.id === wanted) ?? homePage(site), grouped: groupBlocks(site, all) }
+      return sendHtml(reply, editorPage(req.ctx, link, all, locked, max, sv))
+    }
+    return sendHtml(reply, editorPage(req.ctx, link, listBlocks(db, link.id), locked, max))
   })
 
   app.get('/panel/links/:id/blocks/new', { preHandler: userGuard }, async (req, reply) => {
@@ -183,7 +215,10 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!link) return
     const def = BLOCK_BY_TYPE.get(String((req.query as { type?: string }).type))
     if (!def) return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
-    return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, (req.ctx.user as User).timezone), {}, targetsOf(req)))
+    const site = loadSite(db, link.id)
+    const want = Number((req.query as { s?: string }).s)
+    const sec = sectionChoices(req.ctx.t, site)
+    return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, (req.ctx.user as User).timezone), {}, targetsOf(req), sec ? { options: sec, value: String(sectionInLink(db, want, link.id) ? want : sec[0]?.value ?? '') } : undefined))
   })
 
   app.post('/panel/links/:id/blocks', { preHandler: userGuard }, async (req, reply) => {
@@ -199,18 +234,22 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     }
     let mp: MultipartData
     try {
-      mp = await readMultipart(req)
+      mp = await readMultipart(req, bigUpload(def.type))
     } catch (e) {
       if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, valuesFromBlock(def, undefined, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
     }
+    const site = loadSite(db, link.id)
+    const sec = sectionChoices(req.ctx.t, site)
+    const wantSec = Number(field(mp.fields, 'section_id'))
+    const sectionId = sec && sectionInLink(db, wantSec, link.id) ? wantSec : null
     const r = await parseBlockForm(deps, user, def, mp, undefined, host())
-    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, r.values, r.errors, targetsOf(req)), 422)
-    createBlock(db, link.id, r.input, deps.now())
+    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, link, def, undefined, r.values, r.errors, targetsOf(req), sec ? { options: sec, value: String(sectionId ?? sec[0]?.value ?? '') } : undefined), 422)
+    createBlock(db, link.id, r.input, deps.now(), sectionId)
     await warmFeedCache(db, r.input, deps.now())
     updateLink(db, link.id, {}, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'bio.block_added' })
-    return reply.redirect(`/panel/links/${link.id}/blocks`, 303)
+    return reply.redirect(`/panel/links/${link.id}/blocks${sectionId ? `?p=${pageOfSection(site, sectionId)?.id ?? ''}#s${sectionId}` : ''}`, 303)
   })
 
   function ownBlock(req: FastifyRequest, reply: FastifyReply) {
@@ -229,7 +268,13 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!own) return
     const def = BLOCK_BY_TYPE.get(own.b.type)
     if (!def) return reply.callNotFound()
-    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}, targetsOf(req)))
+    const sec = sectionChoices(req.ctx.t, loadSite(db, own.link.id))
+    let note
+    if (own.b.type === 'wa_request') {
+      const w = waTotals(db, own.b.id, 30, deps.now())
+      note = html`<p class="muted">${req.ctx.t('ms.wa_stats', { opens: w.opens, sends: w.sends, abandons: w.abandons })}<br>${req.ctx.t('ms.wa_keys', { keys: waKeys(own.b).map((k) => `{${k}}`).join(' ') })}</p>`
+    }
+    return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, (req.ctx.user as User).timezone), {}, targetsOf(req), sec ? { options: sec, value: String(own.b.section_id ?? sec[0]?.value ?? '') } : undefined, note))
   })
 
   app.post('/panel/blocks/:id', { preHandler: userGuard }, async (req, reply) => {
@@ -240,18 +285,28 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!def) return reply.callNotFound()
     let mp: MultipartData
     try {
-      mp = await readMultipart(req)
+      mp = await readMultipart(req, bigUpload(def.type))
     } catch (e) {
       if (e instanceof UploadError) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, valuesFromBlock(def, own.b, user.timezone), { _form: e.key }, targetsOf(req)), 413)
       throw e
     }
+    const site = loadSite(db, own.link.id)
+    const sec = sectionChoices(req.ctx.t, site)
     const r = await parseBlockForm(deps, user, def, mp, own.b, host())
-    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, r.values, r.errors, targetsOf(req)), 422)
+    if (!r.ok) return sendHtml(reply, blockFormPage(req.ctx, own.link, def, own.b, r.values, r.errors, targetsOf(req), sec ? { options: sec, value: String(own.b.section_id ?? sec[0]?.value ?? '') } : undefined), 422)
     const { type: _t, ...patch } = r.input
     updateBlock(db, own.b.id, patch, deps.now())
+    // cambiar de sección: queda al final de la nueva
+    const wantSec = Number(field(mp.fields, 'section_id'))
+    let sectionId = own.b.section_id
+    if (sec && wantSec !== own.b.section_id && sectionInLink(db, wantSec, own.link.id)) {
+      setBlockSection(db, own.b.id, wantSec)
+      db.prepare('UPDATE bio_blocks SET position = (SELECT COALESCE(MAX(position), -1) + 1 FROM bio_blocks WHERE link_id = ?) WHERE id = ?').run(own.link.id, own.b.id)
+      sectionId = wantSec
+    }
     await warmFeedCache(db, r.input, deps.now())
     setFlash(reply, deps, { type: 'ok', key: 'account.saved' })
-    return reply.redirect(`/panel/links/${own.link.id}/blocks`, 303)
+    return reply.redirect(`/panel/links/${own.link.id}/blocks${sectionId && sec ? `?p=${pageOfSection(site, sectionId)?.id ?? ''}#s${sectionId}` : ''}`, 303)
   })
 
   app.post('/panel/blocks/:id/delete', { preHandler: userGuard }, async (req, reply) => {
@@ -281,7 +336,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!link) return
     const ids = (req.body as { ids?: unknown })?.ids
     if (!Array.isArray(ids) || ids.length > MAX_BLOCKS_PER_PAGE * 2) return reply.code(400).send({ ok: false })
-    reorderBlocks(db, link.id, ids.map(Number).filter(Number.isInteger))
+    reorderSubset(db, link.id, ids.map(Number).filter(Number.isInteger))
     return { ok: true }
   })
 
@@ -365,7 +420,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   })
 
   app.get('/_/pdf/:id', async (req, reply) => {
-    const r = publicBlock(req, 'pdf')
+    const r = publicBlock(req, 'pdf') ?? publicBlock(req, 'menu_pdf')
     const meta = (r?.b.data.file ?? null) as { file_id?: number } | null
     const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
     if (!r || !f || f.user_id !== r.link.user_id || f.mime !== 'application/pdf') return reply.callNotFound()
@@ -383,6 +438,37 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     return reply.type('application/pdf').send(createReadStream(p))
   })
 
+  // video de la portada: sólo dentro de la página, con Range para que el navegador salte y reanude
+  app.get('/_/v/:id', async (req, reply) => {
+    const r = publicBlock(req, 'hero')
+    const meta = (r?.b.data.video ?? null) as { file_id?: number } | null
+    const f = meta?.file_id ? findFile(deps, meta.file_id) : undefined
+    if (!r || !f || f.user_id !== r.link.user_id || !['video/mp4', 'video/webm'].includes(f.mime)) return reply.callNotFound()
+    const p = uploadPath(deps, f.key)
+    if (!existsSync(p)) return reply.callNotFound()
+    const total = f.size
+    reply.header('Accept-Ranges', 'bytes')
+    reply.header('Content-Security-Policy', "default-src 'none'")
+    reply.header('X-Robots-Tag', 'noindex')
+    reply.header('Cache-Control', 'public, max-age=3600')
+    const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''))
+    if (m && (m[1] || m[2])) {
+      let start = m[1] ? Number(m[1]) : total - Number(m[2])
+      let end = m[1] && m[2] ? Number(m[2]) : total - 1
+      start = Math.max(0, start)
+      end = Math.min(total - 1, end)
+      if (!(start <= end) || start >= total) {
+        reply.header('Content-Range', `bytes */${total}`)
+        return reply.code(416).send()
+      }
+      reply.header('Content-Range', `bytes ${start}-${end}/${total}`)
+      reply.header('Content-Length', String(end - start + 1))
+      return reply.code(206).type(f.mime).send(createReadStream(p, { start, end }))
+    }
+    reply.header('Content-Length', String(total))
+    return reply.type(f.mime).send(createReadStream(p))
+  })
+
   // clic en un bloque: cuenta y redirige
   app.get('/_/c/:id', async (req, reply) => {
     const b = getBlock(db, Number((req.params as { id: string }).id))
@@ -390,7 +476,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
     if (!b || !link || availability(deps, link) !== 'ok' || !isUnlocked(deps, req, link) || !isConfirmed(deps, req, link)) return reply.callNotFound()
     if (!visibleBlocks([b], deps.now()).length) return reply.callNotFound()
     const to = (req.query as { to?: string }).to
-    const raw = blockTarget(b, typeof to === 'string' ? to : undefined)
+    const raw = blockTarget(b, typeof to === 'string' ? to : undefined, { wa: loadSite(db, link.id).config.whatsapp })
     const target = raw ? redirectAllowed(db, raw) : null
     if (!target) return reply.callNotFound()
     const preview = req.ctx.user?.id === link.user_id && String(req.headers.referer ?? '').includes('_preview=1')

@@ -1,5 +1,5 @@
 // tubio — página bio: compartir. < 1 KB, sin dependencias.
-const col = document.querySelector('main.col')
+const col = document.querySelector('main.col') || document.body
 function toast(msg) {
   const t = document.createElement('div')
   t.className = 'toast'

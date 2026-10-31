@@ -20,10 +20,13 @@ import { embedDef } from './embed-block.ts'
 import { FEED_BLOCKS } from './blocks-feeds.ts'
 import { CAPTURE_BLOCKS } from './blocks-capture.ts'
 import { EMBED_BLOCKS } from './blocks-embeds.ts'
+import { MS_BLOCKS, msTarget } from './blocks-minisitio.ts'
 
 export type BlockRow = {
   id: number
   link_id: number
+  /** sección del minisitio; null = suelto (cae en la primera sección de inicio) */
+  section_id: number | null
   type: string
   position: number
   is_enabled: number
@@ -56,7 +59,7 @@ export type FieldSpec =
   | { name: string; kind: 'datetime'; label: string; required?: boolean }
   | { name: string; kind: 'number'; label: string; min: number; max: number; required?: boolean; step?: number }
   /** archivo cualquiera para descargar; { file_id, name, size } */
-  | { name: string; kind: 'file'; label: string; required?: boolean }
+  | { name: string; kind: 'file'; label: string; required?: boolean; /** sólo estos tipos MIME */ mimes?: string[]; /** tope en bytes */ maxBytes?: number }
   /** a qué destinos de aviso del usuario se manda lo recogido */
   | { name: string; kind: 'targets'; label: string }
 
@@ -80,13 +83,17 @@ export type RenderCtx = {
   sent: number | null
   cookies: Record<string, string | undefined>
   ownerName: string
+  /** sitio al que pertenece la página: alias y WhatsApp por defecto del negocio */
+  site: { alias: string; wa: string; title: string }
+  /** el h1 de la página ya se usó (portada) */
+  h1: { v: boolean }
   /** error del último envío de un formulario (?err=…&b=…) */
   formError: { id: number; key: string } | null
 }
 
 export type BlockDef = {
   type: string
-  group: 'basic' | 'social' | 'media' | 'business' | 'capture'
+  group: 'basic' | 'social' | 'media' | 'business' | 'capture' | 'site'
   fields: FieldSpec[]
   /** ¿El bloque es un enlace que cuenta clics? */
   clickable?: boolean
@@ -310,13 +317,14 @@ export const BLOCKS: BlockDef[] = [
   },
 ]
 
-BLOCKS.push(...V2_BLOCKS, ...BUSINESS_BLOCKS, ...FEED_BLOCKS, ...EMBED_BLOCKS, ...CAPTURE_BLOCKS)
+BLOCKS.push(...V2_BLOCKS, ...BUSINESS_BLOCKS, ...FEED_BLOCKS, ...EMBED_BLOCKS, ...CAPTURE_BLOCKS, ...MS_BLOCKS)
 
 export const BLOCK_BY_TYPE = new Map(BLOCKS.map((b) => [b.type, b]))
 export const MAX_BLOCKS_PER_PAGE = 100
 
 /** ¿A dónde manda un clic de este bloque? (to = red social) */
-export function blockTarget(b: BlockRow, to?: string): string | null {
+export function blockTarget(b: BlockRow, to?: string, site: { wa: string } = { wa: '' }): string | null {
+  if (b.type === 'action_panel' || b.type === 'location') return msTarget(b, to, site.wa)
   if (b.type === 'socials') {
     const links = (b.data.links ?? {}) as Record<string, string>
     return to && typeof links[to] === 'string' ? links[to] : null
