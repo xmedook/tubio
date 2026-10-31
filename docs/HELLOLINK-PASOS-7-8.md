@@ -17,7 +17,7 @@
 ## Al desplegar
 1. `git pull` + `npm ci --omit=dev --ignore-scripts` + migraciones (0026–0028) + `pm2 restart tubio`.
 2. Admin → Ajustes → poner el WhatsApp de ventas.
-3. `npm run ejemplos` (idempotente; crea la cuenta interna `ejemplos@tubio.link` y los 6 `/ejemplo-<giro>`, noindex). Con el número ya puesto, los
-   botones de WhatsApp de los ejemplos llegan a ventas; para rehacerlos: `npm run ejemplos -- --rehacer`.
+3. En producción `npm run` no carga el `.env`: `node --env-file=.env src/cli/ejemplos.ts` (idempotente; crea la cuenta interna `ejemplos@tubio.link` y los 6 `/ejemplo-<giro>`, noindex). Con el número ya puesto, los
+   botones de WhatsApp de los ejemplos llegan a ventas; para rehacerlos: `node --env-file=.env src/cli/ejemplos.ts --rehacer`.
 4. Si ya existía un alias `restaurantes`, `belleza`, `salud`, `inmobiliarias`, `fitness`, `servicios-profesionales` o `armamos-por-ti` en producción,
    la ruta de la portada lo tapa: renombrarlo antes de publicar.
