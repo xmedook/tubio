@@ -2389,5 +2389,7 @@
   "bio.f.tag_tone": "Color",
   "s4.tools": "Herramientas",
   "s4.tab_domains": "Dominios",
-  "s4.tab_more": "Más"
+  "s4.tab_more": "Más",
+  "mail.asist_subject": "Recibimos tu solicitud en túbio",
+  "mail.asist_body": "Hola:\n\nRecibimos tu solicitud para que armemos tu liga. Tu folio es {folio}.\n\nQué sigue: hoy te escribimos para confirmar tus datos y pedirte lo que falte. En uno o dos días ves tu liga lista, y no se publica nada sin tu ok.\n\nSi no fuiste tú, ignora este mensaje: no se publica nada ni se cobra nada."
 }

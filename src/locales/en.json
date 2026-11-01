@@ -2389,5 +2389,7 @@
   "bio.f.tag_tone": "Color",
   "s4.tools": "Tools",
   "s4.tab_domains": "Domains",
-  "s4.tab_more": "More"
+  "s4.tab_more": "More",
+  "mail.asist_subject": "We got your request at túbio",
+  "mail.asist_body": "Hello:\n\nWe received your request to have your link built. Your reference is {folio}.\n\nWhat happens next: today we write to confirm your details and ask for anything missing. In a day or two you see your link ready, and nothing is published without your okay.\n\nIf this was not you, ignore this message: nothing is published and nothing is charged."
 }

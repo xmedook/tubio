@@ -207,6 +207,60 @@ describe('«lo armamos por ti»', () => {
     expect(t.deps.db.prepare('SELECT COUNT(*) FROM assisted_requests').pluck().get()).toBe(0)
   })
 
+  it('el correo «solicitud recibida» sale solo al correo escrito, con cuerpo fijo y el folio, sin repetir texto de la persona', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    const r = await v.post('/armamos-por-ti', { ...ok, email: 'Lupe@Example.com', offer: 'oferta secreta 123', name: 'Nombre Raro' })
+    expect(r.statusCode).toBe(200)
+    expect(t.mailer.sent).toHaveLength(1)
+    const m = t.mailer.sent[0]!
+    expect(m.to).toBe('lupe@example.com')
+    expect(m.subject).toContain('Recibimos tu solicitud')
+    expect(m.text).toContain('APT-0001')
+    for (const secreto of ['Fonda Doña Lupe', 'Nombre Raro', 'oferta secreta', 'Comida corrida', 'Colima']) expect(m.text + m.subject).not.toContain(secreto)
+  })
+
+  it('una solicitud solo con WhatsApp o la de un robot (campo trampa) no mandan ningún correo', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    expect((await v.post('/armamos-por-ti', { ...ok, whatsapp: '312 123 4567', email: '' })).statusCode).toBe(200)
+    expect((await v.post('/armamos-por-ti', { ...ok, email: 'bot@example.com', website: 'http://spam.example' })).statusCode).toBe(200)
+    expect(t.mailer.sent).toHaveLength(0)
+  })
+
+  it('tope de 3 correos por dirección en 24 h: la 4.ª solicitud se guarda pero no manda correo', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    for (let i = 0; i < 3; i++) expect((await v.post('/armamos-por-ti', { ...ok, email: 'mismo@example.com' })).statusCode).toBe(200)
+    expect(t.mailer.sent).toHaveLength(3)
+    expect((await v.post('/armamos-por-ti', { ...ok, email: 'mismo@example.com' })).statusCode).toBe(200)
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM assisted_requests').pluck().get()).toBe(4)
+    expect(t.mailer.sent).toHaveLength(3)
+    t.clock.now += 25 * 3600_000 // pasadas 24 h vuelve a salir
+    await v.post('/armamos-por-ti', { ...ok, email: 'mismo@example.com' })
+    expect(t.mailer.sent).toHaveLength(4)
+  })
+
+  it('tope de 10 correos por IP al día: con 10 ya registrados hoy, otro correo distinto se guarda pero no manda nada', async () => {
+    const { sha256 } = await import('../src/lib/crypto.ts')
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    const day = new Date(t.clock.now).toISOString().slice(0, 10)
+    for (let i = 0; i < 10; i++) t.deps.db.prepare("INSERT INTO audit_log (action, target, meta, ts) VALUES ('assisted.mail', ?, '{}', ?)").run(`ip:${sha256(`127.0.0.1|${day}`)}`, t.clock.now)
+    const r = await v.post('/armamos-por-ti', { ...ok, email: 'otro@example.com' })
+    expect(r.statusCode).toBe(200)
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM assisted_requests').pluck().get()).toBe(1) // la solicitud sí se guarda
+    expect(t.mailer.sent).toHaveLength(0)
+    // control: otra IP u otro día sí manda (aquí, un día después)
+    t.clock.now += 25 * 3600_000
+    await v.post('/armamos-por-ti', { ...ok, email: 'otro@example.com' })
+    expect(t.mailer.sent).toHaveLength(1)
+  })
+
   it('sin forma de contacto, sin giro o sin nombre del negocio no guarda nada', async () => {
     const t = await makeApp()
     const v = new Agent(t.app)

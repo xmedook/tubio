@@ -1,7 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
-import { formatDateTime } from '../../lib/i18n.ts'
+import { formatDateTime, translator } from '../../lib/i18n.ts'
+import { sha256 } from '../../lib/crypto.ts'
 import { csrfField, powAttr, powField } from '../../views/ui.ts'
 import { adminGuard, powOk, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
@@ -26,6 +27,9 @@ const BLOQUES = [
 const CHIP_TXT = { verde: 's2.chip_inc', rosa: 's2.chip_new', azul: 's2.chip_info' } as const
 const HORAS = { m: 'por la mañana (9:00 a 13:00)', t: 'por la tarde (15:00 a 19:00)' } as const
 const folioDe = (id: number): string => `APT-${String(id).padStart(4, '0')}`
+/** Tope del correo «solicitud recibida» (orden de master #647): 3 por correo y 10 por IP en 24 h. */
+const MAIL_MAX_CORREO = 3
+const MAIL_MAX_IP = 10
 
 function formPage(ctx: Ctx, deps: AppDeps, o: { values: Vals; errors: Record<string, string>; done?: boolean; folio?: string; viaWa?: boolean; scripts?: string[] }): SafeHtml {
   const { t } = ctx
@@ -119,7 +123,22 @@ export function registerAssisted(app: FastifyInstance, deps: AppDeps): void {
     // el diseño pide qué bloques quiere y a qué hora escribirle: sin columnas nuevas, viaja al final del texto para el equipo
     const offer = [values.offer, bloques.length ? `[Bloques que quiere] ${bloques.map((b) => b.es).join(', ')}` : '', `[Prefiere que le escribamos] ${HORAS[hora]}`].filter(Boolean).join('\n\n')
     const r = db.prepare('INSERT INTO assisted_requests (giro, business, name, whatsapp, email, city, offer, links, locale, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(values.giro, values.business, values.name, okWa ? (wa.length === 10 ? `52${wa}` : wa) : '', okMail ? values.email!.toLowerCase() : '', values.city, offer, url, req.ctx.locale, now, now)
-    return sendHtml(reply, formPage(req.ctx, deps, { values: {}, errors: {}, done: true, folio: folioDe(Number(r.lastInsertRowid)), viaWa: okWa }))
+    const folio = folioDe(Number(r.lastInsertRowid))
+    // correo «solicitud recibida»: solo si dio un correo, ya pasó la trampa y la prueba de trabajo, y sin pasar los topes. Cuerpo fijo: ni el nombre ni el texto de la persona viajan en él.
+    if (okMail) {
+      const day = new Date(now).toISOString().slice(0, 10)
+      const tCorreo = `em:${sha256(values.email!.toLowerCase())}`
+      const tIp = `ip:${sha256(`${req.ip}|${day}`)}` // la huella cambia cada día: no sirve para seguir a nadie y no se guarda la IP
+      const since = now - 24 * 3600_000
+      const n = (target: string) => db.prepare("SELECT COUNT(*) FROM audit_log WHERE action = 'assisted.mail' AND target = ? AND ts > ?").pluck().get(target, since) as number
+      if (n(tCorreo) < MAIL_MAX_CORREO && n(tIp) < MAIL_MAX_IP) {
+        audit(db, { action: 'assisted.mail', target: tCorreo }, now)
+        audit(db, { action: 'assisted.mail', target: tIp }, now)
+        const tt = translator(req.ctx.locale)
+        deps.mailer.send({ to: values.email!.toLowerCase(), subject: tt('mail.asist_subject'), text: tt('mail.asist_body', { folio }) }).catch((err: unknown) => req.log.error({ err }, 'correo de solicitud recibida'))
+      }
+    }
+    return sendHtml(reply, formPage(req.ctx, deps, { values: {}, errors: {}, done: true, folio, viaWa: okWa }))
   })
 
   // cola interna del equipo
