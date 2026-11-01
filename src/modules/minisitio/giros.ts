@@ -50,6 +50,11 @@ type Ctx = {
   page: (slug: string, title: string, desc: string) => number
 }
 
+/** Etiquetas con marcatextos de la portada (design, bloque 7). Solo en los sitios de ejemplo: en el sitio de una persona serían promociones inventadas. */
+function etiquetas(c: Ctx, sectionId: number, items: [string, 'rosa' | 'verde' | 'azul'][]): void {
+  if (c.v.example) c.blk('tags', { items: items.map(([label, tone]) => ({ label, tone })) }, sectionId)
+}
+
 /** Portada: sección con degradado, titular del negocio y el botón principal */
 function portada(c: Ctx, sectionId: number, antetitulo: string, subtitulo: string): void {
   updateSection(c.db, sectionId, readSectionData({ ancla: 'inicio', antetitulo, titulo: c.v.name, subtitulo, fondo: 'degradado', color: c.meta.c1, color2: c.meta.c2, angulo: 160, alto: 'media', ancho: 'normal' }), true, c.now)
@@ -58,6 +63,7 @@ function portada(c: Ctx, sectionId: number, antetitulo: string, subtitulo: strin
 const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: SiteConfig['cabecera']['nav_manual']; barra: Action[]; cta: Action; servicios: string }> = {
   restaurante(c, home, first) {
     portada(c, first, 'Cocina de casa', 'Pide por WhatsApp o reserva tu mesa. Sin vueltas.')
+    etiquetas(c, first, [['Nuevo: costillas BBQ', 'rosa'], ['Abierto ahora', 'verde']])
     const a = c.mk(home, { ancla: 'acciones', ancho: 'angosto' })
     c.blk('action_panel', {
       disposicion: 'principal',
@@ -96,6 +102,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
 
   belleza(c, home, first) {
     portada(c, first, 'Belleza · cuidado personal', 'Agenda tu cita por WhatsApp. Te confirmamos el horario.')
+    etiquetas(c, first, [['Promo de noviembre', 'rosa'], ['Hay lugar hoy', 'verde']])
     const cta = c.mk(home, { ancho: 'angosto' })
     c.blk('wa_request', { preset: 'cita', boton: 'Agendar mi cita', guardar_copia: true }, cta)
     const s = c.mk(home, { ancla: 'servicios', antetitulo: 'Lo que hacemos', titulo: 'Servicios y precios', ancho: 'normal' })
@@ -122,6 +129,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
 
   salud(c, home, first) {
     portada(c, first, 'Consulta médica', 'Valoración personalizada y acompañamiento en cada paso.')
+    etiquetas(c, first, [['Agenda abierta esta semana', 'verde'], ['Dermatología', 'azul']])
     const t = c.mk(home, { ancho: 'normal' })
     c.blk('wa_request', { preset: 'cita', boton: 'Agendar valoración', guardar_copia: true }, t)
     c.blk('trust_line', { items: [{ texto: 'Cédula profesional verificable' }, { texto: 'Valoración sin compromiso' }, { texto: 'Atención con cita' }] }, t)
@@ -159,6 +167,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
 
   inmobiliaria(c, home, first) {
     portada(c, first, 'Bienes raíces', 'Compra, vende o renta con acompañamiento de principio a fin.')
+    etiquetas(c, first, [['3 propiedades disponibles', 'verde'], ['Venta', 'azul'], ['Renta', 'azul']])
     const l = c.mk(home, { ancla: 'propiedades', antetitulo: 'Disponibles', titulo: 'Propiedades', ancho: 'ancho' })
     c.blk('listings', {
       titulo: '',
@@ -185,6 +194,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
 
   fitness(c, home, first) {
     portada(c, first, 'Entrenamiento', 'Clases para todos los niveles. Tu primera clase es de prueba.')
+    etiquetas(c, first, [['Reto de noviembre', 'rosa'], ['3 lugares hoy', 'verde']])
     const p = c.mk(home, { ancla: 'programas', antetitulo: 'Elige tu camino', titulo: 'Programas', ancho: 'ancho' })
     c.blk('programs', {
       titulo: '',
@@ -211,6 +221,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
 
   servicios(c, home, first) {
     portada(c, first, 'Servicios profesionales', 'Cuéntanos qué necesitas y te cotizamos sin compromiso.')
+    etiquetas(c, first, [['Respondemos hoy', 'verde'], ['Todo en línea', 'azul']])
     const q = c.mk(home, { ancho: 'angosto' })
     c.blk('wa_request', { preset: 'cotizacion', boton: 'Pedir cotización', guardar_copia: true }, q)
     const s = c.mk(home, { ancla: 'servicios', antetitulo: 'Qué hacemos', titulo: 'Servicios', ancho: 'normal' })

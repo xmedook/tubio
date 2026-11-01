@@ -2383,5 +2383,8 @@
   "s6.dir_pages": "Pages",
   "s6.maint_k": "Maintenance",
   "s6.maint_h": "We will be back in a",
-  "s6.maint_hl": "moment"
+  "s6.maint_hl": "moment",
+  "bio.type_tags": "Tags",
+  "bio.f.tags_items": "Tags (text and color)",
+  "bio.f.tag_tone": "Color"
 }

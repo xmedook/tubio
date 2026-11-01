@@ -73,3 +73,25 @@ describe('plantillas por giro (asistente «giro primero»)', () => {
     expect((await v.get('/studiox')).body).toContain('soc-instagram')
   })
 })
+
+describe('etiquetas con marcatextos (bloque 7)', () => {
+  it('el sitio de ejemplo las lleva (rosa, verde o azul) y el de una persona no: serían promociones inventadas', async () => {
+    const t = await makeApp()
+    const v = await signup(t)
+    await v.get('/panel/start')
+    await v.postMultipart('/panel/start', { tpl: 'giro:restaurante', alias: 'rest', name: 'Mi Negocio', whatsapp: '55 1234 5678', address: 'Calle Falsa 123' })
+    const propio = (await v.get('/rest')).body
+    expect(propio).not.toContain('class="tgs"')
+    expect(propio).not.toContain('Nuevo: costillas BBQ')
+    const { createLink } = await import('../src/modules/links/repo.ts')
+    const { defaultBioData } = await import('../src/modules/bio/design.ts')
+    const { applyGiro } = await import('../src/modules/minisitio/giros.ts')
+    const owner = t.deps.db.prepare('SELECT id FROM users LIMIT 1').pluck().get() as number
+    const l = createLink(t.deps.db, owner, { project_id: null, alias: 'ejem', kind: 'bio', title: 'Fonda La Ceiba', target_url: null, redirect_code: 302, data: { ...defaultBioData('Fonda La Ceiba', '', 'papel'), noindex: true }, is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false }, Date.now())
+    applyGiro(t.deps.db, l.id, 'restaurante', { name: 'Fonda La Ceiba', whatsapp: '', address: 'Calle de los Ejemplos 123', example: true }, Date.now())
+    const ejemplo = (await v.get('/ejem')).body
+    expect(ejemplo).toContain('class="tgs"')
+    expect(ejemplo).toContain('<span class="tg tg-rosa">Nuevo: costillas BBQ</span>')
+    expect(ejemplo).toContain('<span class="tg tg-verde">Abierto ahora</span>')
+  })
+})

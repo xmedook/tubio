@@ -81,6 +81,16 @@ export const V2_BLOCKS: BlockDef[] = [
     summary: (b) => rows(b.data.items).map((x) => s(x.label)).join(' · ').slice(0, 80),
   },
   {
+    type: 'tags',
+    group: 'basic',
+    fields: [
+      { name: 'items', kind: 'rows', label: 'bio.f.tags_items', maxRows: 8, minRows: 1, columns: [{ name: 'label', label: 'bio.f.label', type: 'text', max: 40, required: true }, { name: 'tone', label: 'bio.f.tag_tone', type: 'select', options: ['rosa', 'verde', 'azul', 'lima'] }] },
+    ],
+    // etiquetas con marcatextos (design, bloque 7): rosa = novedad o promoción, verde = disponible o incluido, azul = información o categoría. Texto siempre en tinta.
+    render: (_rc, b) => html`<ul class="tgs">${rows(b.data.items).map((x) => html`<li><span class="tg tg-${['rosa', 'verde', 'azul'].includes(s(x.tone)) ? s(x.tone) : 'lima'}">${s(x.label)}</span></li>`)}</ul>`,
+    summary: (b) => rows(b.data.items).map((x) => s(x.label)).join(' · ').slice(0, 80),
+  },
+  {
     type: 'steps',
     group: 'basic',
     fields: [

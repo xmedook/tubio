@@ -2383,5 +2383,8 @@
   "s6.dir_pages": "Páginas",
   "s6.maint_k": "Mantenimiento",
   "s6.maint_h": "Volvemos en un",
-  "s6.maint_hl": "momento"
+  "s6.maint_hl": "momento",
+  "bio.type_tags": "Etiquetas",
+  "bio.f.tags_items": "Etiquetas (texto y color)",
+  "bio.f.tag_tone": "Color"
 }

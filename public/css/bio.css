@@ -320,3 +320,8 @@ mark.hl { background: var(--btn-bg); color: var(--btn-text); padding: 0 .18em; b
 .mq-sep { font-style: normal; opacity: .8; } .mq-x { width: .9em; height: .9em; flex: none; }
 .blk-marquee.has-bg { margin-inline: -1.6rem; }
 .has-bg .marquee { background: var(--b-bg); color: var(--b-text, inherit); mask-image: none; -webkit-mask-image: none; padding: .85rem 0; font-size: 1.1em; }
+
+/* etiquetas con marcatextos (bloque «tags»): rosa novedad/promoción, verde disponible/incluido, azul información; el texto siempre en tinta */
+.tgs { display: flex; gap: 8px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+.tg { display: inline-flex; align-items: center; font: 600 12px/1 var(--font, system-ui); letter-spacing: .06em; text-transform: uppercase; padding: 7px 10px; border-radius: 3px; color: #10120d; background: #d6f23a; }
+.tg-rosa { background: #ffa8d8; } .tg-verde { background: #79e6a0; } .tg-azul { background: #8fd0ff; }
