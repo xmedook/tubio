@@ -770,3 +770,9 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 @media (max-width: 899px) { .fab-wrap > summary.fab { background: #d6f23a; color: #10120d; border: 2px solid #10120d; } }
 
 .sprite { position: absolute; }
+
+/* 9a · Mis ligas */
+.page-head h1 + .muted { margin: -.5rem 0 1rem; }
+.kpi-s { font-size: 1.25rem; line-height: 1.2; overflow-wrap: anywhere; }
+.row-3 { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; margin-top: .3rem; }
+.tag-ok { background: #79e6a0; color: #10120d; }

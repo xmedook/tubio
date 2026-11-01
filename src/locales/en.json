@@ -2391,5 +2391,16 @@
   "s4.tab_domains": "Domains",
   "s4.tab_more": "More",
   "mail.asist_subject": "We got your request at túbio",
-  "mail.asist_body": "Hello:\n\nWe received your request to have your link built. Your reference is {folio}.\n\nWhat happens next: today we write to confirm your details and ask for anything missing. In a day or two you see your link ready, and nothing is published without your okay.\n\nIf this was not you, ignore this message: nothing is published and nothing is charged."
+  "mail.asist_body": "Hello:\n\nWe received your request to have your link built. Your reference is {folio}.\n\nWhat happens next: today we write to confirm your details and ask for anything missing. In a day or two you see your link ready, and nothing is published without your okay.\n\nIf this was not you, ignore this message: nothing is published and nothing is charged.",
+  "s9.mine": "My links",
+  "s9.plan_use": "You have {used} of {limit} links in your plan ({plan}).",
+  "s9.plan_unl": "{plan} plan: unlimited links.",
+  "s9.k_views": "Visits, 30 days",
+  "s9.k_clicks": "Button clicks, 30 days",
+  "s9.k_ctr": "{pct}% of visits",
+  "s9.k_best": "Best link",
+  "s9.k_best_n": "{n} visits",
+  "s9.k_plan": "Plan",
+  "s9.k_plan_l": "See plans",
+  "s9.on": "Live"
 }

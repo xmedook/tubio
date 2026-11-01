@@ -30,7 +30,7 @@ function projectOptions(ctx: Ctx, projects: Project[]): Option[] {
 
 export function dashboardPage(
   ctx: Ctx,
-  opts: { items: Link[]; total: number; projects: Project[]; kind?: string | undefined; project?: number | undefined; q?: string | undefined; page: number; perPage: number; last?: Map<number, number> },
+  opts: { items: Link[]; total: number; projects: Project[]; kind?: string | undefined; project?: number | undefined; q?: string | undefined; page: number; perPage: number; last?: Map<number, number>; summary?: { views: number; clicks: number; best: { name: string; views: number } | null; plan: string; used: number; limit: number; views30: Map<number, number> } },
 ): SafeHtml {
   const { t } = ctx
   const byId = new Map(opts.projects.map((p) => [p.id, p]))
@@ -50,7 +50,7 @@ export function dashboardPage(
     active: 'links',
     path: '/panel',
     body: html`<div class="page-head">
-  <h1>${t('nav.links')}</h1>
+  <div><h1>${t('s9.mine')}</h1>${opts.summary ? html`<p class="muted">${opts.summary.limit < 0 ? t('s9.plan_unl', { plan: opts.summary.plan }) : t('s9.plan_use', { used: opts.summary.used, limit: opts.summary.limit, plan: opts.summary.plan })}</p>` : ''}</div>
   <div class="btn-row" role="group" aria-label="${t('links.new')}">
     <a class="btn btn-primary" href="/panel/links/new?kind=bio">${t('links.new_bio')}</a>
     <a class="btn" href="/panel/links/new?kind=short">${t('links.new_short')}</a>
@@ -67,6 +67,12 @@ export function dashboardPage(
     </details>
   </div>
 </div>
+${opts.summary && !filtered ? html`<div class="kpis">
+  <div class="kpi"><span class="kpi-l">${t('s9.k_views')}</span><span class="kpi-n">${formatNumber(ctx.locale, opts.summary.views)}</span></div>
+  <div class="kpi"><span class="kpi-l">${t('s9.k_clicks')}</span><span class="kpi-n">${formatNumber(ctx.locale, opts.summary.clicks)}</span>${opts.summary.views ? html`<span class="muted">${t('s9.k_ctr', { pct: Math.round((opts.summary.clicks / opts.summary.views) * 100) })}</span>` : ''}</div>
+  <div class="kpi"><span class="kpi-l">${t('s9.k_best')}</span><span class="kpi-n kpi-s">${opts.summary.best?.name ?? '—'}</span>${opts.summary.best ? html`<span class="muted">${t('s9.k_best_n', { n: formatNumber(ctx.locale, opts.summary.best.views) })}</span>` : ''}</div>
+  <div class="kpi"><span class="kpi-l">${t('s9.k_plan')}</span><span class="kpi-n kpi-s">${opts.summary.plan}</span><a href="/panel/plan">${t('s9.k_plan_l')}</a></div>
+</div>` : ''}
 <form class="toolbar search-bar" method="get" action="/panel" role="search"${filtered ? '' : html` data-collapsed`}>
   ${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: opts.q, placeholder: t('links.search_ph') })}
   ${opts.kind ? html`<input type="hidden" name="kind" value="${opts.kind}">` : ''}
@@ -102,6 +108,7 @@ ${opts.items.length === 0
     <span class="av" aria-hidden="true">${l.kind === 'bio' ? initials : icon(ic)}</span>
     <span class="row-b">
       <span class="row-1"><b class="title">${p ? html`<span class="dot" style="background:${p.color}" title="${p.name}"></span>` : ''}${name}</b><time datetime="${new Date(when).toISOString()}">${relDay(ctx, when)}</time></span>
+      <span class="row-3"><span class="tag">${kindLabel(ctx, l.kind)}</span> <span class="tag ${l.is_enabled ? 'tag-ok' : 'tag-off'}">${l.is_enabled ? t('s9.on') : t('links.disabled')}</span>${opts.summary ? html` <span class="mono muted" aria-label="${t('s9.k_views')}">${formatNumber(ctx.locale, opts.summary.views30.get(l.id) ?? 0)}</span>` : ''}</span>
       <span class="row-2"><span class="u">${l.is_enabled ? '' : html`<span class="tag tag-off">${t('links.disabled')}</span> `}${url.replace(/^https?:\/\//, '')}${l.kind === 'short' && l.target_url ? html` → ${l.target_url.replace(/^https?:\/\/(www\.)?/, '')}` : ''}</span>${l.clicks ? html`<span class="cnt" title="${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks)}">${formatNumber(ctx.locale, l.clicks)}<span class="sr-only"> ${plural(t, ctx.locale, l.kind === 'bio' ? 'links.n_views' : 'links.n_clicks', l.clicks).replace(/^[\d.,\s]+/, '')}</span></span>` : ''}</span>
     </span>
   </a>

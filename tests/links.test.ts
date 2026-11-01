@@ -159,3 +159,28 @@ describe('enlace corto', () => {
     expect(findByAlias(t.deps.db, 'uno')).toBeUndefined()
   })
 })
+
+describe('Mis ligas: resumen de 30 días', () => {
+  it('muestra visitas, clics, mejor liga y plan; sin movimiento, guiones; las etiquetas de cada fila salen con su estado', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=short')
+    await a.postMultipart('/panel/links?kind=short', { alias: 'resu', target_url: 'example.com/destino', redirect_code: '301', is_enabled: '1' })
+    const sin = (await a.get('/panel')).body
+    expect(sin).toContain('Mis ligas')
+    expect(sin).toContain('Visitas, 30 días')
+    expect(sin).toContain('Mejor liga')
+    expect(sin).toContain('>—<')
+    const id = t.deps.db.prepare("SELECT id FROM links WHERE alias = 'resu'").pluck().get() as number
+    const ins = t.deps.db.prepare("INSERT INTO stat_events (link_id, kind, ts, day, hour, visitor) VALUES (?, ?, ?, '2026-10-22', 12, ?)")
+    for (const k of ['view', 'view', 'view', 'click']) ins.run(id, k, t.clock.now - 3600_000, `v${k}`)
+    const con = (await a.get('/panel')).body
+    expect(con).toMatch(/Visitas, 30 días<\/span><span class="kpi-n">3</)
+    expect(con).toMatch(/Clics en botones, 30 días<\/span><span class="kpi-n">1</)
+    expect(con).toContain('33 % de las visitas')
+    expect(con).toContain('3 visitas')
+    expect(con).toContain('En línea')
+  })
+})
+

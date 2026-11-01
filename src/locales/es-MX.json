@@ -2391,5 +2391,16 @@
   "s4.tab_domains": "Dominios",
   "s4.tab_more": "Más",
   "mail.asist_subject": "Recibimos tu solicitud en túbio",
-  "mail.asist_body": "Hola:\n\nRecibimos tu solicitud para que armemos tu liga. Tu folio es {folio}.\n\nQué sigue: hoy te escribimos para confirmar tus datos y pedirte lo que falte. En uno o dos días ves tu liga lista, y no se publica nada sin tu ok.\n\nSi no fuiste tú, ignora este mensaje: no se publica nada ni se cobra nada."
+  "mail.asist_body": "Hola:\n\nRecibimos tu solicitud para que armemos tu liga. Tu folio es {folio}.\n\nQué sigue: hoy te escribimos para confirmar tus datos y pedirte lo que falte. En uno o dos días ves tu liga lista, y no se publica nada sin tu ok.\n\nSi no fuiste tú, ignora este mensaje: no se publica nada ni se cobra nada.",
+  "s9.mine": "Mis ligas",
+  "s9.plan_use": "Tienes {used} de {limit} ligas de tu plan ({plan}).",
+  "s9.plan_unl": "Plan {plan}: sin límite de ligas.",
+  "s9.k_views": "Visitas, 30 días",
+  "s9.k_clicks": "Clics en botones, 30 días",
+  "s9.k_ctr": "{pct} % de las visitas",
+  "s9.k_best": "Mejor liga",
+  "s9.k_best_n": "{n} visitas",
+  "s9.k_plan": "Plan",
+  "s9.k_plan_l": "Ver planes",
+  "s9.on": "En línea"
 }

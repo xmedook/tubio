@@ -13,7 +13,7 @@ import { dashboardPage, linkFormPage } from './views.ts'
 import { actorOf } from '../auth/routes.ts'
 import { defaultBioData } from '../bio/design.ts'
 import { createBlock } from '../bio/repo.ts'
-import { dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
+import { dailyCapHit, limitsOf, planOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { listPixels } from '../marketing/pixels.ts'
 
 const PER_PAGE = 30
@@ -64,7 +64,15 @@ export function registerLinks(app: FastifyInstance, deps: AppDeps): void {
     if (items.length) {
       for (const r of db.prepare(`SELECT link_id, MAX(ts) AS ts FROM stat_events WHERE link_id IN (${items.map(() => '?').join(',')}) GROUP BY link_id`).all(...items.map((l) => l.id)) as { link_id: number; ts: number }[]) last.set(r.link_id, r.ts)
     }
-    return sendHtml(reply, dashboardPage(req.ctx, { items, total, projects: listProjects(db, user.id), kind, project, q: search, page, perPage: PER_PAGE, last }))
+    // resumen de 30 días de todas las ligas de la cuenta (visitas, clics y visitas por liga) y uso del plan
+    const since = deps.now() - 30 * 86400_000
+    const per = db.prepare(`SELECT l.id, COALESCE(l.title, ''), l.alias, SUM(e.kind = 'view') AS v, SUM(e.kind = 'click') AS c FROM stat_events e JOIN links l ON l.id = e.link_id WHERE l.user_id = ? AND e.ts >= ? GROUP BY l.id`).raw().all(user.id, since) as [number, string, string, number, number][]
+    const views = new Map(per.map((r) => [r[0], r[3]]))
+    const best = per.reduce<[number, string, string, number, number] | null>((a, r) => (!a || r[3] > a[3] ? r : a), null)
+    const used = usageOf(db, user.id)
+    const lim = limitsOf(db, user, deps.now())
+    const summary = { views: per.reduce((n, r) => n + r[3], 0), clicks: per.reduce((n, r) => n + r[4], 0), best: best && best[3] > 0 ? { name: best[1] || best[2], views: best[3] } : null, plan: planOf(db, user, deps.now()).name, used: used.bio_pages + used.links, limit: lim.bio_pages < 0 || lim.links < 0 ? -1 : lim.bio_pages + lim.links, views30: views }
+    return sendHtml(reply, dashboardPage(req.ctx, { items, total, projects: listProjects(db, user.id), kind, project, q: search, page, perPage: PER_PAGE, last, summary }))
   })
 
   app.get('/panel/links/new', { preHandler: userGuard }, async (req, reply) => {
