@@ -1,5 +1,8 @@
 // npm run ejemplos [-- --rehacer] [--whatsapp 521…] — crea (o rehace) los 6 sitios de ejemplo del home: /ejemplo-restaurante, /ejemplo-belleza…
 // Corre también en producción: son contenido público de tubio, a nombre de una cuenta interna sin acceso (sin contraseña usable).
+import { createHash } from 'node:crypto'
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { loadConfig } from '../config.ts'
 import { migrate, openDb } from '../db/index.ts'
 import { hashPassword, randomToken } from '../lib/crypto.ts'
@@ -10,6 +13,29 @@ import { getSetting } from '../modules/settings/repo.ts'
 import { createUser, findUserByEmail, updateUser } from '../modules/users/repo.ts'
 
 const EMAIL = 'ejemplos@tubio.link'
+const FOTOS = join(import.meta.dirname, '..', 'content', 'ejemplos')
+
+/** Sube (una sola vez por contenido) las fotos de un ejemplo a la cuenta interna y devuelve archivo → llave y texto alternativo */
+function subirFotos(userId: number, giro: string): Record<string, { key: string; alt: string }> {
+  const alts = (JSON.parse(readFileSync(join(FOTOS, 'fotos.json'), 'utf8')) as { fotos: Record<string, { alt: { es: string } }> }).fotos
+  const out: Record<string, { key: string; alt: string }> = {}
+  let files: string[] = []
+  try { files = readdirSync(join(FOTOS, 'fotos', giro)) } catch { return out }
+  for (const f of files.filter((x) => x.endsWith('.webp'))) {
+    const buf = readFileSync(join(FOTOS, 'fotos', giro, f))
+    const sha = createHash('sha256').update(buf).digest('hex')
+    let key = db.prepare('SELECT key FROM files WHERE user_id = ? AND sha256 = ?').pluck().get(userId, sha) as string | undefined
+    if (!key) {
+      key = `${randomToken(18)}.webp` // las imágenes se guardan como <token>.webp (el esquema de secciones lo exige)
+      const dest = join(config.dataDir, 'uploads', key.slice(0, 2), key)
+      mkdirSync(dirname(dest), { recursive: true })
+      writeFileSync(dest, buf)
+      db.prepare('INSERT INTO files (user_id, key, kind, original_name, mime, size, sha256, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(userId, key, 'image', f, 'image/webp', buf.length, sha, now)
+    }
+    out[`${giro}/${f}`] = { key, alt: alts[`${giro}/${f}`]?.alt.es ?? '' }
+  }
+  return out
+}
 const config = loadConfig()
 const db = openDb(config.dbPath)
 migrate(db)
@@ -40,7 +66,7 @@ for (const g of GIROS) {
       data: { ...defaultBioData(m.exampleName, '', m.theme), seo_title: `${m.exampleName} · ejemplo de sitio túbio`, category: m.category, noindex: true },
       is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false,
     }, now)
-    applyGiro(db, link.id, g, { name: m.exampleName, whatsapp, address: 'Calle de los Ejemplos 123, Colima, Col.', example: true }, now)
+    applyGiro(db, link.id, g, { name: m.exampleName, whatsapp, address: 'Calle de los Ejemplos 123, Colima, Col.', example: true, fotos: subirFotos(owner!.id, g) }, now)
   })()
   console.log(`listo: /${m.example}`)
 }

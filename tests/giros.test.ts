@@ -95,3 +95,27 @@ describe('etiquetas con marcatextos (bloque 7)', () => {
     expect(ejemplo).toContain('<span class="tg tg-verde">Abierto ahora</span>')
   })
 })
+
+describe('fotos de los ejemplos (bloque 7)', () => {
+  it('con fotos, la portada, la galería y las propiedades las usan; sin fotos (sitio de una persona) el sitio sale igual que antes', async () => {
+    const t = await makeApp()
+    const v = await signup(t)
+    const { createLink } = await import('../src/modules/links/repo.ts')
+    const { defaultBioData } = await import('../src/modules/bio/design.ts')
+    const { applyGiro } = await import('../src/modules/minisitio/giros.ts')
+    const owner = t.deps.db.prepare('SELECT id FROM users LIMIT 1').pluck().get() as number
+    const mk = (alias: string) => createLink(t.deps.db, owner, { project_id: null, alias, kind: 'bio', title: 'X', target_url: null, redirect_code: 302, data: { ...defaultBioData('X', '', 'papel'), noindex: true }, is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false }, Date.now())
+    const F = (k: string) => ({ key: `llave${k}.webp`, alt: `alt ${k}` })
+    const fotos = Object.fromEntries(['inmobiliaria/hero-bahia.webp', 'inmobiliaria/prop-casa.webp', 'inmobiliaria/prop-terreno.webp', 'inmobiliaria/galeria-cocina.webp', 'inmobiliaria/galeria-recamara.webp'].map((n, i) => [n, F(String(i))]))
+    applyGiro(t.deps.db, mk('con').id, 'inmobiliaria', { name: 'Inmobiliaria Sol', whatsapp: '', address: 'Calle 1', example: true, fotos }, Date.now())
+    const con = (await v.get('/con')).body
+    expect(con).toContain('/_/u/llave0') // portada con la foto de fondo
+    expect(con).toContain('/_/u/llave1') // la casa
+    expect(con).toContain('/_/u/llave3') // galería «Por dentro»
+    expect(con).toContain('Así son por dentro')
+    applyGiro(t.deps.db, mk('sin').id, 'inmobiliaria', { name: 'Inmobiliaria Sol', whatsapp: '', address: 'Calle 1' }, Date.now())
+    const sin = (await v.get('/sin')).body
+    expect(sin).not.toContain('/_/u/')
+    expect(sin).not.toContain('Así son por dentro')
+  })
+})

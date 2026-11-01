@@ -1,0 +1,221 @@
+{
+ "nota": "Imágenes ficticias generadas con IA (design, 1-nov-2026): personas ficticias, sin texto ni marcas.",
+ "fotos": {
+  "restaurante/hero.webp": {
+   "alt": {
+    "es": "Hamburguesa doble con queso sobre una mesa de madera, con la parrilla de carbón al fondo",
+    "en": "Double cheeseburger on a wooden table with a charcoal grill behind"
+   },
+   "ancho": 780,
+   "alto": 1045
+  },
+  "restaurante/galeria-local.webp": {
+   "alt": {
+    "es": "Interior del restaurante con lámparas cálidas y mesas de madera",
+    "en": "Restaurant interior with warm lamps and wooden tables"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "restaurante/galeria-parrilla.webp": {
+   "alt": {
+    "es": "Manos volteando carne en una parrilla de carbón",
+    "en": "Hands flipping patties on a charcoal grill"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "restaurante/galeria-mesa.webp": {
+   "alt": {
+    "es": "Manos compartiendo hamburguesas, papas y alitas en una mesa",
+    "en": "Hands sharing burgers, fries and wings at a table"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "belleza/hero.webp": {
+   "alt": {
+    "es": "Manos de una manicurista aplicando manicure con gel nude",
+    "en": "A nail technician applying a nude gel manicure"
+   },
+   "ancho": 780,
+   "alto": 1045
+  },
+  "belleza/galeria-nude.webp": {
+   "alt": {
+    "es": "Mano con uñas de gel nude brillante sobre lino crema",
+    "en": "Hand with glossy nude gel nails on cream linen"
+   },
+   "ancho": 480,
+   "alto": 480
+  },
+  "belleza/galeria-frances.webp": {
+   "alt": {
+    "es": "Mano con manicure francés de puntas blancas",
+    "en": "Hand with a classic French manicure"
+   },
+   "ancho": 480,
+   "alto": 480
+  },
+  "belleza/galeria-rosa.webp": {
+   "alt": {
+    "es": "Mano con uñas rosa suave con destello perlado",
+    "en": "Hand with soft pink nails with a pearl shimmer"
+   },
+   "ancho": 480,
+   "alto": 480
+  },
+  "belleza/galeria-acrilico.webp": {
+   "alt": {
+    "es": "Mano con uñas acrílicas almendradas blanco lechoso",
+    "en": "Hand with milky white almond acrylic nails"
+   },
+   "ancho": 480,
+   "alto": 480
+  },
+  "belleza/local.webp": {
+   "alt": {
+    "es": "Estudio de uñas luminoso con dos estaciones y sillas rosa",
+    "en": "Bright nail studio with two stations and pink chairs"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "belleza/detalle-esmaltes.webp": {
+   "alt": {
+    "es": "Fila de esmaltes sin etiqueta en tonos nude y rosa",
+    "en": "Row of unlabeled nail polish bottles in nude and pink"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "salud/hero-retrato.webp": {
+   "alt": {
+    "es": "Retrato de una dermatóloga con bata blanca en una clínica luminosa",
+    "en": "Portrait of a dermatologist in a white coat in a bright clinic"
+   },
+   "ancho": 780,
+   "alto": 975
+  },
+  "salud/consultorio.webp": {
+   "alt": {
+    "es": "Consultorio con escritorio de madera, camilla y plantas",
+    "en": "Consulting room with a wooden desk, exam bed and plants"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "salud/recepcion.webp": {
+   "alt": {
+    "es": "Recepción con mostrador de madera y dos sillones",
+    "en": "Reception with a wooden counter and two armchairs"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "inmobiliaria/hero-bahia.webp": {
+   "alt": {
+    "es": "Vista aérea de una bahía del Pacífico con palmeras",
+    "en": "Aerial view of a Pacific bay with palm trees"
+   },
+   "ancho": 900,
+   "alto": 598
+  },
+  "inmobiliaria/prop-casa.webp": {
+   "alt": {
+    "es": "Casa moderna con alberca y terraza al atardecer",
+    "en": "Modern house with a pool and terrace at sunset"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "inmobiliaria/prop-departamento.webp": {
+   "alt": {
+    "es": "Sala luminosa con balcón y vista al mar",
+    "en": "Bright living room with a balcony and sea view"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "inmobiliaria/prop-terreno.webp": {
+   "alt": {
+    "es": "Terreno con muro de piedra, palmeras y el mar al fondo",
+    "en": "Lot with a stone wall, palms and the sea beyond"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "inmobiliaria/galeria-cocina.webp": {
+   "alt": {
+    "es": "Cocina moderna con isla blanca y lámparas colgantes",
+    "en": "Modern kitchen with a white island and pendant lights"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "inmobiliaria/galeria-recamara.webp": {
+   "alt": {
+    "es": "Recámara principal con ropa de cama blanca y puerta al jardín",
+    "en": "Master bedroom in white linen with a garden door"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "fitness/hero-clase.webp": {
+   "alt": {
+    "es": "Clase en grupo con pesas rusas en un estudio luminoso",
+    "en": "Group class with kettlebells in a bright studio"
+   },
+   "ancho": 780,
+   "alto": 975
+  },
+  "fitness/estudio.webp": {
+   "alt": {
+    "es": "Estudio de entrenamiento funcional con estructura negra y cajones",
+    "en": "Functional training studio with a black rig and plyo boxes"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "fitness/detalle-kettlebells.webp": {
+   "alt": {
+    "es": "Fila de pesas rusas en un rack",
+    "en": "Row of kettlebells on a rack"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "fitness/galeria-comunidad.webp": {
+   "alt": {
+    "es": "Dos personas chocando las manos tras entrenar",
+    "en": "Two people high-fiving after a workout"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "servicios/oficina.webp": {
+   "alt": {
+    "es": "Oficina con escritorio de madera, libreros y vista a la ciudad",
+    "en": "Office with a wooden desk, shelves and a city view"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "servicios/reunion.webp": {
+   "alt": {
+    "es": "Dos profesionales revisando documentos en una mesa",
+    "en": "Two professionals reviewing documents at a table"
+   },
+   "ancho": 640,
+   "alto": 430
+  },
+  "servicios/escritorio.webp": {
+   "alt": {
+    "es": "Escritorio con laptop cerrada, calculadora y carpetas",
+    "en": "Desk with a closed laptop, calculator and folders"
+   },
+   "ancho": 640,
+   "alto": 430
+  }
+ }
+}

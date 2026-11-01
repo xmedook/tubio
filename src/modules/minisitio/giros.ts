@@ -31,6 +31,8 @@ export type GiroVals = {
   logo?: string | null
   /** textos de la ficha de ejemplo: el ejemplo vivo usa esto para no llevar la dirección del dueño real */
   example?: boolean
+  /** fotos de los sitios de ejemplo: archivo → llave de la imagen ya subida y su texto alternativo (design, bloque 7) */
+  fotos?: Record<string, { key: string; alt: string }>
 }
 
 const week = (open: string, close: string, sat?: [string, string], sun?: [string, string]) => [
@@ -55,14 +57,27 @@ function etiquetas(c: Ctx, sectionId: number, items: [string, 'rosa' | 'verde' |
   if (c.v.example) c.blk('tags', { items: items.map(([label, tone]) => ({ label, tone })) }, sectionId)
 }
 
-/** Portada: sección con degradado, titular del negocio y el botón principal */
-function portada(c: Ctx, sectionId: number, antetitulo: string, subtitulo: string): void {
-  updateSection(c.db, sectionId, readSectionData({ ancla: 'inicio', antetitulo, titulo: c.v.name, subtitulo, fondo: 'degradado', color: c.meta.c1, color2: c.meta.c2, angulo: 160, alto: 'media', ancho: 'normal' }), true, c.now)
+/** Portada: sección con degradado (o con la foto del ejemplo), titular del negocio y el botón principal */
+function portada(c: Ctx, sectionId: number, antetitulo: string, subtitulo: string, foto?: string): void {
+  const f = foto ? c.v.fotos?.[foto] : undefined
+  const fondo = f ? { fondo: 'imagen', imagen: f.key, oscurecer: 45 } : { fondo: 'degradado', color: c.meta.c1, color2: c.meta.c2, angulo: 160 }
+  updateSection(c.db, sectionId, readSectionData({ ancla: 'inicio', antetitulo, titulo: c.v.name, subtitulo, ...fondo, alto: 'media', ancho: 'normal' }), true, c.now)
+}
+
+/** Llave de una foto de ejemplo (si el sitio es uno de los ejemplos y la subió el script) */
+const foto = (c: Ctx, name: string): string | undefined => c.v.fotos?.[name]?.key
+
+/** Sección con una galería de fotos de ejemplo; sin fotos (el sitio de una persona) no hace nada */
+function galeria(c: Ctx, home: number, antetitulo: string, titulo: string, names: string[], columns: '2' | '3' = '2'): void {
+  const fs = names.map((n) => c.v.fotos?.[n]).filter((f): f is { key: string; alt: string } => !!f)
+  if (!fs.length) return
+  const sec = c.mk(home, { antetitulo, titulo, ancho: 'normal' })
+  c.blk('gallery', { images: fs.map((f) => f.key), columns, alt: fs.map((f) => f.alt).join(' · ').slice(0, 200) }, sec)
 }
 
 const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: SiteConfig['cabecera']['nav_manual']; barra: Action[]; cta: Action; servicios: string }> = {
   restaurante(c, home, first) {
-    portada(c, first, 'Cocina de casa', 'Pide por WhatsApp o reserva tu mesa. Sin vueltas.')
+    portada(c, first, 'Cocina de casa', 'Pide por WhatsApp o reserva tu mesa. Sin vueltas.', 'restaurante/hero.webp')
     etiquetas(c, first, [['Nuevo: costillas BBQ', 'rosa'], ['Abierto ahora', 'verde']])
     const a = c.mk(home, { ancla: 'acciones', ancho: 'angosto' })
     c.blk('action_panel', {
@@ -90,6 +105,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
       ],
     }, m)
     c.blk('wa_request', { preset: 'pedido', guardar_copia: true }, m)
+    galeria(c, home, 'El lugar', 'Así se come aquí', ['restaurante/galeria-local.webp', 'restaurante/galeria-parrilla.webp', 'restaurante/galeria-mesa.webp'], '3')
     const n = c.page('nosotros', 'Nosotros', 'Nuestra historia y horario')
     c.blk('paragraph', { text: 'Somos un negocio familiar. Cocinamos con ingredientes del día y recetas que se heredan. Cuéntale a tus clientes quién eres: cuándo empezaron, qué los hace distintos, qué platillo no se pueden perder.' }, n)
     return {
@@ -101,7 +117,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
   },
 
   belleza(c, home, first) {
-    portada(c, first, 'Belleza · cuidado personal', 'Agenda tu cita por WhatsApp. Te confirmamos el horario.')
+    portada(c, first, 'Belleza · cuidado personal', 'Agenda tu cita por WhatsApp. Te confirmamos el horario.', 'belleza/hero.webp')
     etiquetas(c, first, [['Promo de noviembre', 'rosa'], ['Hay lugar hoy', 'verde']])
     const cta = c.mk(home, { ancho: 'angosto' })
     c.blk('wa_request', { preset: 'cita', boton: 'Agendar mi cita', guardar_copia: true }, cta)
@@ -119,6 +135,8 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     }, s)
     const e = c.mk(home, { ancla: 'equipo', antetitulo: 'Quiénes somos', titulo: 'Nuestro equipo', fondo: 'color', color: '#f6e9ee', ancho: 'angosto' })
     c.blk('paragraph', { text: 'Presenta a tu equipo: nombres, especialidad y años de experiencia. Las clientas confían más cuando saben con quién se van a sentar.' }, e)
+    galeria(c, home, 'Nuestro trabajo', 'Hecho a mano', ['belleza/galeria-nude.webp', 'belleza/galeria-frances.webp', 'belleza/galeria-rosa.webp', 'belleza/galeria-acrilico.webp'])
+    galeria(c, home, 'El estudio', 'Un lugar para ti', ['belleza/local.webp', 'belleza/detalle-esmaltes.webp'])
     return {
       nav: [{ texto: 'Servicios', tipo: 'ancla', destino: 'servicios' }, { texto: 'Equipo', tipo: 'ancla', destino: 'equipo' }, { texto: 'Ubicación', tipo: 'ancla', destino: 'ubicacion' }],
       barra: [{ texto: 'Agendar cita', tipo: 'whatsapp', destino: '', mensaje: 'Hola, quiero agendar una cita' }, { texto: 'Servicios', tipo: 'ancla', destino: 'servicios', mensaje: '' }],
@@ -144,7 +162,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     }, cat)
     const p = c.mk(home, { ancla: 'doctor', antetitulo: 'Quién te atiende', fondo: 'color', color: '#e3ebe9', ancho: 'normal' })
     c.blk('profile', {
-      nombre: c.v.name, especialidad: 'Tu especialidad médica',
+      foto: foto(c, 'salud/hero-retrato.webp') ?? null, nombre: c.v.name, especialidad: 'Tu especialidad médica',
       bio: 'Cuenta en dos o tres líneas tu trayectoria: dónde estudiaste, cuántos años de práctica tienes y cómo atiendes a tus pacientes.',
       credenciales: [{ etiqueta: 'Formación', valor: 'Universidad y año' }, { etiqueta: 'Especialidad', valor: 'Institución' }, { etiqueta: 'Cédula', valor: 'Número de cédula profesional' }],
       enlace_verificacion: 'https://cedulaprofesional.sep.gob.mx/', texto_verificacion: 'Verificar cédula en la SEP',
@@ -157,6 +175,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     c.blk('heading', { text: 'Preguntas frecuentes', level: 'h2' }, pg)
     c.blk('paragraph', { text: '¿Debo llevar estudios previos? Sí, si los tienes.\n¿Cuánto cuesta? Pregúntanos por WhatsApp y te damos el costo vigente.' }, pg)
     c.blk('wa_request', { preset: 'cita', boton: 'Agendar cita', guardar_copia: true }, pg)
+    galeria(c, home, 'El consultorio', 'Conoce dónde te atendemos', ['salud/consultorio.webp', 'salud/recepcion.webp'])
     return {
       nav: [{ texto: 'Opciones', tipo: 'ancla', destino: 'opciones' }, { texto: 'Quién te atiende', tipo: 'ancla', destino: 'doctor' }, { texto: 'Contacto', tipo: 'ancla', destino: 'contacto' }],
       barra: [{ texto: 'Agendar valoración', tipo: 'ancla', destino: 'contacto', mensaje: '' }, { texto: 'WhatsApp', tipo: 'whatsapp', destino: '', mensaje: 'Hola, quisiera una valoración' }],
@@ -166,15 +185,15 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
   },
 
   inmobiliaria(c, home, first) {
-    portada(c, first, 'Bienes raíces', 'Compra, vende o renta con acompañamiento de principio a fin.')
+    portada(c, first, 'Bienes raíces', 'Compra, vende o renta con acompañamiento de principio a fin.', 'inmobiliaria/hero-bahia.webp')
     etiquetas(c, first, [['3 propiedades disponibles', 'verde'], ['Venta', 'azul'], ['Renta', 'azul']])
     const l = c.mk(home, { ancla: 'propiedades', antetitulo: 'Disponibles', titulo: 'Propiedades', ancho: 'ancho' })
     c.blk('listings', {
       titulo: '',
       items: [
-        { titulo: 'Casa en zona residencial', operacion: 'venta', tipo: 'casa', precio: '$3,500,000', recamaras: 3, banos: 2, m2: 180, colonia: 'Colonia ejemplo', estado: 'disponible', descripcion: 'Jardín, cochera para 2 autos y cocina integral. Cambia este texto por los datos de tu propiedad.' },
-        { titulo: 'Departamento céntrico', operacion: 'renta', tipo: 'departamento', precio: '$12,000/mes', recamaras: 2, banos: 1, m2: 75, colonia: 'Centro', estado: 'disponible', descripcion: 'A pasos de comercios y transporte.' },
-        { titulo: 'Terreno campestre', operacion: 'venta', tipo: 'terreno', precio: '$900,000', m2: 1000, colonia: 'Zona campestre', estado: 'disponible' },
+        { foto: foto(c, 'inmobiliaria/prop-casa.webp') ?? null, titulo: 'Casa en zona residencial', operacion: 'venta', tipo: 'casa', precio: '$3,500,000', recamaras: 3, banos: 2, m2: 180, colonia: 'Colonia ejemplo', estado: 'disponible', descripcion: 'Jardín, cochera para 2 autos y cocina integral. Cambia este texto por los datos de tu propiedad.' },
+        { foto: foto(c, 'inmobiliaria/prop-departamento.webp') ?? null, titulo: 'Departamento céntrico', operacion: 'renta', tipo: 'departamento', precio: '$12,000/mes', recamaras: 2, banos: 1, m2: 75, colonia: 'Centro', estado: 'disponible', descripcion: 'A pasos de comercios y transporte.' },
+        { foto: foto(c, 'inmobiliaria/prop-terreno.webp') ?? null, titulo: 'Terreno campestre', operacion: 'venta', tipo: 'terreno', precio: '$900,000', m2: 1000, colonia: 'Zona campestre', estado: 'disponible' },
       ],
     }, l)
     c.blk('wa_request', { preset: 'visita', boton: 'Solicitar visita', guardar_copia: true }, l)
@@ -184,6 +203,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
       bio: 'Cuéntale a tus clientes cuánto tiempo llevas en el mercado, en qué zonas trabajas y cómo cuidas cada operación.',
       credenciales: [{ etiqueta: 'Zonas', valor: 'Tu ciudad y colonias' }, { etiqueta: 'Experiencia', valor: 'Años en el mercado' }],
     }, a)
+    galeria(c, home, 'Por dentro', 'Así son por dentro', ['inmobiliaria/galeria-cocina.webp', 'inmobiliaria/galeria-recamara.webp'])
     return {
       nav: [{ texto: 'Propiedades', tipo: 'ancla', destino: 'propiedades' }, { texto: 'Asesor', tipo: 'ancla', destino: 'asesor' }, { texto: 'Ubicación', tipo: 'ancla', destino: 'ubicacion' }],
       barra: [{ texto: 'Pedir visita', tipo: 'ancla', destino: 'propiedades', mensaje: '' }, { texto: 'WhatsApp', tipo: 'whatsapp', destino: '', mensaje: 'Hola, me interesa una propiedad' }],
@@ -193,7 +213,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
   },
 
   fitness(c, home, first) {
-    portada(c, first, 'Entrenamiento', 'Clases para todos los niveles. Tu primera clase es de prueba.')
+    portada(c, first, 'Entrenamiento', 'Clases para todos los niveles. Tu primera clase es de prueba.', 'fitness/hero-clase.webp')
     etiquetas(c, first, [['Reto de noviembre', 'rosa'], ['3 lugares hoy', 'verde']])
     const p = c.mk(home, { ancla: 'programas', antetitulo: 'Elige tu camino', titulo: 'Programas', ancho: 'ancho' })
     c.blk('programs', {
@@ -211,6 +231,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
       items: [cl('Spinning', 'mon', '07:00', '07:45', 'Instructor', 15), cl('Yoga', 'mon', '18:00', '19:00', 'Instructora', 12), cl('HIIT', 'tue', '07:00', '07:30'), cl('Fuerza', 'wed', '19:00', '20:00', 'Instructor', 10), cl('Yoga', 'thu', '18:00', '19:00', 'Instructora', 12), cl('Movilidad', 'sat', '09:00', '10:00', 'Instructora', 20)],
     }, h)
     c.blk('wa_request', { preset: 'clase', boton: 'Reservar clase muestra', guardar_copia: true }, h)
+    galeria(c, home, 'Adentro', 'Así se entrena aquí', ['fitness/estudio.webp', 'fitness/detalle-kettlebells.webp', 'fitness/galeria-comunidad.webp'], '3')
     return {
       nav: [{ texto: 'Programas', tipo: 'ancla', destino: 'programas' }, { texto: 'Clases', tipo: 'ancla', destino: 'clases' }, { texto: 'Ubicación', tipo: 'ancla', destino: 'ubicacion' }],
       barra: [{ texto: 'Clase muestra', tipo: 'ancla', destino: 'clases', mensaje: '' }, { texto: 'WhatsApp', tipo: 'whatsapp', destino: '', mensaje: 'Hola, quiero información de las clases' }],
@@ -237,6 +258,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     c.blk('paragraph', { text: 'Menciona las colonias o ciudades donde das servicio y el tiempo de respuesta habitual.' }, z)
     const r = c.mk(home, { ancla: 'resenas', antetitulo: 'Clientes', titulo: 'Lo que dicen de nosotros', ancho: 'angosto' })
     c.blk('trust_line', { items: [{ texto: 'Servicio garantizado' }, { texto: 'Presupuesto sin costo' }, { texto: 'Atención por WhatsApp' }] }, r)
+    galeria(c, home, 'La oficina', 'Ven a conocernos', ['servicios/oficina.webp', 'servicios/reunion.webp', 'servicios/escritorio.webp'], '3')
     return {
       nav: [{ texto: 'Servicios', tipo: 'ancla', destino: 'servicios' }, { texto: 'Cobertura', tipo: 'ancla', destino: 'cobertura' }],
       barra: [{ texto: 'Cotizar', tipo: 'whatsapp', destino: '', mensaje: 'Hola, quisiera una cotización' }],
