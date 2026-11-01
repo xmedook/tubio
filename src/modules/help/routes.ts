@@ -11,6 +11,7 @@ import { csrfField, input, powAttr, powField, select, textarea } from '../../vie
 import { powOk, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import type { User } from '../users/repo.ts'
+import { brandHead, wordmark } from '../../views/brand.ts'
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '../../content/help')
 export const HELP_ARTICLES = ['primeros-pasos', 'enlaces', 'estadisticas', 'dominios', 'planes', 'cuenta'] as const
@@ -28,9 +29,9 @@ const titleOf = (md: string) => /^#\s+(.+)$/m.exec(md)?.[1] ?? ''
 function shell(ctx: Ctx, title: string, body: SafeHtml, pow = false): SafeHtml {
   const { t } = ctx
   return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg">
+<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(ctx.baseUrl)}
 ${pow ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>` : ''}</head>
-<body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/">tu<span>bio</span></a> · <a href="/help">${t('help.title')}</a></p>${body}
+<body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a> · <a href="/help">${t('help.title')}</a></p>${body}
 <p class="muted small"><a href="/help/contact">${t('help.contact')}</a> · <a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a></p></main></body></html>`
 }
 

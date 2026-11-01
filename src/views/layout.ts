@@ -2,8 +2,9 @@ import { html, type HtmlValue, type SafeHtml } from '../lib/html.ts'
 import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
+import { brandHead, wordmark } from './brand.ts'
 
-export const ASSET_VERSION = '38'
+export const ASSET_VERSION = '39'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -12,7 +13,7 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
 <title>${title} · túbio</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
-<link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
+${brandHead(ctx.baseUrl)}
 <script type="module" src="/_/static/js/app.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 <script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>
 ${extra}
@@ -49,7 +50,7 @@ ${head(ctx, opts.title, opts.head)}
 <body class="panel">
 <a class="skip" href="#main">${t('a11y.skip')}</a>
 <header class="topbar">
-  <a class="brand" href="/panel" aria-label="túbio">tú<span>bio</span></a>
+  <a class="brand" href="/panel" aria-label="túbio">${wordmark(28, 'auto')}</a>
   <nav aria-label="${t('nav.main')}">
     <ul>${nav.map(
       ([k, href, label]) =>
@@ -125,7 +126,7 @@ export function authLayout(ctx: Ctx, opts: { title: string; body: HtmlValue; pat
 ${head(ctx, opts.title)}
 <body class="auth">
 <main id="main" class="auth-card">
-  <a class="brand brand-lg" href="/" aria-label="túbio">tú<span>bio</span></a>
+  <a class="brand brand-lg" href="/" aria-label="túbio">${wordmark(40, 'auto')}</a>
   ${flashBox(ctx)}
   ${opts.body}
   <p class="auth-foot">${langSwitch(ctx, opts.path)} · <a href="/terms">${ctx.t('legal.terms')}</a> · <a href="/privacy">${ctx.t('legal.privacy')}</a></p>
@@ -140,7 +141,7 @@ export function messagePage(ctx: Ctx, opts: { title: string; message: string; st
 ${head(ctx, opts.title)}
 <body class="auth">
 <main id="main" class="auth-card">
-  <a class="brand brand-lg" href="/" aria-label="túbio">tú<span>bio</span></a>
+  <a class="brand brand-lg" href="/" aria-label="túbio">${wordmark(40, 'auto')}</a>
   <h1>${opts.title}</h1>
   <p>${opts.message}</p>
 </main>

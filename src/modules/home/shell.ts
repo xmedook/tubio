@@ -3,6 +3,7 @@ import { ASSET_VERSION } from '../../views/layout.ts'
 import { flashBox } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 import { hic } from './icons.ts'
+import { brandHead, wordmark } from '../../views/brand.ts'
 
 /** WhatsApp de ventas (E.164 sin +) → enlace con mensaje de arranque; '' si no hay número */
 export const salesLink = (number: string, text: string): string => (number ? `https://wa.me/${number}?text=${encodeURIComponent(text)}` : '')
@@ -39,7 +40,7 @@ export function homeShell(ctx: Ctx, o: ShellOpts): SafeHtml {
 <meta name="theme-color" content="#F2EEE3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0D1310" media="(prefers-color-scheme: dark)">
 ${o.noindex ? html`<meta name="robots" content="noindex">` : html`<link rel="canonical" href="${ctx.baseUrl}${o.path === '/' ? '/' : o.path}">`}
-<link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
+${brandHead(ctx.baseUrl, { og: true })}
 <link rel="stylesheet" href="/_/static/css/home-tokens.css?v=${ASSET_VERSION}">
 <link rel="stylesheet" href="/_/static/css/home.css?v=${ASSET_VERSION}">
 ${(o.scripts ?? []).map((s) => html`<script type="module" src="/_/static/js/${s}?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`)}
@@ -49,7 +50,7 @@ ${o.jsonLd ? html`<script type="application/ld+json" nonce="${ctx.nonce}">${raw(
 <a class="saltar" href="#contenido">${t('a11y.skip')}</a>
 <header class="cab">
   <div class="cab-in">
-    <a class="marca" href="/" aria-label="${t('h2.home_aria')}">túbio</a>
+    <a class="marca" href="/" aria-label="${t('h2.home_aria')}">${wordmark(30, 'auto')}</a>
     <nav class="cab-nav" aria-label="${t('nav.main')}">
       <a href="/#como">${t('h3.nav_how')}</a><a href="/#ejemplos">${t('h3.nav_giros')}</a><a href="/#precio">${t('h2.nav_plans')}</a><a href="/#preguntas">${t('h2.nav_faq')}</a>
     </nav>
@@ -66,7 +67,7 @@ ${o.jsonLd ? html`<script type="application/ld+json" nonce="${ctx.nonce}">${raw(
 
 <footer class="pie">
   <div class="pie-in">
-    <div class="pie-marca"><span class="marca">túbio</span><p>${t('h2.foot_tag')}</p></div>
+    <div class="pie-marca"><span class="marca">${wordmark(26, 'auto')}</span><p>${t('h2.foot_tag')}</p></div>
     <nav aria-label="${t('h2.foot_product')}"><h3>${t('h2.foot_product')}</h3><a href="/directory">${t('dir.title')}</a><a href="/blog">${t('site.blog')}</a><a href="/help">${t('help.title')}</a><a href="/#precio">${t('h2.nav_plans')}</a><a href="/armamos-por-ti">${t('asist.title')}</a>${(o.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a>`)}</nav>
     <nav aria-label="${t('h2.foot_legal')}"><h3>${t('h2.foot_legal')}</h3><a href="/terms">${t('legal.terms')}</a><a href="/privacy">${t('legal.privacy')}</a><a href="/acceptable-use">${t('legal.aup')}</a><a href="/security">${t('legal.security')}</a></nav>
     <nav aria-label="${t('h2.foot_code')}"><h3>${t('h2.foot_code')}</h3><a href="/source">${t('h2.foot_source')}</a><a href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a></nav>

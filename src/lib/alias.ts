@@ -6,7 +6,7 @@ export const RESERVED_ALIASES = new Set([
   'docs', 'forgot', 'help', 'ayuda', 'healthz', 'home', 'inicio', 'lang', 'legal', 'login', 'logout',
   'mail', 'panel', 'precios', 'pricing', 'privacy', 'privacidad', 'qr', 'register', 'registro', 'reset',
   'root', 'settings', 'signup', 'source', 'static', 'stats', 'status', 'support', 'soporte', 'terms',
-  'terminos', 'tubio', 'verify', 'www', 'robots.txt', 'favicon.ico', 'sitemap.xml', 'manifest.json',
+  'terminos', 'tubio', 'verify', 'www', 'robots.txt', 'favicon.ico', 'sitemap.xml', 'manifest.json', 'manifest.webmanifest', 'apple-touch-icon.png',
   'security.txt', '.well-known', 'acceptable-use', 'uso-aceptable', 'directory', 'directorio', 'referrals', 'afiliados', 'security', 'seguridad', 'help', 'ayuda',
   // páginas por giro de la portada y alta asistida
   'restaurantes', 'belleza', 'salud', 'inmobiliarias', 'fitness', 'servicios-profesionales', 'armamos-por-ti',

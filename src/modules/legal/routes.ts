@@ -10,6 +10,7 @@ import { ASSET_VERSION } from '../../views/layout.ts'
 import { sendHtml } from '../../web/context.ts'
 import { getSetting } from '../settings/repo.ts'
 import { SOURCE_URL } from '../home/routes.ts'
+import { brandHead, wordmark } from '../../views/brand.ts'
 
 /** Fecha de la versión vigente de los textos legales (cámbiala al editarlos) */
 export const LEGAL_UPDATED = '2026-10-22'
@@ -62,8 +63,8 @@ export function registerLegal(app: FastifyInstance, deps: AppDeps): void {
       return sendHtml(
         reply,
         html`<html lang="${req.ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
-<body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/">tu<span>bio</span></a></p>${raw(body)}
+<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(req.ctx.baseUrl)}</head>
+<body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a></p>${raw(body)}
 <p class="muted small"><a href="/terms">${req.ctx.t('legal.terms')}</a> · <a href="/privacy">${req.ctx.t('legal.privacy')}</a> · <a href="/acceptable-use">${req.ctx.t('legal.aup')}</a> · <a href="/security">${req.ctx.t('legal.security')}</a></p></main></body></html>`,
       )
     })

@@ -9,6 +9,7 @@ import { adminGuard, sendHtml, setFlash, type Ctx } from '../../web/context.ts'
 import { checked, field } from '../../web/forms.ts'
 import { actorOf } from '../auth/routes.ts'
 import { audit } from '../settings/repo.ts'
+import { brandHead, wordmark } from '../../views/brand.ts'
 
 type SitePage = { id: number; kind: 'page' | 'post'; slug: string; locale: Locale; title: string; summary: string; body: string; in_footer: number; published_at: number | null; created_at: number; updated_at: number }
 
@@ -23,8 +24,8 @@ function shell(ctx: Ctx, title: string, body: SafeHtml, desc = ''): SafeHtml {
   const { t } = ctx
   return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title} · túbio</title>${desc ? html`<meta name="description" content="${desc}">` : ''}
-<link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
-<body class="legal"><header class="home-top"><a class="brand" href="/">tu<span>bio</span></a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
+<link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(ctx.baseUrl)}</head>
+<body class="legal"><header class="home-top"><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
 <main id="main" class="wrap legal-text">${body}</main>
 <footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="/blog">${t('site.blog')}</a> · <a href="/source">${t('foot.source')}</a></footer></body></html>`
 }

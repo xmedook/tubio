@@ -194,7 +194,7 @@ export function registerContext(app: FastifyInstance, deps: AppDeps): void {
     const real = member ?? user
     if (getSetting(deps.db, 'maintenance') && /^\/(panel|register)(\/|$|\?)/.test(routePath(req)) && real?.role !== 'admin') {
       const t = req.ctx.t
-      return reply.code(503).header('Retry-After', '1800').type('text/html; charset=utf-8').send(`<!doctype html><html lang="${locale}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>túbio</title><link rel="stylesheet" href="/_/static/css/app.css"><body class="auth"><main class="auth-card"><p class="brand brand-lg">tu<span>bio</span></p><h1>${t('site.maintenance_title')}</h1><p>${t('site.maintenance_body')}</p></main></body></html>`)
+      return reply.code(503).header('Retry-After', '1800').type('text/html; charset=utf-8').send(`<!doctype html><html lang="${locale}"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>túbio</title><link rel="stylesheet" href="/_/static/css/app.css"><body class="auth"><main class="auth-card"><p class="brand brand-lg"><picture><source media="(prefers-color-scheme: dark)" srcset="/_/static/img/brand/tubio-logotipo-tinta.svg"><img src="/_/static/img/brand/tubio-logotipo-papel.svg" width="108" height="40" alt="túbio"></picture></p><h1>${t('site.maintenance_title')}</h1><p>${t('site.maintenance_body')}</p></main></body></html>`)
     }
   })
 

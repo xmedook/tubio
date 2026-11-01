@@ -140,3 +140,7 @@ main{padding-bottom:104px}
 .cta .col:not(:has(.wa)){grid-template-columns:1fr}
 .saltar{position:absolute;left:-9999px;top:0;z-index:60;background:var(--ink);color:#fbfaf6;padding:12px 16px;border-radius:6px;text-decoration:none;font:600 14px/1 var(--fb)}
 .saltar:focus{left:12px;top:12px}
+.logo picture,.logo .wm{display:block}
+.logo .wm{height:auto;max-width:100%}
+.foot-n{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
+.foot-n .wm{height:auto}

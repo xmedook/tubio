@@ -724,3 +724,8 @@ a.sl-row:hover .sl-l { text-decoration: underline; }
   .qr-editor .danger-zone { display: none; }
 }
 .tap { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* logo final «túbio» (1-nov-2026): el wordmark es una imagen SVG con su propio alto; claro/oscuro por <picture> */
+.brand picture, .brand .wm { display: block; }
+.brand .wm { max-width: 100%; height: auto; }
+.brand-lg { line-height: 0; }

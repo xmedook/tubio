@@ -14,6 +14,7 @@ import { linkUrl } from '../links/repo.ts'
 import { money } from '../plans/routes.ts'
 import { audit, getSetting } from '../settings/repo.ts'
 import { findUserById, updateUser, type User } from '../users/repo.ts'
+import { brandHead, wordmark } from '../../views/brand.ts'
 
 const CATS = ['creator', 'business', 'music', 'art', 'food', 'education', 'tech', 'health', 'nonprofit', 'other']
 const REF = 'abcdefghjkmnpqrstuvwxyz23456789'
@@ -77,8 +78,8 @@ export function registerGrowth(app: FastifyInstance, deps: AppDeps): void {
     const more = rows.length > 24
     const qs = (p: number) => `/directory?${new URLSearchParams({ ...(term ? { q: term } : {}), ...(cat ? { cat } : {}), page: String(p) })}`
     return sendHtml(reply, html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${t('dir.title')} · túbio</title>
-<meta name="description" content="${t('dir.desc')}"><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
-<body class="home"><header class="home-top"><a class="brand" href="/">tu<span>bio</span></a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
+<meta name="description" content="${t('dir.desc')}"><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(ctx.baseUrl)}</head>
+<body class="home"><header class="home-top"><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
 <main id="main" class="wrap wrap-wide"><h1>${t('dir.title')}</h1><p class="muted">${t('dir.desc')}</p>
 <form class="toolbar" method="get" action="/directory" role="search">${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: term })}
 ${select({ ctx, name: 'cat', label: t('dir.category'), value: cat, options: [{ value: '', label: t('dir.all') }, ...CATS.map((c) => ({ value: c, label: t(`dir.cat_${c}`) }))] })}<button class="btn" type="submit">${t('links.filter')}</button></form>

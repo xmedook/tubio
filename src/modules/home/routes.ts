@@ -8,6 +8,9 @@ import { GIROS, GIRO_META } from '../minisitio/giros.ts'
 import { giroPage } from './giro-page.ts'
 import { landingPage } from './landing.ts'
 import { footerPages } from '../site/routes.ts'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { ASSET_VERSION } from '../../views/layout.ts'
 import { updateUser } from '../users/repo.ts'
 
 export const SOURCE_URL = process.env.TUBIO_SOURCE_URL ?? 'https://github.com/xmedook/tubio'
@@ -57,7 +60,31 @@ export function registerHome(app: FastifyInstance, deps: AppDeps): void {
   app.get('/robots.txt', async (_req, reply) =>
     reply.type('text/plain').send('User-agent: *\nDisallow: /panel\nDisallow: /admin\nDisallow: /_/c/\nDisallow: /_/stats/\n'),
   )
-  app.get('/favicon.ico', async (_req, reply) => reply.redirect('/_/static/img/favicon.svg', 301))
+  // ícono de túbio: el .ico del logo final (16/32/48); los navegadores y los bots lo piden siempre en la raíz
+  const ICO = readFileSync(join(import.meta.dirname, '..', '..', '..', 'public', 'img', 'favicon.ico'))
+  app.get('/favicon.ico', async (_req, reply) => reply.header('Cache-Control', 'public, max-age=86400').type('image/x-icon').send(ICO))
+
+  // manifiesto de la propia app (instalar túbio en el celular): íconos del logo final
+  app.get('/manifest.webmanifest', async (req, reply) => {
+    const v = ASSET_VERSION
+    reply.header('Cache-Control', 'public, max-age=3600')
+    return reply.type('application/manifest+json').send(JSON.stringify({
+      name: 'túbio',
+      short_name: 'túbio',
+      description: req.ctx.t('h4.meta'),
+      lang: req.ctx.locale,
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      background_color: '#fbfaf6',
+      theme_color: '#fbfaf6',
+      icons: [
+        { src: `/_/static/img/brand/tubio-app-192-lima.png?v=${v}`, sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: `/_/static/img/brand/tubio-app-512-lima.png?v=${v}`, sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: `/_/static/img/favicon.svg?v=${v}`, sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      ],
+    }))
+  })
 
   // AGPL §13: quien usa el servicio por red puede obtener el código fuente
   app.get('/source', async (_req, reply) => reply.redirect(SOURCE_URL, 302))
