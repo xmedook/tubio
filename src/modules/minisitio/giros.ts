@@ -14,12 +14,12 @@ export const isGiro = (v: unknown): v is Giro => typeof v === 'string' && (GIROS
 
 /** Datos fijos por giro: tema, categoría del directorio, ruta de su página pública y ejemplo vivo */
 export const GIRO_META: Record<Giro, { theme: string; category: string; slug: string; example: string; exampleName: string; c1: string; c2: string }> = {
-  restaurante: { theme: 'papel', category: 'food', slug: 'restaurantes', example: 'ejemplo-restaurante', exampleName: 'Fonda La Ceiba', c1: '#3b2418', c2: '#8a5a35' },
-  belleza: { theme: 'chicle', category: 'business', slug: 'belleza', example: 'ejemplo-belleza', exampleName: 'Studio Lumbre', c1: '#5a2a3c', c2: '#b4637f' },
+  restaurante: { theme: 'papel', category: 'food', slug: 'restaurantes', example: 'ejemplo-restaurante', exampleName: 'Brasa 31', c1: '#3b2418', c2: '#8a5a35' },
+  belleza: { theme: 'chicle', category: 'business', slug: 'belleza', example: 'ejemplo-belleza', exampleName: 'Atelier Nácar', c1: '#5a2a3c', c2: '#b4637f' },
   salud: { theme: 'menta', category: 'health', slug: 'salud', example: 'ejemplo-salud', exampleName: 'Dra. Elena Ruvalcaba', c1: '#14434f', c2: '#2c6e7b' },
-  inmobiliaria: { theme: 'papel', category: 'business', slug: 'inmobiliarias', example: 'ejemplo-inmobiliaria', exampleName: 'Inmobiliaria Sol', c1: '#1d3b2f', c2: '#4a7a5e' },
-  fitness: { theme: 'tinta', category: 'business', slug: 'fitness', example: 'ejemplo-fitness', exampleName: 'Estudio Pulso', c1: '#161b2e', c2: '#3a4a8a' },
-  servicios: { theme: 'terracota', category: 'business', slug: 'servicios-profesionales', example: 'ejemplo-servicios', exampleName: 'Plomería Mendoza', c1: '#4a2a14', c2: '#b4532a' },
+  inmobiliaria: { theme: 'papel', category: 'business', slug: 'inmobiliarias', example: 'ejemplo-inmobiliaria', exampleName: 'Costa Sur Propiedades', c1: '#1d3b2f', c2: '#4a7a5e' },
+  fitness: { theme: 'tinta', category: 'business', slug: 'fitness', example: 'ejemplo-fitness', exampleName: 'Forja Estudio', c1: '#161b2e', c2: '#3a4a8a' },
+  servicios: { theme: 'terracota', category: 'business', slug: 'servicios-profesionales', example: 'ejemplo-servicios', exampleName: 'Arce Contadores', c1: '#4a2a14', c2: '#b4532a' },
 }
 export const giroBySlug = (slug: string): Giro | undefined => GIROS.find((g) => GIRO_META[g].slug === slug)
 
@@ -51,6 +51,21 @@ type Ctx = {
   blk: (type: string, data: Record<string, unknown>, sectionId: number) => void
   page: (slug: string, title: string, desc: string) => number
 }
+
+/** Contenido de los demos del diseño (solo en los ejemplos con fotos): carta de Brasa 31 con miniaturas */
+const menuBrasa = (c: Ctx) => [
+  { categoria: 'Lo más pedido', nombre: 'Brasa clásica', descripcion: 'Carne 180 g, queso, cebolla asada y salsa de la casa.', precio: '$149', foto: foto(c, 'restaurante/menu-brasa-clasica.webp') ?? null, etiquetas: 'favorito', disponible: 'si' },
+  { categoria: 'Lo más pedido', nombre: 'Costillas BBQ (media)', descripcion: 'Con papas y ensalada de col.', precio: '$229', foto: foto(c, 'restaurante/menu-costillas.webp') ?? null, etiquetas: 'nuevo', disponible: 'si' },
+  { categoria: 'Lo más pedido', nombre: 'Alitas x10', descripcion: 'Búfalo, mango-habanero o BBQ.', precio: '$159', foto: foto(c, 'restaurante/menu-alitas.webp') ?? null, etiquetas: 'picante', disponible: 'si' },
+  { categoria: 'Lo más pedido', nombre: 'Boneless x12', descripcion: 'Con dos aderezos.', precio: '$169', foto: foto(c, 'restaurante/menu-boneless.webp') ?? null, etiquetas: '', disponible: 'si' },
+]
+/** Áreas de la Dra. Elena Ruvalcaba (demo de salud) con foto */
+const areasSalud = (c: Ctx) => [
+  { foto: foto(c, 'salud/area-acne.webp') ?? null, titulo: 'Acné', sub_items: 'Tratamiento y control para piel joven y adulta', enlace: '#contacto', texto_enlace: 'Agendar' },
+  { foto: foto(c, 'salud/area-manchas.webp') ?? null, titulo: 'Manchas', sub_items: 'Valoración y plan para unificar el tono', enlace: '#contacto', texto_enlace: 'Agendar' },
+  { foto: foto(c, 'salud/area-lunares.webp') ?? null, titulo: 'Revisión de lunares', sub_items: 'Dermatoscopia y seguimiento', enlace: '#contacto', texto_enlace: 'Agendar' },
+  { foto: foto(c, 'salud/area-estetica.webp') ?? null, titulo: 'Estética', sub_items: 'Procedimientos de rejuvenecimiento', enlace: '#contacto', texto_enlace: 'Agendar' },
+]
 
 /** Etiquetas con marcatextos de la portada (design, bloque 7). Solo en los sitios de ejemplo: en el sitio de una persona serían promociones inventadas. */
 function etiquetas(c: Ctx, sectionId: number, items: [string, 'rosa' | 'verde' | 'azul'][]): void {
@@ -93,7 +108,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     const m = c.page('menu', 'Menú', 'Platillos, bebidas y postres')
     c.blk('menu', {
       titulo: '', moneda: '$', carrito: true,
-      items: [
+      items: c.v.fotos ? menuBrasa(c) : [
         { categoria: 'Para empezar', nombre: 'Sopa de la casa', descripcion: 'Cambia cada día', precio: '$70', etiquetas: '', disponible: 'si' },
         { categoria: 'Para empezar', nombre: 'Guacamole con totopos', descripcion: 'Hecho al momento', precio: '$95', etiquetas: 'vegano', disponible: 'si' },
         { categoria: 'Platos fuertes', nombre: 'Enchiladas verdes', descripcion: 'Pollo deshebrado, crema y queso', precio: '$140', etiquetas: 'favorito', disponible: 'si' },
@@ -154,7 +169,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     const cat = c.mk(home, { ancla: 'opciones', antetitulo: 'Qué atendemos', titulo: 'Conoce tus opciones', ancho: 'ancho' })
     c.blk('category_grid', {
       titulo: '',
-      items: [
+      items: c.v.fotos ? areasSalud(c) : [
         { titulo: 'Primera consulta', sub_items: 'Revisión general, historia clínica y plan', enlace: 'consulta', texto_enlace: 'Ver detalles' },
         { titulo: 'Seguimiento', sub_items: 'Control de tratamiento y resultados', enlace: '#contacto', texto_enlace: 'Agendar' },
         { titulo: 'Procedimientos', sub_items: 'Explica aquí tus procedimientos principales', enlace: '#contacto', texto_enlace: 'Agendar' },
@@ -199,7 +214,7 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     c.blk('wa_request', { preset: 'visita', boton: 'Solicitar visita', guardar_copia: true }, l)
     const a = c.mk(home, { ancla: 'asesor', antetitulo: 'Tu asesor', fondo: 'color', color: '#e7efe9', ancho: 'normal' })
     c.blk('profile', {
-      nombre: c.v.name, especialidad: 'Asesor inmobiliario',
+      foto: foto(c, 'inmobiliaria/asesor.webp') ?? null, nombre: c.v.name, especialidad: 'Asesor inmobiliario',
       bio: 'Cuéntale a tus clientes cuánto tiempo llevas en el mercado, en qué zonas trabajas y cómo cuidas cada operación.',
       credenciales: [{ etiqueta: 'Zonas', valor: 'Tu ciudad y colonias' }, { etiqueta: 'Experiencia', valor: 'Años en el mercado' }],
     }, a)
@@ -231,6 +246,19 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
       items: [cl('Spinning', 'mon', '07:00', '07:45', 'Instructor', 15), cl('Yoga', 'mon', '18:00', '19:00', 'Instructora', 12), cl('HIIT', 'tue', '07:00', '07:30'), cl('Fuerza', 'wed', '19:00', '20:00', 'Instructor', 10), cl('Yoga', 'thu', '18:00', '19:00', 'Instructora', 12), cl('Movilidad', 'sat', '09:00', '10:00', 'Instructora', 20)],
     }, h)
     c.blk('wa_request', { preset: 'clase', boton: 'Reservar clase muestra', guardar_copia: true }, h)
+    if (c.v.fotos) {
+      const cl = c.mk(home, { ancla: 'clases-semana', antetitulo: 'Clases', titulo: 'Esta semana', ancho: 'ancho' })
+      c.blk('category_grid', {
+        titulo: '',
+        items: [
+          { foto: foto(c, 'fitness/clase-fuerza.webp') ?? null, titulo: 'Fuerza · lun, mié, vie 7:00', sub_items: 'Barra, mancuerna y kettlebell. Nivel medio. 3 lugares', enlace: '#clases', texto_enlace: 'Reservar' },
+          { foto: foto(c, 'fitness/clase-hiit.webp') ?? null, titulo: 'Cardio HIIT · mar, jue 19:30', sub_items: 'Intervalos con peso corporal. Grupo lleno', enlace: '#clases', texto_enlace: 'Lista de espera' },
+          { foto: foto(c, 'fitness/clase-movilidad.webp') ?? null, titulo: 'Movilidad · sáb 9:00', sub_items: 'Todos los niveles. 5 lugares', enlace: '#clases', texto_enlace: 'Reservar' },
+        ],
+      }, cl)
+      const en = c.mk(home, { antetitulo: 'Entrenadores', titulo: 'Quien te acompaña', fondo: 'color', color: '#e4e8f6', ancho: 'normal' })
+      c.blk('profile', { foto: foto(c, 'fitness/entrenadora.webp') ?? null, nombre: 'Camila Torres', especialidad: 'Entrenadora de fuerza y movilidad', bio: 'Diez años entrenando grupos pequeños. Te explica cada ejercicio y ajusta la carga a tu nivel.', credenciales: [{ etiqueta: 'Grupos', valor: 'De 8 personas como máximo' }] }, en)
+    }
     galeria(c, home, 'Adentro', 'Así se entrena aquí', ['fitness/estudio.webp', 'fitness/detalle-kettlebells.webp', 'fitness/galeria-comunidad.webp'], '3')
     return {
       nav: [{ texto: 'Programas', tipo: 'ancla', destino: 'programas' }, { texto: 'Clases', tipo: 'ancla', destino: 'clases' }, { texto: 'Ubicación', tipo: 'ancla', destino: 'ubicacion' }],
@@ -258,6 +286,10 @@ const BUILDERS: Record<Giro, (c: Ctx, home: number, first: number) => { nav: Sit
     c.blk('paragraph', { text: 'Menciona las colonias o ciudades donde das servicio y el tiempo de respuesta habitual.' }, z)
     const r = c.mk(home, { ancla: 'resenas', antetitulo: 'Clientes', titulo: 'Lo que dicen de nosotros', ancho: 'angosto' })
     c.blk('trust_line', { items: [{ texto: 'Servicio garantizado' }, { texto: 'Presupuesto sin costo' }, { texto: 'Atención por WhatsApp' }] }, r)
+    if (c.v.fotos) {
+      const rt = c.mk(home, { ancla: 'despacho', antetitulo: 'Quién te atiende', fondo: 'color', color: '#f3e6dc', ancho: 'normal' })
+      c.blk('profile', { foto: foto(c, 'servicios/retrato.webp') ?? null, nombre: 'Lic. Mariana Arce', especialidad: 'Contadora pública', bio: 'Contabilidad, impuestos y nómina para personas físicas y pequeñas empresas. Te explico en claro lo que debes y lo que puedes pagar menos.', credenciales: [{ etiqueta: 'Atención', valor: 'Con cita, presencial o en línea' }] }, rt)
+    }
     galeria(c, home, 'La oficina', 'Ven a conocernos', ['servicios/oficina.webp', 'servicios/reunion.webp', 'servicios/escritorio.webp'], '3')
     return {
       nav: [{ texto: 'Servicios', tipo: 'ancla', destino: 'servicios' }, { texto: 'Cobertura', tipo: 'ancla', destino: 'cobertura' }],
@@ -304,7 +336,7 @@ export function applyGiro(db: DB, linkId: number, giro: Giro, v: GiroVals, now: 
     whatsapp: v.whatsapp,
     cabecera: { activa: true, logo: v.logo ?? null, nombre: v.name.slice(0, 40), nav: 'manual', nav_manual: nav, cta: out.cta },
     barra: { activa: true, acciones: barra.slice(0, 3) },
-    pie: { activo: true, servicios: out.servicios, direccion: v.address.slice(0, 160), texto: v.example ? 'Sitio de ejemplo hecho con túbio · crea el tuyo en tubio.link' : '' },
+    pie: { activo: true, servicios: out.servicios, direccion: v.address.slice(0, 160), texto: v.example ? 'Demo con datos y fotos generados con IA · Demo with AI-generated data and photos · Hecho con túbio · tubio.link' : '' },
   })
   saveSiteConfig(db, linkId, config, now)
 }

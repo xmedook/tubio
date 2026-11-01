@@ -119,3 +119,21 @@ describe('fotos de los ejemplos (bloque 7)', () => {
     expect(sin).not.toContain('Así son por dentro')
   })
 })
+
+describe('pie de los ejemplos (IA)', () => {
+  it('los sitios de ejemplo avisan que el demo es generado con IA (es y en); el sitio de una persona no', async () => {
+    const t = await makeApp()
+    const v = await signup(t)
+    const { createLink } = await import('../src/modules/links/repo.ts')
+    const { defaultBioData } = await import('../src/modules/bio/design.ts')
+    const { applyGiro } = await import('../src/modules/minisitio/giros.ts')
+    const owner = t.deps.db.prepare('SELECT id FROM users LIMIT 1').pluck().get() as number
+    const mk = (alias: string) => createLink(t.deps.db, owner, { project_id: null, alias, kind: 'bio', title: 'X', target_url: null, redirect_code: 302, data: { ...defaultBioData('X', '', 'papel'), noindex: true }, is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false }, Date.now())
+    applyGiro(t.deps.db, mk('demo').id, 'servicios', { name: 'Arce Contadores', whatsapp: '', address: 'Calle 1', example: true }, Date.now())
+    const demo = (await v.get('/demo')).body
+    expect(demo).toContain('Demo con datos y fotos generados con IA')
+    expect(demo).toContain('Demo with AI-generated data and photos')
+    applyGiro(t.deps.db, mk('real').id, 'servicios', { name: 'Mi despacho', whatsapp: '', address: 'Calle 1' }, Date.now())
+    expect((await v.get('/real')).body).not.toContain('generados con IA')
+  })
+})

@@ -216,6 +216,118 @@
    },
    "ancho": 640,
    "alto": 430
+  },
+  "restaurante/menu-brasa-clasica.webp": {
+   "alt": {
+    "es": "Hamburguesa con queso y cebolla en un plato negro",
+    "en": "Cheeseburger with onion on a black plate"
+   },
+   "ancho": 320,
+   "alto": 320
+  },
+  "restaurante/menu-costillas.webp": {
+   "alt": {
+    "es": "Media costilla BBQ con papas y ensalada de col",
+    "en": "Half rack of BBQ ribs with fries and coleslaw"
+   },
+   "ancho": 320,
+   "alto": 320
+  },
+  "restaurante/menu-alitas.webp": {
+   "alt": {
+    "es": "Alitas de pollo búfalo con apio y aderezo",
+    "en": "Buffalo wings with celery and dip"
+   },
+   "ancho": 320,
+   "alto": 320
+  },
+  "restaurante/menu-boneless.webp": {
+   "alt": {
+    "es": "Boneless de pollo con dos aderezos",
+    "en": "Boneless chicken with two dipping sauces"
+   },
+   "ancho": 320,
+   "alto": 320
+  },
+  "salud/area-acne.webp": {
+   "alt": {
+    "es": "Acercamiento a una mejilla con piel sana y pocos granitos",
+    "en": "Close-up of a cheek with healthy skin and a few blemishes"
+   },
+   "ancho": 400,
+   "alto": 500
+  },
+  "salud/area-manchas.webp": {
+   "alt": {
+    "es": "Acercamiento a un hombro con pecas y pigmentación leve",
+    "en": "Close-up of a shoulder with freckles and light pigmentation"
+   },
+   "ancho": 400,
+   "alto": 500
+  },
+  "salud/area-lunares.webp": {
+   "alt": {
+    "es": "Dermatoscopio sobre un antebrazo revisando un lunar",
+    "en": "Dermatoscope on a forearm examining a mole"
+   },
+   "ancho": 400,
+   "alto": 500
+  },
+  "salud/area-estetica.webp": {
+   "alt": {
+    "es": "Piel luminosa en pómulo y mandíbula",
+    "en": "Glowing skin along the cheekbone and jaw"
+   },
+   "ancho": 400,
+   "alto": 500
+  },
+  "inmobiliaria/asesor.webp": {
+   "alt": {
+    "es": "Asesor inmobiliario con camisa de lino sonriendo en una terraza",
+    "en": "Real estate advisor in a linen shirt smiling on a terrace"
+   },
+   "ancho": 780,
+   "alto": 975
+  },
+  "fitness/clase-fuerza.webp": {
+   "alt": {
+    "es": "Barra cargada y manos con magnesia",
+    "en": "Loaded barbell and chalked hands"
+   },
+   "ancho": 400,
+   "alto": 400
+  },
+  "fitness/clase-hiit.webp": {
+   "alt": {
+    "es": "Persona haciendo un burpee en el estudio",
+    "en": "Person doing a burpee in the studio"
+   },
+   "ancho": 400,
+   "alto": 400
+  },
+  "fitness/clase-movilidad.webp": {
+   "alt": {
+    "es": "Persona estirando sobre un tapete de yoga",
+    "en": "Person stretching on a yoga mat"
+   },
+   "ancho": 400,
+   "alto": 400
+  },
+  "fitness/entrenadora.webp": {
+   "alt": {
+    "es": "Entrenadora con ropa deportiva y brazos cruzados",
+    "en": "Fitness coach in athletic wear with arms crossed"
+   },
+   "ancho": 780,
+   "alto": 975
+  },
+  "servicios/retrato.webp": {
+   "alt": {
+    "es": "Contadora con saco oscuro en una oficina luminosa",
+    "en": "Accountant in a dark blazer in a bright office"
+   },
+   "ancho": 780,
+   "alto": 975
   }
  }
 }
