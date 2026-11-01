@@ -31,7 +31,8 @@
     "home-capturas": "node scripts/home-capturas.ts",
     "marca-publica": "node scripts/marca-publica.ts",
     "logo-aplicar": "node scripts/logo-aplicar.ts",
-    "og-image": "node scripts/og-image.ts"
+    "og-image": "node scripts/og-image.ts",
+    "sitio-capturas": "node scripts/sitio-capturas.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",

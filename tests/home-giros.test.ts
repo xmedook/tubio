@@ -129,7 +129,10 @@ describe('páginas por giro', () => {
       expect(r.body).toContain(`href="/${GIRO_META[g].example}"`)
       expect(r.body).toContain(`href="/register?giro=${g}"`)
       expect(r.body).toContain(`rel="canonical" href="http://tubio.test/${GIRO_META[g].slug}"`)
-      expect(r.body).toContain('class="dg dg-' + g + ' solo"')
+      expect(r.body).toContain(`/_/static/img/ejemplos/${g}.webp`) // el teléfono con el ejemplo
+      expect(r.body).toContain('class="hl-') // un marcatextos en el titular
+      expect(r.body.match(/class="chip chip-(verde|rosa|azul)"/g)!.length).toBeGreaterThanOrEqual(7) // chip del giro + 6 bloques
+      expect(r.body).toContain('$ — — —') // el precio sigue como marcador
       const ld = /<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/s.exec(r.body)![1]!
       const json = JSON.parse(ld) as { '@type': string; mainEntity: unknown[] }
       expect(json['@type']).toBe('FAQPage')
@@ -142,7 +145,7 @@ describe('páginas por giro', () => {
     const t = await makeApp()
     const v = new Agent(t.app)
     await v.get('/lang/en')
-    expect((await v.get('/salud')).body).toContain('Your practice site, ready today')
+    expect((await v.get('/salud')).body).toContain('where to go')
   })
 
   it('registro con ?giro= viaja hasta el asistente y lo preselecciona', async () => {
