@@ -54,8 +54,10 @@ export function registerAssisted(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
 
   app.get('/armamos-por-ti', async (req, reply) => {
-    const g = String((req.query as { giro?: string }).giro ?? '')
-    return sendHtml(reply, formPage(req.ctx, deps, { values: isGiro(g) ? { giro: g } : {}, errors: {} }))
+    const q = req.query as { giro?: string; negocio?: string }
+    const g = String(q.giro ?? '')
+    const negocio = String(q.negocio ?? '').replace(/[\0\r\n]/g, ' ').trim().slice(0, 120) // viene del home («Prueba cómo se verá tu liga»)
+    return sendHtml(reply, formPage(req.ctx, deps, { values: { ...(isGiro(g) ? { giro: g } : {}), ...(negocio ? { business: negocio } : {}) }, errors: {} }))
   })
 
   app.post('/armamos-por-ti', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {

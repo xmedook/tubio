@@ -51,7 +51,7 @@ ${o.jsonLd ? html`<script type="application/ld+json" nonce="${ctx.nonce}">${raw(
   <div class="cab-in">
     <a class="marca" href="/" aria-label="${t('h2.home_aria')}">tubio</a>
     <nav class="cab-nav" aria-label="${t('nav.main')}">
-      <a href="/#como">${t('h3.nav_how')}</a><a href="/#giros">${t('h3.nav_giros')}</a><a href="/#planes">${t('h2.nav_plans')}</a><a href="/#preguntas">${t('h2.nav_faq')}</a>
+      <a href="/#como">${t('h3.nav_how')}</a><a href="/#ejemplos">${t('h3.nav_giros')}</a><a href="/#precio">${t('h2.nav_plans')}</a><a href="/#preguntas">${t('h2.nav_faq')}</a>
     </nav>
     ${sales ? html`<a class="cab-wa" href="${sales}" target="_blank" rel="noopener">${hic('wa', 18)}<span>${t('h3.whatsapp_short')}</span><span class="sr-only"> — ${t('h3.whatsapp')}</span></a>` : ''}
     <a class="cab-l" href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>
@@ -67,7 +67,7 @@ ${o.jsonLd ? html`<script type="application/ld+json" nonce="${ctx.nonce}">${raw(
 <footer class="pie">
   <div class="pie-in">
     <div class="pie-marca"><span class="marca">tubio</span><p>${t('h2.foot_tag')}</p></div>
-    <nav aria-label="${t('h2.foot_product')}"><h3>${t('h2.foot_product')}</h3><a href="/directory">${t('dir.title')}</a><a href="/blog">${t('site.blog')}</a><a href="/help">${t('help.title')}</a><a href="/#planes">${t('h2.nav_plans')}</a><a href="/armamos-por-ti">${t('asist.title')}</a>${(o.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a>`)}</nav>
+    <nav aria-label="${t('h2.foot_product')}"><h3>${t('h2.foot_product')}</h3><a href="/directory">${t('dir.title')}</a><a href="/blog">${t('site.blog')}</a><a href="/help">${t('help.title')}</a><a href="/#precio">${t('h2.nav_plans')}</a><a href="/armamos-por-ti">${t('asist.title')}</a>${(o.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a>`)}</nav>
     <nav aria-label="${t('h2.foot_legal')}"><h3>${t('h2.foot_legal')}</h3><a href="/terms">${t('legal.terms')}</a><a href="/privacy">${t('legal.privacy')}</a><a href="/acceptable-use">${t('legal.aup')}</a><a href="/security">${t('legal.security')}</a></nav>
     <nav aria-label="${t('h2.foot_code')}"><h3>${t('h2.foot_code')}</h3><a href="/source">${t('h2.foot_source')}</a><a href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a></nav>
   </div>
