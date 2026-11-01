@@ -14,6 +14,7 @@ const args = process.argv.slice(2)
 const out = resolve(args[0] ?? 'capturas')
 // «/ruta=404»: se espera ese estado (p. ej. la página de error)
 const rutas = args.slice(1).filter((a) => a.startsWith('/')).map((a) => { const m = /^(.*)=(\d{3})$/.exec(a); return { path: m?.[1] ?? a, esperado: m ? Number(m[2]) : 200 } })
+const rutas0 = rutas.map((r) => r.path)
 const abierto = args.includes('--abierto')
 const locale = args.includes('--en') ? 'en' : 'es-MX'
 const PORT = 3197
@@ -39,6 +40,7 @@ try {
     const errores: string[] = []
     page.on('console', (m) => { if (m.type() === 'error' && !((args.includes('--asistida') || args.includes('--acceso')) && /status of 4\d\d/.test(m.text())) && !(rutas.some((r) => r.esperado !== 200) && /status of 4\d\d/.test(m.text()))) errores.push(m.text()) }) // el 422 del formulario enviado vacío es lo esperado
     page.on('pageerror', (e) => errores.push(e.message))
+    rutas.forEach((r, i) => { r.path = rutas0[i]! }) // los :id se resuelven por cada ventana (cada una tiene su cuenta)
     if (args.includes('--panel')) {
       // cuenta nueva por el formulario de registro (necesita --abierto); la sesión queda en el contexto del navegador
       await page.goto(`http://127.0.0.1:${PORT}/register`, { waitUntil: 'networkidle' })
@@ -52,16 +54,27 @@ try {
       if (args.includes('--admin')) { const d2 = openDb(join(dir, 'tubio.sqlite')); d2.prepare("UPDATE users SET role = 'admin'").run(); d2.close() } // la cuenta de la captura pasa a administradora
       if (!/\/panel/.test(page.url())) throw new Error(`el registro no entró al panel: ${page.url()} — ${(await page.locator('.msg-e, .al').allTextContents()).join(' | ')}`)
     }
+    if (args.includes('--editor')) {
+      // una página bio de prueba con un par de bloques, para ver el editor y sus pantallas hermanas (/panel/links/<id>/…)
+      await page.goto(`http://127.0.0.1:${PORT}/panel/links/new?kind=bio`, { waitUntil: 'networkidle' })
+      await page.fill('input[name=alias]', `prueba-tubio-${nombre}`)
+      await page.fill('input[name=title]', 'Prueba túbio')
+      await page.click('main form[method=post] button[type=submit]')
+      await page.waitForURL(/\/panel\/links\/\d+/, { timeout: 15000 }).catch(async () => { throw new Error(`no se creó la liga: ${page.url()} — ${(await page.locator('.error, .banner, .flash, [role=alert]').allTextContents()).join(' | ')}`) })
+      const id = /\/panel\/links\/(\d+)/.exec(page.url())?.[1]
+      if (id) for (const r of rutas) if (r.path.includes(':id')) r.path = r.path.replace(':id', id)
+    }
     for (const { path, esperado } of rutas) {
       const id = path.replace(/^\//, '').replace(/[/?=&]+/g, '-') || 'inicio'
       const r = await page.goto(`http://127.0.0.1:${PORT}${path}`, { waitUntil: 'networkidle' })
       await page.evaluate(() => document.querySelectorAll('img[loading=lazy]').forEach((i) => ((i as HTMLImageElement).loading = 'eager')))
+      if (args.includes('--panel')) await page.addStyleTag({ content: '.tabbar,.sticky-actions,.fab-wrap>summary.fab{position:static!important}' }) // las barras fijas tapan controles a media página: axe lo cuenta, el scroll lo resuelve
       await page.waitForTimeout(200)
       await page.screenshot({ path: join(out, `${id}-${nombre}.png`), fullPage: true })
       const ancho = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, vp: window.innerWidth }))
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
       const estado = r?.status() ?? 0
-      const fallas = [estado !== esperado ? `HTTP ${estado}` : '', ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
+      const fallas = [estado !== esperado ? `HTTP ${estado}` : '', ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ") + " [" + (n.failureSummary ?? "").split("\n").slice(1, 3).join(" ").slice(0, 160) + "]").join(" | ")}`)].filter(Boolean)
       if (fallas.length) mal++
       console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${path}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
     }
@@ -71,7 +84,7 @@ try {
         await page.screenshot({ path: join(out, `${id}-${nombre}.png`), fullPage: true })
         const ancho = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, vp: window.innerWidth }))
         const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
-        const fallas = [ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
+        const fallas = [ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ") + " [" + (n.failureSummary ?? "").split("\n").slice(1, 3).join(" ").slice(0, 160) + "]").join(" | ")}`)].filter(Boolean)
         if (fallas.length) mal++
         console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${id}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
       }
@@ -96,7 +109,7 @@ try {
         await page.screenshot({ path: join(out, `${id}-${nombre}.png`), fullPage: true })
         const ancho = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, vp: window.innerWidth }))
         const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
-        const fallas = [ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
+        const fallas = [ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(" ") + " [" + (n.failureSummary ?? "").split("\n").slice(1, 3).join(" ").slice(0, 160) + "]").join(" | ")}`)].filter(Boolean)
         if (fallas.length) mal++
         console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${id}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
       }

@@ -782,3 +782,5 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .chart-data summary { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
 .chart-data .table-scroll { max-height: 18rem; overflow: auto; }
 .chart-data th[scope="row"] { text-align: left; font-weight: 500; }
+.opt > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+@media (max-width: 899px) { body:has(.editor) .fab-wrap { display: none; } }
