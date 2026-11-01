@@ -35,8 +35,9 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
     title: t('account.title'),
     active: 'account',
     path: '/panel/account',
-    body: html`<h1>${t('account.title')}</h1>
-<p class="btn-row"><a class="btn" href="/panel/plan">${t('plan.title')}</a><a class="btn" href="/panel/payments">${t('pay.history')}</a><a class="btn" href="/panel/notifications">${t('nav.notifications')}</a><a class="btn" href="/panel/api">API</a><a class="btn" href="/panel/team">${t('team.title')}</a><a class="btn" href="/panel/referrals">${t('ref.title')}</a></p>
+    body: html`<h1>${t('s9.settings')}</h1>
+<nav class="tabs" aria-label="${t('s9.settings')}"><a href="#h-profile" aria-current="page">${t('account.title')}</a><a href="#h-password">${t('s9.t_security')}</a><a href="#h-reports">${t('s9.t_notices')}</a><a href="/panel/plan">${t('plan.title')}</a><a href="#h-data">${t('nav.data')}</a></nav>
+<div class="acct-grid">
 
 <section class="card" aria-labelledby="h-profile">
   <h2 id="h-profile">${t('account.profile')}</h2>
@@ -100,7 +101,7 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
   <a class="btn" href="/panel/account/export" download>${t('account.export')}</a>
 </section>
 
-<section class="card" aria-labelledby="h-delete">
+<section class="card card-danger" aria-labelledby="h-delete">
   <h2 id="h-delete">${t('account.delete')}</h2>
   <p>${t('account.delete_body')}</p>
   <form method="post" action="/panel/account/delete" novalidate data-confirm="${t('account.delete_confirm')}">
@@ -108,7 +109,15 @@ function accountPage(ctx: Ctx, user: User, errors: Partial<Record<Section, Error
     ${input({ ctx, name: 'current', type: 'password', label: t('account.current_password'), error: e('delete').current, required: true, autocomplete: 'current-password' })}
     <button class="btn btn-danger" type="submit">${t('account.delete_submit')}</button>
   </form>
-</section>`,
+</section>
+<section class="card card-more" aria-labelledby="h-more">
+  <h2 id="h-more">${t('s9.more')}</h2>
+  <ul class="list more-list">
+    ${[['/panel/plan', t('plan.title')], ['/panel/payments', t('pay.history')], ['/panel/team', t('team.title')], ['/panel/referrals', t('ref.title')], ['/panel/qr', t('nav.qr')], ['/panel/data', t('nav.data')], ['/panel/projects', t('nav.projects')], ['/panel/pixels', t('mk.title')], ['/panel/notifications', t('nav.notifications')], ['/panel/api', 'API'], ['/help', t('help.title')]].map(([h, l]) => html`<li><a href="${h}">${l}</a></li>`)}
+    <li>${postButton(ctx, '/logout', t('nav.logout'), { cls: 'btn-link' })}</li>
+  </ul>
+</section>
+</div>`,
   })
 }
 

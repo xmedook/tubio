@@ -2404,5 +2404,9 @@
   "s9.k_plan_l": "Ver planes",
   "s9.on": "En línea",
   "s9.chart_table": "Ver los datos en tabla",
-  "s9.day": "Día"
+  "s9.day": "Día",
+  "s9.settings": "Ajustes",
+  "s9.t_security": "Seguridad",
+  "s9.t_notices": "Avisos",
+  "s9.more": "Más"
 }

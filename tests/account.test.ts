@@ -74,3 +74,17 @@ describe('cuenta', () => {
     expect((await new Agent(t.app).get('/panel')).statusCode).toBe(303)
   })
 })
+
+describe('Ajustes con el diseño nuevo', () => {
+  it('trae las pestañas, las tarjetas de siempre, la tarjeta «Más» con afiliados, ayuda y salir, y la zona de borrado', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = await loginAgent(t)
+    const body = (await a.get('/panel/account')).body
+    expect(body).toContain('<h1>Ajustes</h1>')
+    for (const id of ['h-profile', 'h-password', 'h-2fa', 'h-reports', 'h-data', 'h-delete', 'h-more']) expect(body, id).toContain(`id="${id}"`)
+    expect(body).toMatch(/<section class="card card-more" aria-labelledby="h-more">.*href="\/panel\/referrals".*href="\/help".*action="\/logout"/s)
+    expect(body).toContain('card card-danger')
+  })
+})
+
