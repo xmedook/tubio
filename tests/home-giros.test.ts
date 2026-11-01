@@ -38,7 +38,7 @@ describe('portada nueva (diseño de design, sección C)', () => {
     const v = new Agent(t.app)
     const r = await v.get('/')
     const body = r.body
-    expect(body).toMatch(/\/_\/static\/css\/home-v3\.css\?v=\d+/)
+    expect(body).toMatch(/\/_\/static\/css\/sitio\.css\?v=\d+/) // la portada comparte la hoja del sitio nuevo
     expect(body).toMatch(/<script type="module" src="\/_\/static\/js\/home-v3\.js\?v=\d+" nonce="[^"]+">/)
     expect(body).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>/) // ningún script en línea
     expect(body).not.toMatch(/\sstyle="/) // ni atributos de estilo
@@ -53,7 +53,7 @@ describe('portada nueva (diseño de design, sección C)', () => {
       expect(font.headers['content-type']).toBe('font/woff2')
     }
     for (const g of GIROS) expect((await v.get(`/_/static/img/ejemplos/${g}.webp`)).statusCode).toBe(200)
-    expect((await v.get('/_/static/css/home-v3.css')).body).toContain('#d6f23a')
+    expect((await v.get('/_/static/css/sitio.css')).body).toContain('#d6f23a')
   })
 
   it('lleva a quien entra al panel, al idioma y al código fuente (AGPL) desde cabecera y pie', async () => {
@@ -103,7 +103,7 @@ describe('portada nueva (diseño de design, sección C)', () => {
     expect(sin).not.toContain('Hablar con una persona')
     setSetting(t.deps.db, 'sales_whatsapp', '5213121234567')
     const body = (await v.get('/')).body
-    expect((body.match(/https:\/\/wa\.me\/5213121234567\?text=/g) ?? []).length).toBeGreaterThanOrEqual(3) // «Hablar con una persona», barra fija y cierre
+    expect((body.match(/https:\/\/wa\.me\/5213121234567\?text=/g) ?? []).length).toBeGreaterThanOrEqual(2) // «Hablar con una persona» y cierre (la barra fija ya no existe)
     expect(body).toContain('Hablar con una persona')
   })
 

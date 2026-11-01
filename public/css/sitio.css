@@ -186,3 +186,19 @@ fieldset{border:0;padding:0;min-width:0}
 
 .tel img{width:100%;height:100%;object-fit:cover;object-position:top}
 .auth-side .ck .ic{color:var(--lima)}
+
+.sprite { position: absolute; }
+
+/* portada (bloque 8): prueba de la liga, vista previa mínima, carril de ejemplos, lista de giros y lista de espera. Sin estilos en línea. */
+.foot-tag{margin-top:10px;max-width:26em}
+.mk{color:var(--tinta);background:var(--lima);padding:0 .12em;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.prueba{margin:22px 0 4px;max-width:30em}.prueba .url{font-size:14px;color:var(--mut)}.prueba .url b{color:var(--tinta)}
+.mt{margin-top:20px}.mt-s{margin-top:12px}.alt{margin-top:14px}
+.mini{width:min(100%,320px);margin-inline:auto;border:2px solid var(--tinta);border-radius:var(--r);background:var(--surf);padding:22px;display:grid;gap:12px;transform:rotate(2deg)}
+.mini .nm{font:700 26px/1.1 var(--fd);letter-spacing:-.03em}.mini .b{display:flex;align-items:center;min-height:48px;padding:0 16px;border-radius:var(--rb);background:var(--lima);border:2px solid var(--tinta);font-weight:700}.mini .b.s{background:var(--surf)}
+.tels .ej figcaption b{font:700 18px/1.2 var(--fd);letter-spacing:-.02em}.lnk{font-weight:600}
+.giros-l{margin-top:18px;display:flex;gap:6px 14px;flex-wrap:wrap;color:var(--mut)}.giros-l a{display:inline-flex;align-items:center;min-height:44px}
+.wl{display:grid;gap:10px;margin-top:22px;max-width:30em}.wl label{font-weight:600}
+.band .wl label{color:var(--papel)}.band .flash-ok{margin-top:18px;font-weight:600}
+.big-n{font:700 44px/1 var(--fd);letter-spacing:-.04em}.card.precio{max-width:520px;display:grid;gap:12px}
+.tels{position:relative}

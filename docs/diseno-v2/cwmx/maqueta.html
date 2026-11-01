@@ -1,0 +1,96 @@
+<!doctype html><html lang="es-MX"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tubio.link/cwmx · propuesta</title>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@600;700&family=Schibsted+Grotesk:wght@400;500;600;700&family=Chivo:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--lime:#D5FF4E;--lime-2:#C2F03A;--ink:#0D110A;--ink-2:#48503F;--ink-3:#5F6853;--line:#DCDFD8;--off:#F5F5F5;--paper:#F1F3EC;
+--titular:'Familjen Grotesk',sans-serif;--rotulo:'Chivo',sans-serif;--text:'Schibsted Grotesk',sans-serif;--ease:cubic-bezier(.16,1,.3,1)}
+*{box-sizing:border-box}body{margin:0;background:#cfd2c8;font-family:var(--text);color:var(--ink);padding:32px 16px;display:flex;gap:40px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+h1,h2,h3,p,ul{margin:0}ul{list-style:none;padding:0}a{color:inherit;text-decoration:none}
+.shot{display:flex;flex-direction:column;gap:12px;max-width:390px;font:14px/1.4 system-ui}
+.phone{width:390px;height:844px;overflow:hidden auto;border-radius:44px;box-shadow:0 0 0 10px #1d1d1f,0 30px 60px -30px rgba(0,0,0,.5);background:var(--lime);position:relative}
+.phone.alto{height:auto;overflow:visible}
+/* ---- página ---- */
+.pg{background:var(--lime);padding:0 16px 0;min-height:100%}
+.hero{padding:56px 4px 28px;position:relative;overflow:hidden}
+.fondo-tache{position:absolute;right:-60px;top:20px;width:260px;color:rgba(13,17,10,.07);transform:rotate(-8deg);pointer-events:none}
+.top{display:flex;align-items:center;gap:10px;position:relative}
+.av{width:64px;height:64px;border-radius:18px;background:var(--ink);color:var(--lime);display:grid;place-items:center;flex:none}
+.av .tache{width:40px;height:40px}
+.marca{font:700 30px/1 var(--titular);letter-spacing:-.02em}.marca span{color:var(--ink-2)}
+.en-vivo{margin-left:auto;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--ink);font:600 14px var(--text)}
+.en-vivo i{width:10px;height:10px;border-radius:50%;background:var(--ink);animation:pulso 1.6s ease-in-out infinite}
+@keyframes pulso{50%{transform:scale(.55);opacity:.5}}
+h1.t{font:700 clamp(40px,12.4vw,50px)/.98 var(--titular);letter-spacing:-.03em;margin-top:26px;position:relative}
+h1.t em{font-style:normal;background:var(--ink);color:var(--lime);padding:0 .14em;border-radius:.12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.sub{font-size:18px;line-height:1.45;margin-top:14px;max-width:21em}
+.precio{display:block;margin-top:20px;background:#fff;border:2px solid var(--ink);border-radius:20px;padding:14px 16px;box-shadow:5px 5px 0 var(--ink);transform:rotate(-1.2deg)}
+.precio b{font:900 40px/1 var(--rotulo);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.precio small{display:block;margin-top:4px;font-size:15px;color:var(--ink-2)}
+.cta{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;margin-top:18px;border-radius:999px;background:var(--ink);color:var(--lime);font:700 18px var(--titular);border:2px solid var(--ink);box-shadow:0 0 0 0 var(--ink)}
+.cta.dos{background:transparent;color:var(--ink);margin-top:10px}
+.dias{display:flex;gap:6px;margin-top:22px}
+.dias li{flex:1;min-height:56px;border:2px solid var(--ink);border-radius:14px;display:grid;place-items:center;text-align:center;font:900 20px/1 var(--rotulo);background:var(--lime);position:relative}
+.dias li small{display:block;font:600 14px var(--text);margin-top:2px}
+.dias li:last-child{background:var(--ink);color:var(--lime)}
+.dias-l{font:600 15px var(--text);margin-top:10px;color:var(--ink-2)}
+.marq{margin:0 -16px;background:var(--ink);color:var(--lime);overflow:hidden;border-block:2px solid var(--ink);transform:rotate(-1.5deg);padding:10px 0;white-space:nowrap}
+.marq div{display:inline-flex;gap:28px;padding-left:28px;font:700 20px var(--titular);animation:corre 28s linear infinite}
+.marq span{display:inline-flex;align-items:center;gap:28px}.marq .tache{width:18px;height:18px}
+@keyframes corre{to{transform:translateX(-50%)}}
+.sec{padding:44px 4px 8px}
+.sec h2{font:700 32px/1.02 var(--titular);letter-spacing:-.025em}
+.sec .l{font-size:16px;color:var(--ink-2);margin-top:8px}
+.giros{display:flex;gap:8px;overflow:hidden;margin:18px -16px 0;padding:6px 16px 14px}
+.giro{flex:none;min-height:48px;display:inline-flex;align-items:center;padding:0 18px;background:#fff;border:2px solid var(--ink);border-radius:16px;font:700 16px var(--titular);box-shadow:3px 3px 0 var(--ink)}
+.giro:nth-child(3n+1){transform:rotate(-1.6deg)}.giro:nth-child(3n+2){transform:rotate(1.2deg);background:var(--paper)}
+.ver-todos{margin-top:6px}
+.fund{margin:36px -16px 0;background:var(--ink);color:var(--paper);padding:34px 20px 36px;border-radius:28px 28px 0 0;position:relative;overflow:hidden}
+.fund .tache{position:absolute;right:-30px;top:-20px;width:190px;color:rgba(213,255,78,.09);transform:rotate(10deg)}
+.fund .k{font:600 15px var(--text);color:var(--lime)}
+.fund .n{font:900 96px/.9 var(--rotulo);color:var(--lime);letter-spacing:-.04em;margin-top:8px;font-variant-numeric:tabular-nums}
+.fund h2{font:700 28px/1.05 var(--titular);letter-spacing:-.02em;margin-top:6px}
+.fund p{font-size:16px;color:#C9CFBF;margin-top:10px}
+.fund .precio-f{display:flex;align-items:baseline;gap:10px;margin-top:16px;font:900 32px var(--rotulo);color:var(--paper)}.fund .precio-f small{font:400 15px var(--text);color:#C9CFBF}
+.cta.lima{background:var(--lime);color:var(--ink);border-color:var(--lime);margin-top:20px}
+.blog{display:block;margin:36px 0 0;background:#fff;border:2px solid var(--ink);border-radius:22px;padding:18px;box-shadow:5px 5px 0 var(--ink);transform:rotate(1deg)}
+.blog .k{font:600 14px var(--text);color:var(--ink-2)}.blog h3{font:700 24px/1.08 var(--titular);letter-spacing:-.02em;margin:6px 0 8px}.blog p{font-size:16px;color:var(--ink-2)}
+.blog .go{display:inline-flex;align-items:center;gap:6px;margin-top:12px;min-height:44px;font:700 16px var(--titular)}
+.garantia{margin:32px 0 0;background:var(--ink);color:var(--lime);border-radius:20px;padding:18px;display:flex;gap:14px;align-items:center}
+.garantia b{font:900 44px/1 var(--rotulo);white-space:nowrap}.garantia span{font-size:16px;color:var(--paper)}
+.wa{display:flex;align-items:center;justify-content:center;gap:10px;min-height:56px;margin-top:28px;border-radius:999px;border:2px solid var(--ink);font:700 18px var(--titular);background:#fff}
+.pie{padding:28px 4px 40px;text-align:center;font-size:15px;color:var(--ink-2)}.pie a{display:inline-flex;min-height:44px;align-items:center;text-decoration:underline;text-underline-offset:3px}
+.hecho{display:block;margin-top:6px;font-size:14px}
+.tache{display:block}
+@media (prefers-reduced-motion:reduce){.marq div,.en-vivo i{animation:none}}
+/* ---- doc ---- */
+.doc{width:min(100%,640px);font:15px/1.5 system-ui;color:#1c2018}.doc h2{font:700 22px var(--titular);margin:24px 0 8px}
+.doc table{border-collapse:collapse;width:100%;background:#fff;border-radius:10px;overflow:hidden;font-size:14px}.doc td,.doc th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.doc code{background:var(--paper);padding:1px 5px;border-radius:4px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}.sw i{display:block;width:72px;height:48px;border-radius:8px;border:1px solid rgba(0,0,0,.2);font:600 11px/1.2 system-ui;padding:4px;font-style:normal}
+</style></head><body>
+<figure class="shot"><div class="phone"><div class="pg">
+ <header class="hero">
+  <div class="fondo-tache"><svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg></div>
+  <div class="top"><span class="av"><svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg></span><span class="marca">cheapweb<span>.mx</span></span></div>
+  <h1 class="t">Tu página, <em>en 7 días</em> hábiles.</h1>
+  <p class="sub">Hecha para celular, desde Guadalajara. Precio publicado, sin cotizar.</p>
+  <a class="precio" href="#"><b>Desde $17,900</b><small>una vez, o $8,950 + $1,490/mes · ver precios →</small></a>
+  <a class="cta" href="#">Ver precios <svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></a>
+  <a class="cta dos" href="#">Pedir mi demo gratis</a>
+  <ol class="dias" aria-label="Cómo va tu página en 7 días hábiles" style="list-style:none;padding:0">
+   <li>1<small>materiales</small></li><li>3<small>borrador</small></li><li>5<small>ajustes</small></li><li>7<small>en línea</small></li></ol>
+  <p class="dias-l">Si no llegamos en 7 días hábiles desde que tenemos tus materiales, te devolvemos el 100 %.</p>
+ </header>
+ <div class="marq" aria-hidden="true"><div><span>Restaurante <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Dental <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Taller <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Salón <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Veterinaria <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Abogados <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Florería <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Gimnasio <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> </span><span>Restaurante <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Dental <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Taller <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Salón <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Veterinaria <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Abogados <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Florería <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> Gimnasio <svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg> </span></div></div>
+ <section class="sec"><h2>Mira el sitio de tu giro</h2><p class="l">15 demos listos. Elige el tuyo; el tuyo se hace igual.</p>
+  <div class="giros"><a class="giro" href="https://www.cheapweb.mx/demos/restaurante/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Restaurante</a><a class="giro" href="https://www.cheapweb.mx/demos/cafeteria/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Cafetería</a><a class="giro" href="https://www.cheapweb.mx/demos/dental/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Dental</a><a class="giro" href="https://www.cheapweb.mx/demos/consultorio/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Consultorio</a><a class="giro" href="https://www.cheapweb.mx/demos/abogados/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Abogados</a><a class="giro" href="https://www.cheapweb.mx/demos/arquitectura/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Arquitectura</a><a class="giro" href="https://www.cheapweb.mx/demos/fotografo/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Fotógrafo</a><a class="giro" href="https://www.cheapweb.mx/demos/floreria/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Florería</a><a class="giro" href="https://www.cheapweb.mx/demos/gimnasio/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Gimnasio</a><a class="giro" href="https://www.cheapweb.mx/demos/llantera/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Llantera</a><a class="giro" href="https://www.cheapweb.mx/demos/mudanzas/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Mudanzas</a><a class="giro" href="https://www.cheapweb.mx/demos/salon/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Salón</a><a class="giro" href="https://www.cheapweb.mx/demos/taller/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Taller</a><a class="giro" href="https://www.cheapweb.mx/demos/cerrajeria/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Cerrajería</a><a class="giro" href="https://www.cheapweb.mx/demos/veterinaria/?utm_source=instagram&utm_medium=bio&utm_campaign=cwmx">Veterinaria</a></div>
+  <a class="cta dos ver-todos" href="#">Ver los 15 ejemplos</a></section>
+ <section class="fund"><div><svg class="tache" viewBox="0 0 32 32" aria-hidden="true"><path d="M6.5 8L25.5 24" fill="none" stroke="currentColor" stroke-width="6.6" stroke-linecap="square"/><path d="M25 8.5L7 24.5" fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="square"/></svg></div><p class="k">Programa Fundadores</p><p class="n">10</p><h2>lugares, uno por giro</h2>
+  <p>Todo el primer año incluido a cambio de tu testimonio en video y permiso de mostrar tu sitio.</p>
+  <p class="precio-f">$8,950 <small>una sola vez + IVA</small></p><a class="cta lima" href="#">Quiero mi lugar</a></section>
+ <div style="background:var(--lime);margin:0 -16px;padding:0 16px">
+  <a class="blog" href="#"><p class="k">Del reel de esta semana</p><h3>¿Cuánto cuesta una página web en México en 2026?</h3><p>Lo que cuesta de verdad, con precios publicados.</p><span class="go">Leer el artículo <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></span></a>
+  <div class="garantia"><b>100 %</b><span>de devolución si no estamos en línea en 7 días hábiles desde tus materiales.</span></div>
+  <a class="wa" href="#"><svg class="ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19l1.2-3.4A7.5 7.5 0 1 1 9 18.5z"/><path d="M9.5 9.5c.3 1.6 1.9 3.6 4 4.3l1.1-1.1 1.5.8c-.2 1-1 1.6-2 1.6-3 0-5.8-2.8-5.8-5.8 0-1 .6-1.8 1.6-2l.8 1.5z"/></svg> Escríbenos por WhatsApp</a>
+  <footer class="pie">hola@cheapweb.mx · Guadalajara, Jalisco<span class="hecho">Hecho con <b>tubio</b> · <a href="#">Reportar abuso</a> · <a href="#">Términos</a> · <a href="#">Privacidad</a></span></footer></div>
+</div></div><figcaption>Maqueta móvil 390 px (desplazable).</figcaption></figure>
+<div class="doc"><h2>Paleta (tokens de cheapweb.mx)</h2><div class="sw"><i style="background:#D5FF4E">lima<br>#D5FF4E</i><i style="background:#0D110A;color:#D5FF4E">tinta<br>#0D110A</i><i style="background:#48503F;color:#fff">tinta 2<br>#48503F</i><i style="background:#F1F3EC">papel<br>#F1F3EC</i><i style="background:#fff">blanco</i></div></div>
+</body></html>

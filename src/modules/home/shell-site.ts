@@ -20,6 +20,8 @@ export type SiteShellOpts = {
   /** sección activa de la navegación */
   nav?: 'giros' | 'dir' | 'help'
   noindex?: boolean
+  /** texto del botón principal de la cabecera (por defecto «Crear mi liga») */
+  mainLabel?: string
 }
 
 type HeadOpts = Pick<SiteShellOpts, 'title' | 'description' | 'path' | 'jsonLd' | 'scripts'> & { noindex?: boolean }
@@ -47,7 +49,7 @@ ${(o.scripts ?? []).map((s) => html`<script type="module" src="/_/static/js/${s}
 
 /**
  * Cabecera, pie y <head> del sitio público nuevo (diseño de design, 1-nov-2026, `sitio.css`): páginas por giro, alta asistida, acceso, ayuda y legales.
- * La portada sigue con `homeShellV3` (su propia hoja). Sin barra fija de abajo: el diseño no la lleva.
+ * Sin barra fija de abajo: el diseño no la lleva.
  */
 export function siteShell(ctx: Ctx, o: SiteShellOpts): SafeHtml {
   const { t, locale } = ctx
@@ -66,7 +68,7 @@ ${sprite()}
   <div class="right">
     <a class="btn btn-t hide-m" href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>
     <a class="btn btn-s hide-m" href="${ctx.user ? '/panel' : '/login'}">${ctx.user ? t('h2.my_panel') : t('auth.login_link')}</a>
-    <a class="btn" href="${o.mainHref}">${t('s1.create')}</a>
+    <a class="btn" href="${o.mainHref}">${o.mainLabel ?? t('s1.create')}</a>
     <details class="mm"><summary aria-label="${t('s1.menu')}">${ic('menu')}</summary><nav aria-label="${t('s1.menu_mobile')}">${nav}<a href="${ctx.user ? '/panel' : '/login'}">${ctx.user ? t('h2.my_panel') : t('auth.login_link')}</a><a href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a></nav></details>
   </div>
 </div></header>
@@ -76,7 +78,7 @@ ${o.body}
 </main>
 <footer class="foot"><div class="wrap">
   <div class="foot-g">
-    <div><a class="logo" href="/" aria-label="${t('h2.home_aria')}">${wordmark(30)}</a><p style="margin-top:10px;max-width:26em">${t('s1.foot_tag')}</p></div>
+    <div><a class="logo" href="/" aria-label="${t('h2.home_aria')}">${wordmark(30)}</a><p class="foot-tag">${t('s1.foot_tag')}</p></div>
     <div><h2>${t('s1.foot_giros')}</h2><ul>${GIROS.map((g) => html`<li><a href="/${GIRO_META[g].slug}">${t(`s1.g_${g}`)}</a></li>`)}</ul></div>
     <div><h2>${t('s1.foot_product')}</h2><ul><li><a href="/armamos-por-ti">${t('asist.title')}</a></li><li><a href="/directory">${t('s1.nav_dir')}</a></li><li><a href="/blog">${t('site.blog')}</a></li><li><a href="/help">${t('s1.nav_help')}</a></li>${(o.pages ?? []).map((p) => html`<li><a href="/p/${p.slug}">${p.title}</a></li>`)}<li><a href="/source">${t('h2.foot_source')}</a></li></ul></div>
     <div><h2>${t('s1.foot_legal')}</h2><ul><li><a href="/privacy">${t('legal.privacy')}</a></li><li><a href="/terms">${t('legal.terms')}</a></li><li><a href="/acceptable-use">${t('legal.aup')}</a></li><li><a href="/security">${t('legal.security')}</a></li></ul></div>

@@ -5,8 +5,9 @@ import type { Ctx } from '../../web/context.ts'
 import { GIROS, GIRO_META, type Giro } from '../minisitio/giros.ts'
 import { GIRO_COPY } from './giro-copy.ts'
 import { hic } from './icons.ts'
-import { homeShell, salesLink } from './shell.ts'
-import { homeShellV3 } from './shell-v3.ts'
+import { ic } from '../../views/sprite.ts'
+import { salesLink } from './shell.ts'
+import { siteShell } from './shell-site.ts'
 
 type Loc = 'es-MX' | 'en'
 const copyOf = (g: Giro, locale: string) => GIRO_COPY[g][locale === 'en' ? 'en' : 'es-MX']
@@ -41,8 +42,8 @@ export function landingPage(
   const arrow = hic('arrow', 18, '')
   const imgV = ASSET_VERSION
 
-  const checks = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => html`<li>${hic('check', 20, '')}<div><b>${t(`h4.i${i}_t`)}</b><span>${t(`h4.i${i}_d`)}</span></div></li>`)
-  const steps = [1, 2, 3].map((i) => html`<li><div><span class="n">0${i}</span><span class="t">${t(`h4.s${i}_t`)}<small>${t(`h4.s${i}_d`)}</small></span><span></span></div></li>`)
+  const checks = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => html`<li>${hic('check', 20, 'ic')}<div><b>${t(`h4.i${i}_t`)}</b><span>${t(`h4.i${i}_d`)}</span></div></li>`)
+  const steps = [1, 2, 3].map((i) => html`<li><div><b>${t(`h4.s${i}_t`)}</b><span>${t(`h4.s${i}_d`)}</span></div></li>`)
   const faq = [1, 2, 3, 4].map((i) => html`<details><summary>${t(`h4.q${i}`)}</summary><p>${t(`h4.a${i}`, { host })}</p></details>`)
   const examples = GIROS.map((g) => {
     const m = GIRO_META[g]
@@ -53,71 +54,71 @@ export function landingPage(
     ? ''
     : opts.joined
       ? html`<p class="flash-ok" role="status">${t('home.waitlist_ok')}</p>`
-      : html`<form class="wl" method="post" action="/waitlist" novalidate${powAttr(pow)}>${csrfField(ctx)}
+      : html`<form class="wl form" method="post" action="/waitlist" novalidate${powAttr(pow)}>${csrfField(ctx)}
         <label for="wl-email">${t('h4.wl_h')} · ${t('h4.wl_p')}</label>
-        <input id="wl-email" type="email" name="email" required autocomplete="email" placeholder="${t('home.waitlist_placeholder')}">
+        <input class="in" id="wl-email" type="email" name="email" required autocomplete="email" placeholder="${t('home.waitlist_placeholder')}">
         ${powField(ctx, pow)}
-        ${opts.error ? html`<p class="error" role="alert">${t(opts.error)}</p>` : ''}
+        ${opts.error ? html`<p class="msg-e" role="alert">${ic('alert')}<span>${t(opts.error)}</span></p>` : ''}
         <button class="btn" type="submit">${t('home.waitlist_submit')}${arrow}</button></form>`
 
   const body = html`
-<section class="big hero2">
+<section class="hero"><div class="wrap hero-g">
   <div>
     <span class="k">${t('h4.kicker')}</span>
     <h1 class="h1">${t('h4.h1_a')}<mark class="mk">${t('h4.h1_mark')}</mark>${t('h4.h1_b')}</h1>
-    <p class="p">${t('h4.lead')}</p>
-    <div class="prueba"><label for="neg">${t('h4.try_label')}</label><input id="neg" type="text" maxlength="60" placeholder="${t('h4.try_ph')}" autocomplete="off"><div class="url" aria-live="polite">${host}/<b id="slug">tunegocio</b></div></div>
-    <div class="btns">
+    <p class="lead mt-s">${t('h4.lead')}</p>
+    <div class="fld prueba"><label for="neg">${t('h4.try_label')}</label><input class="in" id="neg" type="text" maxlength="60" placeholder="${t('h4.try_ph')}" autocomplete="off"><div class="url" aria-live="polite">${host}/<b id="slug">tunegocio</b></div></div>
+    <div class="btns row mt">
       <a class="btn" href="${asist}" data-negocio-href="${asist}">${t('h4.cta_main')}${arrow}</a>
-      <a class="btn btn--2" href="#ejemplos">${t('h4.cta_examples')}</a>
-      ${sales ? html`<a class="btn btn--2 btn--wa" href="${sales}" target="_blank" rel="noopener">${hic('wa', 18, '')}${t('h4.cta_person')}</a>` : ''}
+      <a class="btn btn-s" href="#ejemplos">${t('h4.cta_examples')}</a>
+      ${sales ? html`<a class="btn btn-s" href="${sales}" target="_blank" rel="noopener">${hic('wa', 18, 'ic')}${t('h4.cta_person')}</a>` : ''}
     </div>
     ${opts.registrationOpen && !ctx.user ? html`<p class="alt"><a class="lnk" href="/register" data-negocio-href="/register" data-negocio-param="alias">${t('h4.cta_self')}</a></p>` : ''}
   </div>
-  <div class="mini" role="img" aria-label="${t('h4.aria_try')}"><div class="m"><span class="k">${t('h4.prev_k')}</span><div class="nm" id="nm">${t('h4.prev_name')}</div><div class="b">${t('h4.prev_b1')}</div><div class="b s">${t('h4.prev_b2')}</div></div></div>
-</section>
+  <div class="mini" role="img" aria-label="${t('h4.aria_try')}"><span class="k">${t('h4.prev_k')}</span><div class="nm" id="nm">${t('h4.prev_name')}</div><div class="b">${t('h4.prev_b1')}</div><div class="b s">${t('h4.prev_b2')}</div></div>
+</div></section>
 
-<section class="band" id="ejemplos"><div class="big">
-  <span class="k">${t('h4.ex_k')}</span><h2 class="h2">${t('h4.ex_h')}</h2><p class="p">${t('h4.ex_p')}</p>
-  <div class="rail" tabindex="0" role="region" aria-label="${t('h4.ex_rail')}">${examples}</div>
+<section class="sec" id="ejemplos"><div class="wrap">
+  <div class="sec-h"><span class="k">${t('h4.ex_k')}</span><h2 class="h2">${t('h4.ex_h')}</h2><p class="lead">${t('h4.ex_p')}</p></div>
+  <div class="tels" tabindex="0" role="region" aria-label="${t('h4.ex_rail')}">${examples}</div>
   <p class="giros-l">${t('h4.ex_by')}: ${GIROS.map((g) => html`<a href="/${GIRO_META[g].slug}">${t(`giro.s_${g}`)}</a>`)}</p>
 </div></section>
 
-<section class="band" id="incluye"><div class="big">
-  <span class="k">${t('h4.inc_k')}</span><h2 class="h2">${t('h4.inc_h')}</h2>
-  <ul class="chk">${checks}</ul>
+<section class="sec" id="incluye"><div class="wrap">
+  <div class="sec-h"><span class="k">${t('h4.inc_k')}</span><h2 class="h2">${t('h4.inc_h')}</h2></div>
+  <ul class="ck grid g2">${checks}</ul>
 </div></section>
 
-<section class="band" id="como"><div class="big">
-  <span class="k">${t('h4.how_k')}</span><h2 class="h2">${t('h4.how_h')}</h2>
-  <ol class="nl">${steps}</ol>
+<section class="sec" id="como"><div class="wrap hero-g">
+  <div class="sec-h"><span class="k">${t('h4.how_k')}</span><h2 class="h2">${t('h4.how_h')}</h2></div>
+  <ol class="steps">${steps}</ol>
 </div></section>
 
-<section class="band" id="precio"><div class="big">
-  <span class="k">${t('h4.price_k')}</span><h2 class="h2">${t('h4.price_h')}</h2>
-  <div class="precio"><span class="k">${t('h4.price_card')}</span><div class="n" role="img" aria-label="${t('h4.price_aria')}">$0,000</div><small>${t('h4.price_note')}</small>
+<section class="sec" id="precio"><div class="wrap">
+  <div class="sec-h"><span class="k">${t('h4.price_k')}</span><h2 class="h2">${t('h4.price_h')}</h2></div>
+  <div class="card hi precio"><span class="k">${t('h4.price_card')}</span><div class="big-n" role="img" aria-label="${t('h4.price_aria')}">${t('s1.price_val')}</div><p class="p sm">${t('h4.price_note')}</p>
     <a class="btn" href="${asist}">${t('h4.cta_site')}${arrow}</a></div>
 </div></section>
 
-<section class="band faq" id="preguntas"><div class="big">
-  <span class="k">${t('h4.faq_k')}</span><h2 class="h2">${t('h4.faq_h')}</h2>
-  ${faq}
+<section class="sec" id="preguntas"><div class="wrap hero-g">
+  <div class="sec-h"><span class="k">${t('h4.faq_k')}</span><h2 class="h2">${t('h4.faq_h')}</h2></div>
+  <div class="faq">${faq}</div>
 </div></section>
 
-<section class="band cierre" id="cierre"><div class="big">
-  <h2 class="h2">${t('h4.close_h')}</h2><p class="p">${t('h4.close_p')}</p>
-  <div class="btns"><a class="btn" href="${sales || asist}"${sales ? html` target="_blank" rel="noopener"` : ''}>${sales ? t('h4.close_wa') : t('h4.cta_main')}${arrow}</a></div>
+<section class="band" id="cierre"><div class="wrap">
+  <h2 class="h2">${t('h4.close_h')}</h2><p class="lead mt-s">${t('h4.close_p')}</p>
+  <div class="btns row mt"><a class="btn" href="${sales || asist}"${sales ? html` target="_blank" rel="noopener"` : ''}>${sales ? t('h4.close_wa') : t('h4.cta_main')}${arrow}</a></div>
   ${waitlist}
 </div></section>`
 
-  return homeShellV3(ctx, {
+  return siteShell(ctx, {
     title: `túbio · ${t('h4.title')}`,
     description: t('h4.meta'),
     path: '/',
     body,
     pages: opts.pages,
-    salesWhatsapp: opts.salesWhatsapp,
     mainHref: asist,
+    mainLabel: t('h4.cta_bar'),
     scripts: [...(!opts.registrationOpen && !ctx.user ? ['pow.js'] : []), 'home-v3.js'],
   })
 }

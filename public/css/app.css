@@ -768,3 +768,5 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
   .tab[aria-current="page"] .tab-i { background: #d6f23a; color: #10120d; }
 }
 @media (max-width: 899px) { .fab-wrap > summary.fab { background: #d6f23a; color: #10120d; border: 2px solid #10120d; } }
+
+.sprite { position: absolute; }

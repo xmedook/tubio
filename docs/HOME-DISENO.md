@@ -19,3 +19,5 @@ Origen: `remote/shared/proyectos/tubio/tubio-diseno-2026-10-31/home.html` + `fue
 
 ## Verificación
 `npx vitest run` (294) · `npx tsc --noEmit` · `node scripts/a11y.ts` (axe WCAG 2.2 AA: 0 violaciones con registro abierto y cerrado, y en inglés) · `npm run home-capturas -- <carpeta> [--whatsapp 521…] [--abierto]` (capturas 390/1440 y desborde horizontal = 0).
+
+> **2-nov-2026 (bloque 8):** la portada migró a `shell-site.ts` + `public/css/sitio.css` (misma cabecera y pie que el resto del sitio); `shell-v3.ts` y `home-v3.css` se borraron. Se conserva el contenido, los ids de sección y `home-v3.js`.
