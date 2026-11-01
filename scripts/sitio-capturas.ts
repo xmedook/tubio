@@ -39,6 +39,19 @@ try {
     const errores: string[] = []
     page.on('console', (m) => { if (m.type() === 'error' && !((args.includes('--asistida') || args.includes('--acceso')) && /status of 4\d\d/.test(m.text())) && !(rutas.some((r) => r.esperado !== 200) && /status of 4\d\d/.test(m.text()))) errores.push(m.text()) }) // el 422 del formulario enviado vacío es lo esperado
     page.on('pageerror', (e) => errores.push(e.message))
+    if (args.includes('--panel')) {
+      // cuenta nueva por el formulario de registro (necesita --abierto); la sesión queda en el contexto del navegador
+      await page.goto(`http://127.0.0.1:${PORT}/register`, { waitUntil: 'networkidle' })
+      await page.fill('#f-name', 'Ana Gómez')
+      await page.fill('#f-email', `ana${nombre}@ejemplo.mx`)
+      await page.fill('#f-password', 'contrasena-segura-1')
+      await page.check('#f-accept')
+      await page.waitForFunction(() => (document.querySelector('input[name=_pow]') as HTMLInputElement | null)?.value, null, { timeout: 20000 }).catch(() => {}) // la prueba de trabajo corre sola
+      await page.click('button[type=submit]')
+      await page.waitForURL(/\/panel/, { timeout: 90000 }).catch(() => {})
+      if (args.includes('--admin')) { const d2 = openDb(join(dir, 'tubio.sqlite')); d2.prepare("UPDATE users SET role = 'admin'").run(); d2.close() } // la cuenta de la captura pasa a administradora
+      if (!/\/panel/.test(page.url())) throw new Error(`el registro no entró al panel: ${page.url()} — ${(await page.locator('.msg-e, .al').allTextContents()).join(' | ')}`)
+    }
     for (const { path, esperado } of rutas) {
       const id = path.replace(/^\//, '').replace(/[/?=&]+/g, '-') || 'inicio'
       const r = await page.goto(`http://127.0.0.1:${PORT}${path}`, { waitUntil: 'networkidle' })

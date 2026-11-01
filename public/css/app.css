@@ -1,46 +1,49 @@
+/* tubio · diseño del sitio (design, 1-nov-2026, bloques 4 y 5): papel y tinta, lima como color de acción, Bricolage + Figtree propias (OFL-1.1, /_/fonts/). */
+@font-face{font-family:"Bricolage Grotesque";font-style:normal;font-display:swap;font-weight:200 800;src:url("/_/fonts/bricolage-grotesque-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Figtree";font-style:normal;font-display:swap;font-weight:300 900;src:url("/_/fonts/figtree-latin-wght-normal.woff2") format("woff2")}
 /* tubio — panel. Sin dependencias; claro/oscuro por preferencia del sistema. */
 /* v2 · «Charla» (Alejandro, 23-oct-2026): letra del sistema, verde hoja, crema cascarón. Patrones de app de mensajes. */
 :root {
-  --bg: #F2EEE3;
-  --surface: #FBF9F4;
-  --surface-2: #E7E2D4;
-  --text: #111A16;
-  --muted: #56594F;
-  --border: #DAD4C4;
-  --accent: #14774A;
-  --accent-ink: #F6F3EA;
-  --accent-soft: #DCEADB;
-  --accent-on-soft: #126E44;
-  --danger: #b42318;
-  --danger-soft: #fdecea;
-  --ok: #14774A;
-  --ok-soft: #e7f6ee;
-  --warn-soft: #fff6dd;
-  --radius: 22px;
+  --bg: #fbfaf6;
+  --surface: #ffffff;
+  --surface-2: #f1f2ea;
+  --text: #10120d;
+  --muted: #4f5448;
+  --border: #d8dbd0;
+  --accent: #10120d;
+  --accent-ink: #fbfaf6;
+  --accent-soft: #eef3c4;
+  --accent-on-soft: #10120d;
+  --danger: #a8200f;
+  --danger-soft: #fbeceb;
+  --ok: #1f6b3f;
+  --ok-soft: #e6f6ec;
+  --warn-soft: #fbf0d6;
+  --radius: 8px;
   --shadow: none;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-  --f-display: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-display: "Bricolage Grotesque", "Figtree", system-ui, sans-serif;
   --t-xs: 14px; --t-sm: 15px; --t-base: 16px; --t-md: 18px; --t-lg: 22px; --t-xl: 30px; --t-2xl: 40px;
-  --r-sm: 8px; --r-md: 12px; --r-lg: 20px; --btnr: 999px; --cardr: 22px;
+  --r-sm: 6px; --r-md: 8px; --r-lg: 8px; --btnr: 6px; --cardr: 8px;
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0D1310;
-    --surface: #151D19;
-    --surface-2: #1E2823;
-    --text: #EFEBE0;
-    --muted: #ABAA9D;
-    --border: #2A342D;
-    --accent: #5DD597;
-    --accent-ink: #0D1310;
-    --accent-soft: #183829;
-    --accent-on-soft: #5DD597;
+    --bg: #10120d;
+    --surface: #191b15;
+    --surface-2: #22251d;
+    --text: #f3f2ea;
+    --muted: #b3b6a8;
+    --border: #33372d;
+    --accent: #d6f23a;
+    --accent-ink: #10120d;
+    --accent-soft: #2b3310;
+    --accent-on-soft: #d6f23a;
     --danger: #ff8a7a;
     --danger-soft: #3a1714;
-    --ok: #5DD597;
+    --ok: #79e6a0;
     --ok-soft: #0f2a1d;
     --warn-soft: #2f2610;
     --shadow: none;
@@ -729,3 +732,39 @@ a.sl-row:hover .sl-l { text-decoration: underline; }
 .brand picture, .brand .wm { display: block; }
 .brand .wm { max-width: 100%; height: auto; }
 .brand-lg { line-height: 0; }
+
+/* ===== sitio nuevo · bloques 4 y 5: armazón con barra lateral (≥900 px), barra inferior de 5 y botón lima con borde tinta ===== */
+h1, h2, .h-display { font-family: var(--f-display); letter-spacing: -.03em; }
+svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.btn { border-radius: var(--btnr); }
+.btn-primary { background: #d6f23a; border: 2px solid #10120d; color: #10120d; font-weight: 700; }
+.btn-primary:hover { background: #d6f23a; filter: none; box-shadow: 0 2px 0 #10120d; }
+.card, .list > li, .kpi { border-radius: var(--cardr); }
+.side { display: none; }
+.app-main { min-width: 0; }
+@media (min-width: 900px) {
+  .app { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100svh; }
+  .side { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100svh; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 14px; }
+  .side .logo { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px 14px; }
+  .side nav { display: grid; gap: 2px; }
+  .side nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: var(--r-sm); color: var(--muted); text-decoration: none; font-weight: 600; }
+  .side nav a:hover { background: var(--surface-2); color: var(--text); }
+  .side nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-on-soft, var(--text)); }
+  .side nav a .ic { width: 20px; height: 20px; }
+  .side-k { margin: 14px 12px 4px; font: 600 12px/1.3 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .cnt-n { margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: grid; place-items: center; background: #d6f23a; color: #10120d; font-size: 12px; font-weight: 700; }
+  .side-user { margin-top: auto; border: 1px solid var(--border); border-radius: var(--cardr); padding: 12px; display: grid; gap: 10px; }
+  .side-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .side-who b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; background: #d6f23a; color: #10120d; font: 700 14px/1 var(--font); }
+  .side-act { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: .9rem; }
+  .app-main > .topbar { display: none; }
+  .wrap { margin-inline: 0; max-width: 1040px; }
+  .wrap-wide { max-width: 1280px; }
+}
+@media (max-width: 899px) {
+  .tabbar { grid-template-columns: repeat(5, 1fr); }
+  .tab { font-size: 12px; }
+  .tab[aria-current="page"] .tab-i { background: #d6f23a; color: #10120d; }
+}
+@media (max-width: 899px) { .fab-wrap > summary.fab { background: #d6f23a; color: #10120d; border: 2px solid #10120d; } }

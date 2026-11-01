@@ -1,11 +1,12 @@
 import { siteShell } from '../modules/home/shell-site.ts'
+import { ic, sprite } from './sprite.ts'
 import { html, type HtmlValue, type SafeHtml } from '../lib/html.ts'
 import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 import { brandHead, wordmark } from './brand.ts'
 
-export const ASSET_VERSION = '46'
+export const ASSET_VERSION = '47'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -28,6 +29,10 @@ function langSwitch(ctx: Ctx, path: string): SafeHtml {
 
 export type NavKey = 'links' | 'qr' | 'stats' | 'data' | 'projects' | 'account' | 'admin'
 
+function tab2(current: boolean, href: string, label: string, name: string): SafeHtml {
+  return html`<a class="tab" href="${href}"${current ? html` aria-current="page"` : ''}><span class="tab-i">${ic(name)}</span><span class="tab-l">${label}</span></a>`
+}
+
 function tab(active: NavKey | undefined, key: NavKey, href: string, label: string, ic: string): SafeHtml {
   return html`<a class="tab" href="${href}"${active === key ? html` aria-current="page"` : ''}><span class="tab-i">${icon(ic)}</span><span class="tab-l">${label}</span></a>`
 }
@@ -37,41 +42,42 @@ export function panelLayout(
   opts: { title: string; body: HtmlValue; active?: NavKey; path: string; head?: HtmlValue; wide?: boolean },
 ): SafeHtml {
   const { t, user } = ctx
-  const nav: [NavKey, string, string][] = [
-    ['links', '/panel', t('nav.links')],
-    ['qr', '/panel/qr', t('nav.qr')],
-    ['stats', '/panel/stats', t('nav.stats')],
-    ['data', '/panel/data', t('nav.data')],
-    ['projects', '/panel/projects', t('nav.projects')],
-    ['account', '/panel/account', t('nav.account')],
-  ]
-  if (user?.role === 'admin') nav.push(['admin', '/admin', t('nav.admin')])
+  const path = opts.path
+  const on = (href: string) => (href === '/panel' ? opts.active === 'links' : path === href || path.startsWith(`${href}/`) || path.startsWith(`${href}?`))
+  const item = (href: string, icon_: string, label: string, extra: HtmlValue = '') =>
+    html`<a href="${href}"${on(href) ? html` aria-current="page"` : ''}>${ic(icon_)}<span>${label}</span>${extra}</a>`
+  const unread = ctx.unread ? html`<span class="cnt-n" aria-label="${t('inbox.bell_n', { n: ctx.unread })}">${ctx.unread > 9 ? '9+' : ctx.unread}</span>` : ''
+  const initials = ((user?.name || user?.email || '?').trim().split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((x) => x[0]!.toUpperCase()).join('')) || '?'
+  const more: [string, string, string][] = [['/panel/qr', 'qr', t('nav.qr')], ['/panel/data', 'chart', t('nav.data')], ['/panel/projects', 'set', t('nav.projects')], ['/panel/pixels', 'eye', t('mk.title')]]
   return html`<html lang="${ctx.locale}">
 ${head(ctx, opts.title, opts.head)}
 <body class="panel">
 <a class="skip" href="#main">${t('a11y.skip')}</a>
+${sprite()}
+<div class="app">
+<aside class="side">
+  <a class="logo" href="/panel" aria-label="túbio">${wordmark(32, 'auto')}</a>
+  <nav aria-label="${t('nav.main')}">
+    ${item('/panel', 'link', t('nav.links'))}${item('/panel/stats', 'chart', t('nav.stats'))}${item('/panel/domains', 'globe', t('domains.title'))}${item('/panel/team', 'users', t('team.title'))}${item('/panel/referrals', 'gift', t('ref.title'))}${item('/panel/account', 'set', t('nav.account'))}
+    <p class="side-k">${t('s4.tools')}</p>
+    ${more.map(([h, i, l]) => item(h, i, l))}${item('/panel/inbox', 'mail', t('inbox.title'), unread)}${user?.role === 'admin' ? item('/admin', 'lock', t('nav.admin')) : ''}
+  </nav>
+  <div class="side-user"><div class="side-who"><span class="av" aria-hidden="true">${initials}</span><span><b>${user?.name || user?.email || ''}</b></span></div>
+    <div class="side-act"><a class="btn btn-s btn-sm" href="/help">${t('help.title')}</a>${langSwitch(ctx, opts.path)}<form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form></div></div>
+</aside>
+<div class="app-main">
 <header class="topbar">
   <a class="brand" href="/panel" aria-label="túbio">${wordmark(28, 'auto')}</a>
-  <nav aria-label="${t('nav.main')}">
-    <ul>${nav.map(
-      ([k, href, label]) =>
-        html`<li><a href="${href}"${k === opts.active ? html` aria-current="page"` : ''}>${label}</a></li>`,
-    )}</ul>
-  </nav>
-  <div class="topbar-end">
-    <a class="btn-link" href="/help">${t('help.title')}</a>
-    ${langSwitch(ctx, opts.path)}
-    <form method="post" action="/logout" class="inline">${csrfField(ctx)}<button class="btn-link" type="submit">${t('nav.logout')}</button></form>
-  </div>
   <a class="icon-btn top-search" href="/panel?buscar=1" aria-label="${t('links.search')}">${icon('search')}</a>
   <a class="icon-btn bell" href="/panel/inbox" aria-label="${ctx.unread ? t('inbox.bell_n', { n: ctx.unread }) : t('inbox.title')}">${icon('bell')}${ctx.unread ? html`<span class="bell-n" aria-hidden="true">${ctx.unread > 9 ? '9+' : ctx.unread}</span>` : ''}</a>
   <details class="more-menu">
     <summary aria-label="${t('nav.more')}">${icon('more')}</summary>
     <ul class="menu">
+      <li><a href="/panel/qr">${t('nav.qr')}</a></li>
       <li><a href="/panel/data">${t('nav.data')}</a></li>
       <li><a href="/panel/projects">${t('nav.projects')}</a></li>
-      <li><a href="/panel/domains">${t('domains.title')}</a></li>
       <li><a href="/panel/pixels">${t('mk.title')}</a></li>
+      <li><a href="/panel/referrals">${t('ref.title')}</a></li>
       ${user?.role === 'admin' ? html`<li><a href="/admin">${t('nav.admin')}</a></li>` : ''}
       <li><a href="/help">${t('help.title')}</a></li>
       <li>${langSwitch(ctx, opts.path)}</li>
@@ -112,12 +118,15 @@ ${opts.body}
   </div>
 </details>
 <nav class="tabbar" aria-label="${t('nav.main')}">
-  ${tab(opts.active, 'links', '/panel', t('nav.links'), 'links')}
-  ${tab(opts.active, 'qr', '/panel/qr', 'QR', 'qr')}
-  ${tab(opts.active, 'stats', '/panel/stats', t('nav.stats'), 'stats')}
-  ${tab(opts.active, 'account', '/panel/account', t('nav.account'), 'user')}
+  ${tab2(on('/panel'), '/panel', t('nav.links'), 'link')}
+  ${tab2(on('/panel/stats'), '/panel/stats', t('nav.stats'), 'chart')}
+  ${tab2(on('/panel/domains'), '/panel/domains', t('s4.tab_domains'), 'globe')}
+  ${tab2(on('/panel/team'), '/panel/team', t('team.title'), 'users')}
+  ${tab2(on('/panel/account') || on('/panel/referrals'), '/panel/account', t('s4.tab_more'), 'set')}
 </nav>
 <footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a> · <a href="https://www.gnu.org/licenses/agpl-3.0.html">AGPL-3.0</a> · <a href="/source">${t('foot.source')}</a></footer>
+</div>
+</div>
 </body>
 </html>`
 }

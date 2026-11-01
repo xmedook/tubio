@@ -2386,5 +2386,8 @@
   "s6.maint_hl": "moment",
   "bio.type_tags": "Tags",
   "bio.f.tags_items": "Tags (text and color)",
-  "bio.f.tag_tone": "Color"
+  "bio.f.tag_tone": "Color",
+  "s4.tools": "Tools",
+  "s4.tab_domains": "Domains",
+  "s4.tab_more": "More"
 }

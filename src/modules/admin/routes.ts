@@ -90,7 +90,7 @@ export function registerAdmin(app: FastifyInstance, deps: AppDeps): void {
     ? html`<p>${t('admin.jobs_last', { when: when(req, js.at) })}</p>${js.error ? html`<p class="error">${js.error}</p>` : html`<p class="mono small">${JSON.stringify(js.result)}</p>`}`
     : html`<p class="muted">${t('admin.jobs_never')}</p>`}</section>
 </div>
-<section class="card"><h2 class="h3">${t('admin.audit')}</h2><div class="table-scroll"><table class="data"><thead><tr><th>${t('admin.when')}</th><th>${t('admin.who')}</th><th>${t('admin.action')}</th><th>${t('admin.target')}</th></tr></thead><tbody>
+<section class="card"><h2 class="h3">${t('admin.audit')}</h2><div class="table-scroll" tabindex="0" role="region" aria-label="${t('admin.audit')}"><table class="data"><thead><tr><th>${t('admin.when')}</th><th>${t('admin.who')}</th><th>${t('admin.action')}</th><th>${t('admin.target')}</th></tr></thead><tbody>
 ${log.map((l) => html`<tr><td class="nowrap">${when(req, l.ts)}</td><td>${l.actor ?? (l.user_id ? `#${l.user_id}` : '—')}</td><td class="mono">${l.action}</td><td class="mono">${l.target}</td></tr>`)}
 </tbody></table></div></section>`, '/admin'))
   })
@@ -207,7 +207,7 @@ ${self ? '' : html`<div class="card danger-zone"><h3>${t('admin.delete_user')}</
       .all(like, like, like) as (Link & { owner: string })[]
     return sendHtml(reply, page(req.ctx, 'links', t('nav.links'), html`
 <form class="toolbar" method="get" action="/admin/links" role="search">${input({ ctx: req.ctx, name: 'q', type: 'search', label: t('admin.search_links'), value: q })}<button class="btn" type="submit">${t('links.filter')}</button></form>
-<div class="table-scroll"><table class="data"><thead><tr><th>${t('links.alias')}</th><th>${t('admin.owner')}</th><th>${t('links.kind')}</th><th>${t('links.target_url')}</th><th class="num">${t('links.clicks')}</th><th></th></tr></thead><tbody>
+<div class="table-scroll" tabindex="0" role="region" aria-label="${t('nav.admin')}"><table class="data"><thead><tr><th>${t('links.alias')}</th><th>${t('admin.owner')}</th><th>${t('links.kind')}</th><th>${t('links.target_url')}</th><th class="num">${t('links.clicks')}</th><th></th></tr></thead><tbody>
 ${rows.map((l) => html`<tr><td><a href="${linkUrl(req.ctx.baseUrl, l)}" target="_blank" rel="noopener">/${l.alias}</a>${l.is_enabled ? '' : html` <span class="tag tag-off">${t('links.disabled')}</span>`}</td>
   <td><a href="/admin/users/${l.user_id}">${l.owner}</a></td><td>${kindLabel(req.ctx, l.kind)}</td><td class="mono small">${l.target_url ?? ''}</td><td class="num">${formatNumber(locale, l.clicks)}</td>
   <td>${postButton(req.ctx, `/admin/links/${l.id}/toggle`, l.is_enabled ? t('admin.disable') : t('admin.enable'), { cls: 'btn btn-sm' })}${l.kind === 'bio' ? postButton(req.ctx, `/admin/links/${l.id}/dir-hide`, (l as Link & { dir_hidden?: number }).dir_hidden ? t('dir.show') : t('dir.hide'), { cls: 'btn btn-sm' }) : ''}</td></tr>`)}
