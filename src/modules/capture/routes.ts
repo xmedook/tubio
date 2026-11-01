@@ -230,7 +230,7 @@ ${list.length === 0
 
   app.get('/panel/notifications', { preHandler: userGuard }, async (req, reply) => sendHtml(reply, targetsPage(req.ctx, req.ctx.user as User, kindOf(req))))
 
-  const testNotice = (deps: AppDeps): Notice => ({ title: 'Prueba de tubio', lines: [['mensaje', 'Si ves esto, el aviso funciona.']], url: `${deps.config.baseUrl}/panel/data`, at: deps.now(), payload: { test: true } })
+  const testNotice = (deps: AppDeps): Notice => ({ title: 'Prueba de túbio', lines: [['mensaje', 'Si ves esto, el aviso funciona.']], url: `${deps.config.baseUrl}/panel/data`, at: deps.now(), payload: { test: true } })
 
   app.post('/panel/notifications', { preHandler: userGuard, config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } }, async (req, reply) => {
     const user = req.ctx.user as User

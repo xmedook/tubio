@@ -46,7 +46,7 @@ export function loadConfig(overrides: Partial<Config> = {}): Config {
     smtpUrl: e.TUBIO_SMTP_URL ?? '',
     googleClientId: e.TUBIO_GOOGLE_CLIENT_ID ?? '',
     googleClientSecret: e.TUBIO_GOOGLE_CLIENT_SECRET ?? '',
-    mailFrom: e.TUBIO_MAIL_FROM ?? 'tubio <no-reply@tubio.link>',
+    mailFrom: e.TUBIO_MAIL_FROM ?? 'túbio <no-reply@tubio.link>',
     maxUploadBytes: num(e.TUBIO_MAX_UPLOAD_BYTES, 10 * 1024 * 1024),
     powMax: num(e.TUBIO_POW_MAX, 100_000),
     trustProxy: e.TUBIO_TRUST_PROXY === '1',

@@ -15,7 +15,7 @@ By creating an account or using tubio.link ("the service"), operated by {{OWNER_
 - We may disable links or pages that break it, or that are reported with good reason, and suspend repeat offenders.
 
 ## The service
-- tubio is free software (AGPL-3.0); the code is at {{SOURCE_URL}}.
+- túbio is free software (AGPL-3.0); the code is at {{SOURCE_URL}}.
 - It is provided "as is". We make reasonable efforts to keep it available and backed up, but we do not guarantee it will be uninterrupted or error-free.
 - We may change or remove features. If something affects you significantly, we will give reasonable notice.
 - Paid plans, when available, will have their own pricing and cancellation terms.

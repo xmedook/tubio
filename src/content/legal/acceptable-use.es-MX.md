@@ -1,6 +1,6 @@
 # Política de uso aceptable
 
-No uses tubio para:
+No uses túbio para:
 
 - **Fraude o robo de datos:** páginas que imitan bancos, tiendas u otros servicios para obtener contraseñas, tarjetas o datos personales (phishing).
 - **Software malicioso:** virus, programas espía o descargas engañosas.

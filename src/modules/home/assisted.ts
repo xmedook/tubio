@@ -40,7 +40,7 @@ function formPage(ctx: Ctx, deps: AppDeps, o: { values: Vals; errors: Record<str
   <p><button class="btn btn-acento btn-grande" type="submit">${t('asist.send')}</button></p>
 </form></section>`
   return homeShell(ctx, {
-    title: `${t('asist.title')} · tubio`,
+    title: `${t('asist.title')} · túbio`,
     description: t('asist.lead'),
     path: '/armamos-por-ti',
     body,

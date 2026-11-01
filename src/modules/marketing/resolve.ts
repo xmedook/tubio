@@ -107,7 +107,7 @@ export function respondShort(deps: AppDeps, req: FastifyRequest, reply: FastifyR
   ${d.ad_image ? html`<a class="splash-ad" href="${String(d.ad_url || '#')}" rel="sponsored noopener" target="_blank"><img src="${imageUrl(String(d.ad_image))}" alt="${t('mk.ad')}"></a>` : ''}
   <p class="splash-count" data-go="${dest}" data-secs="${secs}">${t('mk.redirecting_in', { n: secs })}</p>
   <a class="btn" href="${dest}" rel="noopener" data-go-btn>${String(d.button || t('mk.continue'))}</a>
-  <footer class="made"><a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>tubio</b></a></footer>
+  <footer class="made"><a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>túbio</b></a></footer>
 </main>`, px),
       )
       return true

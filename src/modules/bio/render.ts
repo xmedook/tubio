@@ -168,7 +168,7 @@ export async function renderBioPage(deps: AppDeps, req: FastifyRequest, reply: F
   const madeHtml = showBrand
     ? html`<footer class="made">${!forced && d.brand_text
         ? web(d.brand_url) ? html`<a href="${d.brand_url}">${d.brand_text}</a>` : d.brand_text
-        : html`<a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>tubio</b></a>`}</footer>`
+        : html`<a href="${deps.config.baseUrl}/">${t('bio.made_with')} <b>túbio</b></a>`}</footer>`
     : ''
   const reportHtml = html`<p class="report"><a href="/_/report/${link.alias}" rel="nofollow">${t('abuse.link')}</a> · <a href="/terms" rel="nofollow">${t('legal.terms')}</a> · <a href="/privacy" rel="nofollow">${t('legal.privacy')}</a></p>`
   const usesSiteBlocks = blocks.some((b) => BLOCK_BY_TYPE.get(b.type)?.group === 'site')

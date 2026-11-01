@@ -54,7 +54,7 @@ export function giroPage(ctx: Ctx, g: Giro, opts: { registrationOpen: boolean; p
   <section class="cierre"><h2>${t('h3.close')}</h2><div class="cierre-b"><a class="btn btn-acento btn-grande" href="${create}">${t('h3.close_cta')}</a>${sales ? html`<a class="btn btn-borde btn-grande" href="${sales}" target="_blank" rel="noopener">${hic('wa', 20)} ${t('h3.whatsapp')}</a>` : ''}</div></section>`
 
   return homeShell(ctx, {
-    title: `${c.h1} · tubio`,
+    title: `${c.h1} · túbio`,
     description: c.meta,
     path,
     body,

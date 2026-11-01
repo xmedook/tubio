@@ -2,7 +2,7 @@ import type { DB } from '../../db/index.ts'
 
 /** Ajustes globales con sus valores por defecto. */
 export const SETTING_DEFAULTS = {
-  site_name: 'tubio',
+  site_name: 'túbio',
   registration_open: true,
   stats_retention_days: 365,
   /** Muestra "hecho con tubio" en las páginas bio (el usuario puede ocultarlo si esto es false) */

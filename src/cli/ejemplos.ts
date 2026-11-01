@@ -20,7 +20,7 @@ const wi = process.argv.indexOf('--whatsapp')
 const whatsapp = ((wi > 0 ? process.argv[wi + 1] : '') || getSetting(db, 'sales_whatsapp') || '').replace(/\D/g, '')
 let owner = findUserByEmail(db, EMAIL)
 if (!owner) {
-  owner = createUser(db, { email: EMAIL, name: 'tubio · ejemplos', passwordHash: await hashPassword(randomToken(24)) }, now)
+  owner = createUser(db, { email: EMAIL, name: 'túbio · ejemplos', passwordHash: await hashPassword(randomToken(24)) }, now)
   updateUser(db, owner.id, { email_verified_at: now })
 }
 for (const g of GIROS) {
@@ -37,7 +37,7 @@ for (const g of GIROS) {
   db.transaction(() => {
     const link = createLink(db, owner!.id, {
       project_id: null, alias: m.example, kind: 'bio', title: m.exampleName, target_url: null, redirect_code: 302,
-      data: { ...defaultBioData(m.exampleName, '', m.theme), seo_title: `${m.exampleName} · ejemplo de sitio tubio`, category: m.category, noindex: true },
+      data: { ...defaultBioData(m.exampleName, '', m.theme), seo_title: `${m.exampleName} · ejemplo de sitio túbio`, category: m.category, noindex: true },
       is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false,
     }, now)
     applyGiro(db, link.id, g, { name: m.exampleName, whatsapp, address: 'Calle de los Ejemplos 123, Colima, Col.', example: true }, now)

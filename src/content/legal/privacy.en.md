@@ -3,7 +3,7 @@
 **Last updated: {{UPDATED}}**
 
 ## Controller
-{{OWNER_NAME}} ("tubio"), located at {{OWNER_ADDRESS}}, is responsible for processing your personal data on tubio.link. For any privacy matter write to {{PRIVACY_EMAIL}}.
+{{OWNER_NAME}} ("túbio"), located at {{OWNER_ADDRESS}}, is responsible for processing your personal data on tubio.link. For any privacy matter write to {{PRIVACY_EMAIL}}.
 
 ## Data we collect
 - **Your account:** name, email, password (stored only as a cryptographic hash), language, time zone and, if enabled, your two-step verification key.

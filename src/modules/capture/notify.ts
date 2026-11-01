@@ -90,7 +90,7 @@ export async function deliver(deps: AppDeps, t: Target, n: Notice): Promise<void
     case 'email': {
       const u = findUserById(deps.db, t.user_id)
       if (!u) return
-      await deps.mailer.send({ to: u.email, subject: `tubio: ${n.title}`, text: plain(n), button: 'Ver en tubio' })
+      await deps.mailer.send({ to: u.email, subject: `túbio: ${n.title}`, text: plain(n), button: 'Ver en túbio' })
       return
     }
     case 'webhook': {

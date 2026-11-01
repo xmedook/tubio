@@ -28,7 +28,8 @@
     "a11y": "node scripts/a11y.ts",
     "mobile-audit": "node scripts/mobile-audit.ts",
     "ejemplos-img": "node scripts/ejemplos-img.ts",
-    "home-capturas": "node scripts/home-capturas.ts"
+    "home-capturas": "node scripts/home-capturas.ts",
+    "marca-publica": "node scripts/marca-publica.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",

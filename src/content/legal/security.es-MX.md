@@ -2,7 +2,7 @@
 
 Última actualización: {{UPDATED}}
 
-Si encontraste una vulnerabilidad en tubio, gracias por avisarnos antes de publicarla.
+Si encontraste una vulnerabilidad en túbio, gracias por avisarnos antes de publicarla.
 
 ## Cómo reportar
 

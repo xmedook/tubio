@@ -57,12 +57,12 @@ export function registerLegal(app: FastifyInstance, deps: AppDeps): void {
       // renderMarkdown escapa todo el texto, valores incluidos
       const md = load(file, req.ctx.locale).replace(/\{\{(\w+)\}\}/g, (_m, k: string) => v[k] ?? '')
       const body = renderMarkdown(md)
-      const title = /^#\s+(.+)$/m.exec(md)?.[1] ?? 'tubio'
+      const title = /^#\s+(.+)$/m.exec(md)?.[1] ?? 'túbio'
       reply.header('Cache-Control', 'public, max-age=3600')
       return sendHtml(
         reply,
         html`<html lang="${req.ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · tubio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
+<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
 <body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/">tu<span>bio</span></a></p>${raw(body)}
 <p class="muted small"><a href="/terms">${req.ctx.t('legal.terms')}</a> · <a href="/privacy">${req.ctx.t('legal.privacy')}</a> · <a href="/acceptable-use">${req.ctx.t('legal.aup')}</a> · <a href="/security">${req.ctx.t('legal.security')}</a></p></main></body></html>`,
       )

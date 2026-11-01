@@ -28,7 +28,7 @@ const titleOf = (md: string) => /^#\s+(.+)$/m.exec(md)?.[1] ?? ''
 function shell(ctx: Ctx, title: string, body: SafeHtml, pow = false): SafeHtml {
   const { t } = ctx
   return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · tubio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg">
+<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg">
 ${pow ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>` : ''}</head>
 <body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/">tu<span>bio</span></a> · <a href="/help">${t('help.title')}</a></p>${body}
 <p class="muted small"><a href="/help/contact">${t('help.contact')}</a> · <a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a></p></main></body></html>`
@@ -112,7 +112,7 @@ ${powField(ctx, pow)}<button class="btn btn-primary" type="submit">${t('help.sen
     const who = `${values.email}${me ? ` (cuenta #${me.id}${me.email !== values.email ? `, ${me.email}` : ''})` : ' (sin sesión)'}`
     const ticket = await zammadTicket(deps, {
       email: values.email,
-      title: `[tubio] ${values.message.replace(/\s+/g, ' ').slice(0, 70)}`,
+      title: `[túbio] ${values.message.replace(/\s+/g, ' ').slice(0, 70)}`,
       body: [`De: ${who}`, `Tema: ${topic}`, `Idioma: ${ctx.locale}`, '', values.message].join('\n'),
       tags: ['tubio', topic],
     })
@@ -121,7 +121,7 @@ ${powField(ctx, pow)}<button class="btn btn-primary" type="submit">${t('help.sen
     await deps.mailer.send({
       to: supportTo(),
       replyTo: values.email,
-      subject: `[tubio soporte] ${topic} — ${values.email}`,
+      subject: `[túbio soporte] ${topic} — ${values.email}`,
       text: [`De: ${values.email}${me ? ` (cuenta #${me.id}${me.email !== values.email ? `, ${me.email}` : ''})` : ' (sin sesión)'}`, `Tema: ${topic}`, `Idioma: ${ctx.locale}`, '', values.message].join('\n'),
     })
     return contactPage(ctx, reply, { sent: true })

@@ -271,7 +271,7 @@ export function applyGiro(db: DB, linkId: number, giro: Giro, v: GiroVals, now: 
     whatsapp: v.whatsapp,
     cabecera: { activa: true, logo: v.logo ?? null, nombre: v.name.slice(0, 40), nav: 'manual', nav_manual: nav, cta: out.cta },
     barra: { activa: true, acciones: barra.slice(0, 3) },
-    pie: { activo: true, servicios: out.servicios, direccion: v.address.slice(0, 160), texto: v.example ? 'Sitio de ejemplo hecho con tubio · crea el tuyo en tubio.link' : '' },
+    pie: { activo: true, servicios: out.servicios, direccion: v.address.slice(0, 160), texto: v.example ? 'Sitio de ejemplo hecho con túbio · crea el tuyo en tubio.link' : '' },
   })
   saveSiteConfig(db, linkId, config, now)
 }

@@ -1,6 +1,6 @@
 # Acceptable use policy
 
-Do not use tubio for:
+Do not use túbio for:
 
 - **Fraud or data theft:** pages imitating banks, shops or other services to obtain passwords, cards or personal data (phishing).
 - **Malware:** viruses, spyware or deceptive downloads.

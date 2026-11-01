@@ -2,7 +2,7 @@
 
 Last updated: {{UPDATED}}
 
-If you found a vulnerability in tubio, thank you for telling us before making it public.
+If you found a vulnerability in túbio, thank you for telling us before making it public.
 
 ## How to report
 

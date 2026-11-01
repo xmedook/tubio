@@ -45,7 +45,7 @@ ${(o.scripts ?? []).map((s) => html`<script type="module" src="/_/static/js/${s}
 <a class="saltar" href="#contenido">${t('a11y.skip')}</a>
 <div class="strip">${t('h4.strip')}</div>
 <header class="bar"><div class="big bar-in">
-  <a class="logo" href="/" aria-label="${t('h2.home_aria')}">tubio</a>
+  <a class="logo" href="/" aria-label="${t('h2.home_aria')}">túbio</a>
   <div class="bar-r">
     <a class="hl" href="${ctx.user ? '/panel' : '/login'}">${ctx.user ? t('h2.my_panel') : t('auth.login_link')}</a>
     <a class="hl" href="/lang/${other}?next=${next}" hreflang="${other}" lang="${other}">${other === 'en' ? 'English' : 'Español'}</a>
@@ -59,7 +59,7 @@ ${o.body}
 <footer class="foot"><div class="big">
   <nav aria-label="${t('h2.foot_legal')}"><a href="/privacy">${t('legal.privacy')}</a><a href="/terms">${t('legal.terms')}</a><a href="/acceptable-use">${t('legal.aup')}</a><a href="/security">${t('legal.security')}</a></nav>
   <nav aria-label="${t('h2.foot_product')}"><a href="/armamos-por-ti">${t('asist.title')}</a><a href="/directory">${t('dir.title')}</a><a href="/blog">${t('site.blog')}</a><a href="/help">${t('help.title')}</a>${(o.pages ?? []).map((p) => html`<a href="/p/${p.slug}">${p.title}</a>`)}<a href="/source">${t('h2.foot_source')}</a></nav>
-  <p><span class="tb">tubio</span> · ${t('h4.foot_note')}</p>
+  <p><span class="tb">túbio</span> · ${t('h4.foot_note')}</p>
 </div></footer>
 <div class="cta" role="region" aria-label="${t('h4.aria_bar')}"><div class="col">
   <a class="btn" href="${o.mainHref}">${t('h4.cta_bar')}${hic('arrow', 18, '')}</a>

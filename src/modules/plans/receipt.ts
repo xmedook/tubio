@@ -9,7 +9,7 @@ const money = (locale: string, cents: number, cur: string) => new Intl.NumberFor
 /** Recibo simple en PDF (no es CFDI). */
 export function receiptPdf(p: Payment, plan: Plan, info: ReceiptInfo): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'LETTER', margin: 56, info: { Title: `Recibo ${p.reference}`, Author: 'tubio' } })
+    const doc = new PDFDocument({ size: 'LETTER', margin: 56, info: { Title: `Recibo ${p.reference}`, Author: 'túbio' } })
     const chunks: Buffer[] = []
     doc.on('data', (c: Buffer) => chunks.push(c))
     doc.on('end', () => resolve(Buffer.concat(chunks)))

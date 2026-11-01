@@ -244,7 +244,7 @@ ${p.status === 'paid' ? html`<a class="btn btn-sm" href="/panel/payments/${p.id}
     const owner = findUserById(db, p.user_id)!
     const t = translator((owner.locale as Locale) ?? 'es-MX')
     const pdf = await receiptPdf(p, plan, {
-      issuer: env.TUBIO_LEGAL_OWNER ?? 'tubio',
+      issuer: env.TUBIO_LEGAL_OWNER ?? 'túbio',
       issuerAddress: env.TUBIO_LEGAL_ADDRESS ?? '',
       issuerRfc: env.TUBIO_LEGAL_RFC ?? '',
       contact: env.TUBIO_CONTACT_EMAIL ?? '',
@@ -360,9 +360,9 @@ ${postButton(ctx, '/admin/coupons/delete', t('common.delete'), { cls: 'btn btn-s
         client_reference_id: p.reference,
         customer_email: user.email,
         locale: req.ctx.locale === 'en' ? 'en' : 'es-419',
-        line_items: [{ quantity: 1, price_data: { currency: p.currency.toLowerCase(), unit_amount: p.amount - p.discount, product_data: { name: `tubio ${plan.name} — ${t(`pay.period_${p.period}`)}` } } }],
+        line_items: [{ quantity: 1, price_data: { currency: p.currency.toLowerCase(), unit_amount: p.amount - p.discount, product_data: { name: `túbio ${plan.name} — ${t(`pay.period_${p.period}`)}` } } }],
         metadata: { app: 'tubio', payment_id: p.id, reference: p.reference },
-        payment_intent_data: { description: `tubio ${plan.name} ${p.reference}`, metadata: { app: 'tubio', payment_id: p.id, reference: p.reference } },
+        payment_intent_data: { description: `túbio ${plan.name} ${p.reference}`, metadata: { app: 'tubio', payment_id: p.id, reference: p.reference } },
         success_url: `${base}/panel/payments/${p.id}?stripe=ok`,
         cancel_url: `${base}/panel/payments/${p.id}`,
         expires_at: Math.floor(deps.now() / 1000) + 3600,

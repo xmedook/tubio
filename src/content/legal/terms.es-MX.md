@@ -15,7 +15,7 @@ Al crear una cuenta o usar tubio.link («el servicio»), operado por {{OWNER_NAM
 - Podemos desactivar enlaces o páginas que la incumplan, o que recibamos reportados con fundamento, y suspender cuentas reincidentes.
 
 ## El servicio
-- tubio es software libre (AGPL-3.0); el código está en {{SOURCE_URL}}.
+- túbio es software libre (AGPL-3.0); el código está en {{SOURCE_URL}}.
 - Lo ofrecemos «tal cual». Hacemos lo razonable para que esté disponible y respaldado, pero no garantizamos que funcione sin interrupciones ni errores.
 - Podemos cambiar o retirar funciones. Si algo te afecta de forma importante, te avisaremos con anticipación razonable.
 - Los planes de pago, cuando existan, tendrán sus propias condiciones de precio y cancelación.

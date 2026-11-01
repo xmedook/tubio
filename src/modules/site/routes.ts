@@ -22,7 +22,7 @@ export function footerPages(deps: AppDeps, locale: Locale): { slug: string; titl
 function shell(ctx: Ctx, title: string, body: SafeHtml, desc = ''): SafeHtml {
   const { t } = ctx
   return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · tubio</title>${desc ? html`<meta name="description" content="${desc}">` : ''}
+<title>${title} · túbio</title>${desc ? html`<meta name="description" content="${desc}">` : ''}
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
 <body class="legal"><header class="home-top"><a class="brand" href="/">tu<span>bio</span></a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
 <main id="main" class="wrap legal-text">${body}</main>

@@ -9,7 +9,7 @@ function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · tubio</title>
+<title>${title} · túbio</title>
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">
 <link rel="icon" href="/_/static/img/favicon.svg" type="image/svg+xml">
@@ -49,7 +49,7 @@ ${head(ctx, opts.title, opts.head)}
 <body class="panel">
 <a class="skip" href="#main">${t('a11y.skip')}</a>
 <header class="topbar">
-  <a class="brand" href="/panel" aria-label="tubio">tu<span>bio</span></a>
+  <a class="brand" href="/panel" aria-label="túbio">tú<span>bio</span></a>
   <nav aria-label="${t('nav.main')}">
     <ul>${nav.map(
       ([k, href, label]) =>
@@ -125,7 +125,7 @@ export function authLayout(ctx: Ctx, opts: { title: string; body: HtmlValue; pat
 ${head(ctx, opts.title)}
 <body class="auth">
 <main id="main" class="auth-card">
-  <a class="brand brand-lg" href="/" aria-label="tubio">tu<span>bio</span></a>
+  <a class="brand brand-lg" href="/" aria-label="túbio">tú<span>bio</span></a>
   ${flashBox(ctx)}
   ${opts.body}
   <p class="auth-foot">${langSwitch(ctx, opts.path)} · <a href="/terms">${ctx.t('legal.terms')}</a> · <a href="/privacy">${ctx.t('legal.privacy')}</a></p>
@@ -140,7 +140,7 @@ export function messagePage(ctx: Ctx, opts: { title: string; message: string; st
 ${head(ctx, opts.title)}
 <body class="auth">
 <main id="main" class="auth-card">
-  <a class="brand brand-lg" href="/" aria-label="tubio">tu<span>bio</span></a>
+  <a class="brand brand-lg" href="/" aria-label="túbio">tú<span>bio</span></a>
   <h1>${opts.title}</h1>
   <p>${opts.message}</p>
 </main>

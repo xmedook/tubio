@@ -3,7 +3,7 @@
 **Última actualización: {{UPDATED}}**
 
 ## Responsable
-{{OWNER_NAME}} («tubio»), con domicilio en {{OWNER_ADDRESS}}, es responsable del tratamiento de tus datos personales en tubio.link. Para cualquier asunto de privacidad escribe a {{PRIVACY_EMAIL}}.
+{{OWNER_NAME}} («túbio»), con domicilio en {{OWNER_ADDRESS}}, es responsable del tratamiento de tus datos personales en tubio.link. Para cualquier asunto de privacidad escribe a {{PRIVACY_EMAIL}}.
 
 ## Datos que recabamos
 - **De tu cuenta:** nombre, correo, contraseña (guardada sólo como huella criptográfica), idioma, zona horaria y, si la activas, la clave de verificación en dos pasos.

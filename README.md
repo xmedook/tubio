@@ -1,9 +1,9 @@
-# tubio
+# túbio
 
 Link in bio de software libre: páginas bio hechas de bloques, enlaces cortos, archivos, tarjetas de contacto,
 eventos, códigos QR (estáticos y dinámicos) y estadísticas sin guardar IPs. Interfaz en español (México) e inglés.
 
-Licencia **AGPL-3.0-or-later** (ver `LICENSE`). Si ofreces tubio como servicio, debes ofrecer el código fuente a
+Licencia **AGPL-3.0-or-later** (ver `LICENSE`). Si ofreces túbio como servicio, debes ofrecer el código fuente a
 tus usuarios: la ruta `/source` del pie de página apunta a `TUBIO_SOURCE_URL`.
 
 - Especificación funcional: [`docs/SPEC.md`](docs/SPEC.md)

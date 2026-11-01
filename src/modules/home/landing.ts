@@ -111,7 +111,7 @@ export function landingPage(
 </div></section>`
 
   return homeShellV3(ctx, {
-    title: `tubio · ${t('h4.title')}`,
+    title: `túbio · ${t('h4.title')}`,
     description: t('h4.meta'),
     path: '/',
     body,

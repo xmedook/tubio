@@ -69,6 +69,6 @@ export function verifyTotp(secret: string, code: string, now = Date.now(), step 
   return matchTotp(secret, code, now, step) !== null
 }
 
-export function otpauthUri(secret: string, account: string, issuer = 'tubio'): string {
+export function otpauthUri(secret: string, account: string, issuer = 'túbio'): string {
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(account)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`
 }

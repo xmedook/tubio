@@ -76,7 +76,7 @@ export function registerGrowth(app: FastifyInstance, deps: AppDeps): void {
       .all({ cat, like, off: (page - 1) * 24 }) as { id: number; alias: string; title: string; domain_id: number; descr: string | null; cat: string | null; avatar: string | null; is_verified: number }[]
     const more = rows.length > 24
     const qs = (p: number) => `/directory?${new URLSearchParams({ ...(term ? { q: term } : {}), ...(cat ? { cat } : {}), page: String(p) })}`
-    return sendHtml(reply, html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${t('dir.title')} · tubio</title>
+    return sendHtml(reply, html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${t('dir.title')} · túbio</title>
 <meta name="description" content="${t('dir.desc')}"><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}"><link rel="icon" href="/_/static/img/favicon.svg"></head>
 <body class="home"><header class="home-top"><a class="brand" href="/">tu<span>bio</span></a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
 <main id="main" class="wrap wrap-wide"><h1>${t('dir.title')}</h1><p class="muted">${t('dir.desc')}</p>
