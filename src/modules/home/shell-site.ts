@@ -19,6 +19,7 @@ export type SiteShellOpts = {
   scripts?: string[]
   /** sección activa de la navegación */
   nav?: 'giros' | 'dir' | 'help'
+  noindex?: boolean
 }
 
 type HeadOpts = Pick<SiteShellOpts, 'title' | 'description' | 'path' | 'jsonLd' | 'scripts'> & { noindex?: boolean }

@@ -1,3 +1,4 @@
+import { siteShell } from '../modules/home/shell-site.ts'
 import { html, type HtmlValue, type SafeHtml } from '../lib/html.ts'
 import type { Ctx } from '../web/context.ts'
 import { csrfField, flashBox } from './ui.ts'
@@ -135,16 +136,10 @@ ${head(ctx, opts.title)}
 </html>`
 }
 
-/** Página simple para mensajes (404, error, enlace expirado…) */
+/** Página simple para mensajes (404, error, enlace expirado…) con el diseño del sitio (bloque 6). */
 export function messagePage(ctx: Ctx, opts: { title: string; message: string; status?: number }): SafeHtml {
-  return html`<html lang="${ctx.locale}">
-${head(ctx, opts.title)}
-<body class="auth">
-<main id="main" class="auth-card">
-  <a class="brand brand-lg" href="/" aria-label="túbio">${wordmark(40, 'auto')}</a>
-  <h1>${opts.title}</h1>
-  <p>${opts.message}</p>
-</main>
-</body>
-</html>`
+  const { t } = ctx
+  const body = html`<section class="hero"><div class="wrap" style="max-width:720px;text-align:left">${opts.status ? html`<span class="k">${t('s6.err_k', { n: opts.status })}</span>` : ''}<h1 class="h1" style="margin:14px 0 14px"><span class="hl-rosa">${opts.title}</span></h1><p class="lead">${opts.message}</p>
+<div class="btns row" style="margin-top:24px"><a class="btn" href="/">${t('s6.go_home')}</a><a class="btn btn-s" href="/directory">${t('s6.go_dir')}</a></div></div></section>`
+  return siteShell(ctx, { title: `${opts.title} · túbio`, description: opts.message, path: '/', body, mainHref: ctx.user ? '/panel' : '/register', noindex: true })
 }

@@ -1,5 +1,6 @@
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import { ic } from '../../views/sprite.ts'
+import { fld } from '../../views/sitio-ui.ts'
 import { csrfField, powAttr, powField, type Errors } from '../../views/ui.ts'
 import type { Ctx } from '../../web/context.ts'
 import { authSite } from '../home/shell-site.ts'
@@ -7,15 +8,6 @@ import { authSite } from '../home/shell-site.ts'
 type V = Record<string, string>
 
 export type Claim = { alias: string; error: string | null } | null
-
-type Fld = { ctx: Ctx; name: string; label: string; type?: string; value?: string; error?: string; hint?: string; placeholder?: string; autocomplete?: string; maxlength?: number; inputmode?: string; pattern?: string; autofocus?: boolean }
-
-/** Campo del diseño nuevo (`.fld`): etiqueta, ayuda y error con texto e ícono (nunca solo color). */
-function fld(c: Fld): SafeHtml {
-  const id = `f-${c.name}`
-  const d = [c.hint ? `${id}-h` : '', c.error ? `${id}-e` : ''].filter(Boolean).join(' ')
-  return html`<div class="fld${c.error ? ' err' : ''}"><label for="${id}">${c.label}</label><input class="in" id="${id}" name="${c.name}" type="${c.type ?? 'text'}"${c.value && c.type !== 'password' ? html` value="${c.value}"` : ''}${c.placeholder ? html` placeholder="${c.placeholder}"` : ''} required${c.autocomplete ? html` autocomplete="${c.autocomplete}"` : ''}${c.maxlength ? html` maxlength="${c.maxlength}"` : ''}${c.inputmode ? html` inputmode="${c.inputmode}"` : ''}${c.pattern ? html` pattern="${c.pattern}"` : ''}${c.autofocus ? html` autofocus` : ''}${d ? html` aria-describedby="${d}"` : ''}${c.error ? html` aria-invalid="true"` : ''}>${c.hint ? html`<p class="hint" id="${id}-h">${c.hint}</p>` : ''}${c.error ? html`<p class="msg-e" id="${id}-e">${ic('alert')}<span>${c.ctx.t(c.error)}</span></p>` : ''}</div>`
-}
 
 const arrow = () => ic('ar')
 

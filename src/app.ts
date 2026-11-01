@@ -86,7 +86,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.setNotFoundHandler((req, reply) => {
     const t = req.ctx?.t
     if (!t) return reply.code(404).send('Not found')
-    return sendHtml(reply, messagePage(req.ctx, { title: t('err.404_title'), message: t('err.404_body') }), 404)
+    return sendHtml(reply, messagePage(req.ctx, { title: t('err.404_title'), message: t('err.404_body'), status: 404 }), 404)
   })
 
   app.setErrorHandler((err: Error & { statusCode?: number }, req, reply) => {
@@ -95,7 +95,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     const t = req.ctx?.t
     if (!t) return reply.code(status).send('Error')
     const title = status === 429 ? t('err.429_title') : status === 413 ? t('err.413_title') : status >= 500 ? t('err.500_title') : t('err.400_title')
-    return sendHtml(reply, messagePage(req.ctx, { title, message: status >= 500 ? t('err.500_body') : err.message }), status)
+    return sendHtml(reply, messagePage(req.ctx, { title, message: status >= 500 ? t('err.500_body') : err.message, status }), status)
   })
 
   return app

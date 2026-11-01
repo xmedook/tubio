@@ -3,15 +3,16 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { html, raw, type SafeHtml } from '../../lib/html.ts'
+import { html, type SafeHtml } from '../../lib/html.ts'
 import type { Locale } from '../../lib/i18n.ts'
-import { renderMarkdown } from '../../lib/markdown.ts'
-import { ASSET_VERSION } from '../../views/layout.ts'
-import { csrfField, input, powAttr, powField, select, textarea } from '../../views/ui.ts'
+import { fld, fldSelect, fldTextarea } from '../../views/sitio-ui.ts'
+import { ic } from '../../views/sprite.ts'
+import { csrfField, powAttr, powField } from '../../views/ui.ts'
+import { docPage } from '../home/doc-page.ts'
+import { siteShell } from '../home/shell-site.ts'
 import { powOk, sendHtml, type Ctx } from '../../web/context.ts'
 import { field } from '../../web/forms.ts'
 import type { User } from '../users/repo.ts'
-import { brandHead, wordmark } from '../../views/brand.ts'
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '../../content/help')
 export const HELP_ARTICLES = ['primeros-pasos', 'enlaces', 'estadisticas', 'dominios', 'planes', 'cuenta'] as const
@@ -26,13 +27,13 @@ function load(slug: string, locale: Locale): string {
 }
 const titleOf = (md: string) => /^#\s+(.+)$/m.exec(md)?.[1] ?? ''
 
+const ICONS: Record<string, string> = { 'primeros-pasos': 'link', enlaces: 'img', estadisticas: 'chart', dominios: 'globe', planes: 'gift', cuenta: 'users' }
+const plainOf = (md: string) => md.replace(/^#.*$/gm, '').replace(/\{\{\w+\}\}/g, '').replace(/[*`_>\[\]]|\(https?:[^)]*\)/g, '').replace(/\s+/g, ' ').trim()
+const descOf = (md: string) => plainOf(md).slice(0, 110).replace(/\s\S*$/, '…')
+
+/** Página del centro de ayuda con el diseño del sitio (bloque 6). */
 function shell(ctx: Ctx, title: string, body: SafeHtml, pow = false): SafeHtml {
-  const { t } = ctx
-  return html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} · túbio</title><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(ctx.baseUrl)}
-${pow ? html`<script type="module" src="/_/static/js/pow.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>` : ''}</head>
-<body class="legal"><main id="main" class="wrap legal-text"><p><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a> · <a href="/help">${t('help.title')}</a></p>${body}
-<p class="muted small"><a href="/help/contact">${t('help.contact')}</a> · <a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a></p></main></body></html>`
+  return siteShell(ctx, { title: `${title} · túbio`, description: title, path: '/help', body: html`<section class="sec" style="border-top:0"><div class="wrap" style="max-width:720px">${body}</div></section>`, mainHref: ctx.user ? '/panel' : '/register', nav: 'help', scripts: pow ? ['pow.js'] : [] })
 }
 
 /**
@@ -69,20 +70,28 @@ export function registerHelp(app: FastifyInstance, deps: AppDeps): void {
   const supportTo = () => process.env.TUBIO_SUPPORT_EMAIL || process.env.TUBIO_CONTACT_EMAIL || 'hola@tubio.link'
 
   app.get('/help', async (req, reply) => {
-    const { t } = req.ctx
-    reply.header('Cache-Control', 'public, max-age=600')
-    return sendHtml(reply, shell(req.ctx, t('help.title'), html`<h1>${t('help.title')}</h1><p class="lead">${t('help.lead')}</p>
-<ul class="help-list">${HELP_ARTICLES.map((s) => html`<li><a href="/help/${s}">${titleOf(load(s, req.ctx.locale))}</a></li>`)}</ul>
-<p><a class="btn btn-primary" href="/help/contact">${t('help.contact')}</a></p>`))
+    const { t, locale } = req.ctx
+    const q = String((req.query as { q?: string }).q ?? '').trim().slice(0, 60).toLowerCase()
+    const all = HELP_ARTICLES.map((s) => ({ slug: s, md: load(s, locale) }))
+    const found = q ? all.filter((x) => x.md.toLowerCase().includes(q)) : all
+    reply.header('Cache-Control', q ? 'private, no-store' : 'public, max-age=600')
+    const body = html`
+<section class="hero"><div class="wrap" style="max-width:820px"><span class="k">${t('s6.help_k')}</span><h1 class="h1" style="font-size:clamp(34px,8vw,56px);margin:14px 0 18px">${t('s6.help_h')} <span class="hl-azul">${t('s6.help_hl')}</span>?</h1>
+<form role="search" class="fld" action="/help" method="get"><label class="sr" for="hq">${t('s6.help_search')}</label><div style="display:flex;gap:8px"><input class="in" id="hq" name="q" type="search" value="${q}" placeholder="${t('s6.help_ph')}" style="flex:1;min-width:0"><button class="btn" type="submit">${t('s6.help_go')}</button></div></form></div></section>
+<section class="sec" style="border-top:0"><div class="wrap">${q && !found.length ? html`<div class="al info" role="status">${ic('info')}<div>${t('s6.help_none', { q })}</div></div>` : ''}
+<div class="grid g3">${found.map((x) => html`<a class="card" href="/help/${x.slug}" style="text-decoration:none;display:grid;gap:8px;align-content:start"><span class="av" style="width:44px;height:44px;border-radius:8px;background:var(--soft)" aria-hidden="true">${ic(ICONS[x.slug] ?? 'info')}</span><h3 class="h4">${titleOf(x.md)}</h3><p class="p sm">${descOf(x.md)}</p></a>`)}</div></div></section>
+<section class="band"><div class="wrap hero-g"><div><h2 class="h2">${t('s6.help_not')}</h2><p class="lead" style="margin-top:10px">${t('help.lead')}</p></div><div class="btns row"><a class="btn" href="/help/contact">${t('help.contact')}</a></div></div></section>`
+    return sendHtml(reply, siteShell(req.ctx, { title: `${t('help.title')} · túbio`, description: t('help.lead'), path: '/help', body, mainHref: req.ctx.user ? '/panel' : '/register', nav: 'help' }))
   })
 
   app.get('/help/:slug', async (req, reply) => {
     const { slug } = req.params as { slug: string }
     if (slug === 'contact') return contactPage(req.ctx, reply)
     if (!(HELP_ARTICLES as readonly string[]).includes(slug)) return reply.callNotFound()
+    const { t } = req.ctx
     const md = load(slug, req.ctx.locale)
     reply.header('Cache-Control', 'public, max-age=600')
-    return sendHtml(reply, shell(req.ctx, titleOf(md), html`${raw(renderMarkdown(md))}`))
+    return sendHtml(reply, docPage(req.ctx, { md, path: `/help/${slug}`, kicker: t('help.title'), nav: 'help', tocLabel: t('s6.toc_article'), description: descOf(md), crumb: html`<nav aria-label="${t('s6.crumb')}" class="sm p"><a href="/help">${t('help.title')}</a> / <span>${titleOf(md)}</span></nav>` }))
   })
 
   function contactPage(ctx: Ctx, reply: Parameters<typeof sendHtml>[0], opts: { error?: string; sent?: boolean; values?: Record<string, string> } = {}, code = 200) {
@@ -92,14 +101,14 @@ export function registerHelp(app: FastifyInstance, deps: AppDeps): void {
     const pow = ctx.pow()
     reply.header('Cache-Control', 'private, no-store')
     return sendHtml(reply, shell(ctx, t('help.contact'), opts.sent
-      ? html`<h1>${t('help.contact')}</h1><p class="flash flash-ok" role="status">${t('help.sent')}</p><p><a href="/help">${t('help.back')}</a></p>`
-      : html`<h1>${t('help.contact')}</h1><p>${t('help.contact_lead')}</p>
-<form method="post" action="/help/contact" novalidate${powAttr(pow)}>${csrfField(ctx)}
-${input({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: v.email ?? me?.email ?? '', required: true, autocomplete: 'email' })}
-${select({ ctx, name: 'topic', label: t('help.topic'), value: v.topic ?? 'other', options: TOPICS.map((k) => ({ value: k, label: t(`help.topic_${k}`) })) })}
-${textarea({ ctx, name: 'message', label: t('help.message'), value: v.message ?? '', required: true, rows: 6, maxlength: 4000 })}
-${opts.error ? html`<p class="error" role="alert">${t(opts.error)}</p>` : ''}
-${powField(ctx, pow)}<button class="btn btn-primary" type="submit">${t('help.send')}</button></form>`, true), code)
+      ? html`<h1 class="h2" style="margin-bottom:14px">${t('help.contact')}</h1><div class="al ok" role="status">${ic('check')}<div>${t('help.sent')}</div></div><p style="margin-top:18px"><a class="btn btn-s" href="/help">${t('help.back')}</a></p>`
+      : html`<h1 class="h2" style="margin-bottom:8px">${t('help.contact')}</h1><p class="p" style="margin-bottom:20px">${t('help.contact_lead')}</p>
+<form class="form" method="post" action="/help/contact" novalidate${powAttr(pow)}>${csrfField(ctx)}
+${opts.error ? html`<div class="al crit" role="alert">${ic('alert')}<div>${t(opts.error)}</div></div>` : ''}
+${fld({ ctx, name: 'email', type: 'email', label: t('auth.email'), value: v.email ?? me?.email ?? '', autocomplete: 'email' })}
+${fldSelect({ ctx, name: 'topic', label: t('help.topic'), value: v.topic ?? 'other', options: TOPICS.map((k) => ({ value: k, label: t(`help.topic_${k}`) })) })}
+${fldTextarea({ ctx, name: 'message', label: t('help.message'), value: v.message ?? '', rows: 6, maxlength: 4000 })}
+${powField(ctx, pow)}<button class="btn btn-b" type="submit">${t('help.send')} ${ic('ar')}</button></form>`, true), code)
   }
 
   app.post('/help/contact', { config: { rateLimit: { max: 3, timeWindow: '10 minutes' } } }, async (req, reply) => {

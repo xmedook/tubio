@@ -2,7 +2,7 @@ import { notifyUser } from '../inbox/repo.ts'
 import { randomInt } from 'node:crypto'
 import type { FastifyInstance } from 'fastify'
 import type { AppDeps } from '../../app.ts'
-import { html } from '../../lib/html.ts'
+import { html, raw } from '../../lib/html.ts'
 import { formatDateTime, formatNumber } from '../../lib/i18n.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import { ASSET_VERSION, panelLayout } from '../../views/layout.ts'
@@ -14,7 +14,8 @@ import { linkUrl } from '../links/repo.ts'
 import { money } from '../plans/routes.ts'
 import { audit, getSetting } from '../settings/repo.ts'
 import { findUserById, updateUser, type User } from '../users/repo.ts'
-import { brandHead, wordmark } from '../../views/brand.ts'
+import { ic } from '../../views/sprite.ts'
+import { siteShell } from '../home/shell-site.ts'
 
 const CATS = ['creator', 'business', 'music', 'art', 'food', 'education', 'tech', 'health', 'nonprofit', 'other']
 const REF = 'abcdefghjkmnpqrstuvwxyz23456789'
@@ -77,17 +78,15 @@ export function registerGrowth(app: FastifyInstance, deps: AppDeps): void {
       .all({ cat, like, off: (page - 1) * 24 }) as { id: number; alias: string; title: string; domain_id: number; descr: string | null; cat: string | null; avatar: string | null; is_verified: number }[]
     const more = rows.length > 24
     const qs = (p: number) => `/directory?${new URLSearchParams({ ...(term ? { q: term } : {}), ...(cat ? { cat } : {}), page: String(p) })}`
-    return sendHtml(reply, html`<html lang="${ctx.locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${t('dir.title')} · túbio</title>
-<meta name="description" content="${t('dir.desc')}"><link rel="stylesheet" href="/_/static/css/app.css?v=${ASSET_VERSION}">${brandHead(ctx.baseUrl)}</head>
-<body class="home"><header class="home-top"><a class="brand" href="/" aria-label="túbio">${wordmark(26, 'auto')}</a><nav><a href="/blog">${t('site.blog')}</a> <a href="/login">${t('auth.login_link')}</a></nav></header>
-<main id="main" class="wrap wrap-wide"><h1>${t('dir.title')}</h1><p class="muted">${t('dir.desc')}</p>
-<form class="toolbar" method="get" action="/directory" role="search">${input({ ctx, name: 'q', type: 'search', label: t('links.search'), value: term })}
-${select({ ctx, name: 'cat', label: t('dir.category'), value: cat, options: [{ value: '', label: t('dir.all') }, ...CATS.map((c) => ({ value: c, label: t(`dir.cat_${c}`) }))] })}<button class="btn" type="submit">${t('links.filter')}</button></form>
-${rows.length === 0 ? emptyState(t('dir.empty'), '') : html`<ul class="dir-grid">${rows.slice(0, 24).map((r) => html`<li><a class="dir-card" href="${linkUrl(deps.config.baseUrl, r)}">
-  ${r.avatar ? html`<img src="${imageUrl(r.avatar)}" alt="" loading="lazy" width="64" height="64">` : html`<span class="dir-ph" aria-hidden="true">${(r.title || r.alias).charAt(0).toUpperCase()}</span>`}
-  <span class="dir-t">${r.title || r.alias}${r.is_verified ? ' ✓' : ''}</span>${r.descr ? html`<span class="dir-d">${r.descr}</span>` : ''}${r.cat ? html`<span class="tag">${t(`dir.cat_${r.cat}`)}</span>` : ''}</a></li>`)}</ul>`}
-<nav class="pager">${page > 1 ? html`<a class="btn btn-sm" href="${qs(page - 1)}">← ${t('links.prev')}</a>` : ''}${more ? html`<a class="btn btn-sm" href="${qs(page + 1)}">${t('links.next')} →</a>` : ''}</nav>
-</main><footer class="foot"><a href="/terms">${t('legal.terms')}</a> · <a href="/privacy">${t('legal.privacy')}</a></footer></body></html>`)
+    const filtro = (c: string, label: string) => html`<a class="btn btn-s btn-sm" href="/directory${term || c ? `?${new URLSearchParams({ ...(term ? { q: term } : {}), ...(c ? { cat: c } : {}) })}` : ''}"${cat === c ? raw(' aria-current="page" style="background:var(--lima)"') : ''}>${label}</a>`
+    const body = html`<section class="hero"><div class="wrap"><span class="chip chip-azul">${t('dir.title')}</span><h1 class="h1" style="font-size:clamp(34px,8vw,56px);margin:14px 0 12px">${t('s6.dir_h')} <span class="hl-verde">túbio</span>.</h1><p class="lead">${t('dir.desc')}</p></div></section>
+<section class="sec" style="border-top:0"><div class="wrap"><form role="search" class="grid" style="gap:12px;margin-bottom:24px" action="/directory" method="get"><div class="fld" style="max-width:520px"><label class="sr" for="dq">${t('links.search')}</label><div style="display:flex;gap:8px"><input class="in" id="dq" name="q" type="search" value="${term}" placeholder="${t('s6.dir_ph')}" style="flex:1;min-width:0">${cat ? html`<input type="hidden" name="cat" value="${cat}">` : ''}<button class="btn" type="submit">${t('links.filter')}</button></div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap" role="group" aria-label="${t('dir.category')}">${filtro('', t('dir.all'))}${CATS.map((c) => filtro(c, t(`dir.cat_${c}`)))}</div></form>
+${rows.length === 0 ? html`<div class="al info" role="status">${ic('info')}<div>${t('dir.empty')}</div></div>` : html`<div class="grid g3">${rows.slice(0, 24).map((r) => html`<a class="card" href="${linkUrl(deps.config.baseUrl, r)}" style="text-decoration:none;display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:start">
+  ${r.avatar ? html`<img src="${imageUrl(r.avatar)}" alt="" loading="lazy" width="56" height="56" style="border-radius:8px;object-fit:cover">` : html`<span class="av" style="width:56px;height:56px;border-radius:8px;background:var(--soft);font:700 22px/1 var(--fd)" aria-hidden="true">${(r.title || r.alias).charAt(0).toUpperCase()}</span>`}
+  <span style="display:grid;gap:4px;min-width:0"><h3 class="h4">${r.title || r.alias}${r.is_verified ? html` <span class="chip chip-verde">${t('s6.dir_verified')}</span>` : ''}</h3>${r.descr ? html`<span class="p sm">${r.descr}</span>` : ''}${r.cat ? html`<span><span class="chip chip-azul">${t(`dir.cat_${r.cat}`)}</span></span>` : ''}</span></a>`)}</div>`}
+<nav class="btns row" style="margin-top:24px" aria-label="${t('s6.dir_pages')}">${page > 1 ? html`<a class="btn btn-s btn-sm" href="${qs(page - 1)}">← ${t('links.prev')}</a>` : ''}${more ? html`<a class="btn btn-s btn-sm" href="${qs(page + 1)}">${t('links.next')} →</a>` : ''}</nav></div></section>`
+    return sendHtml(reply, siteShell(ctx, { title: `${t('dir.title')} · túbio`, description: t('dir.desc'), path: '/directory', body, mainHref: ctx.user ? '/panel' : '/register', nav: 'dir' }))
   })
 
   app.post('/admin/links/:id/dir-hide', { preHandler: adminGuard }, async (req, reply) => {

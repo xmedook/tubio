@@ -130,11 +130,11 @@ describe('marca «túbio»', () => {
     expect(home).toContain('<meta property="og:image" content="http://tubio.test/_/static/img/og-tubio.png?v=')
     expect(home).toContain('<meta name="twitter:card" content="summary_large_image">')
     expect((await v.get('/salud')).body).toContain('og:image')
-    // el panel y las páginas con el diseño viejo usan el wordmark con versión clara y oscura
+    // acceso, ayuda y legales con el diseño nuevo (el panel sigue con el wordmark claro/oscuro)
     const login = (await v.get('/login')).body
     expect(login).toContain('tubio-logotipo-tinta.svg') // acceso con el diseño nuevo: wordmark claro en el panel oscuro
     expect(login).toContain('tubio-logotipo-papel.svg')
-    expect((await v.get('/help')).body).toMatch(/<picture><source media="\(prefers-color-scheme: dark\)" srcset="[^"]*tubio-logotipo-tinta\.svg[^"]*"><img class="wm" src="[^"]*tubio-logotipo-papel\.svg/)
+    expect((await v.get('/help')).body).toContain('tubio-logotipo-papel.svg') // ayuda, legales, directorio y errores ya usan el sitio nuevo
     // /favicon.ico es el .ico real (16/32/48), no una redirección
     const ico = await v.get('/favicon.ico')
     expect(ico.statusCode).toBe(200)

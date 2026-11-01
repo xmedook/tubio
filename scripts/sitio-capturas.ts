@@ -12,7 +12,8 @@ import { chromium } from 'playwright'
 
 const args = process.argv.slice(2)
 const out = resolve(args[0] ?? 'capturas')
-const rutas = args.slice(1).filter((a) => a.startsWith('/'))
+// «/ruta=404»: se espera ese estado (p. ej. la página de error)
+const rutas = args.slice(1).filter((a) => a.startsWith('/')).map((a) => { const m = /^(.*)=(\d{3})$/.exec(a); return { path: m?.[1] ?? a, esperado: m ? Number(m[2]) : 200 } })
 const abierto = args.includes('--abierto')
 const locale = args.includes('--en') ? 'en' : 'es-MX'
 const PORT = 3197
@@ -36,9 +37,9 @@ try {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: w === 390 ? 2 : 1, locale })
     const page = await ctx.newPage()
     const errores: string[] = []
-    page.on('console', (m) => { if (m.type() === 'error' && !((args.includes('--asistida') || args.includes('--acceso')) && /status of 4\d\d/.test(m.text()))) errores.push(m.text()) }) // el 422 del formulario enviado vacío es lo esperado
+    page.on('console', (m) => { if (m.type() === 'error' && !((args.includes('--asistida') || args.includes('--acceso')) && /status of 4\d\d/.test(m.text())) && !(rutas.some((r) => r.esperado !== 200) && /status of 4\d\d/.test(m.text()))) errores.push(m.text()) }) // el 422 del formulario enviado vacío es lo esperado
     page.on('pageerror', (e) => errores.push(e.message))
-    for (const path of rutas) {
+    for (const { path, esperado } of rutas) {
       const id = path.replace(/^\//, '').replace(/[/?=&]+/g, '-') || 'inicio'
       const r = await page.goto(`http://127.0.0.1:${PORT}${path}`, { waitUntil: 'networkidle' })
       await page.evaluate(() => document.querySelectorAll('img[loading=lazy]').forEach((i) => ((i as HTMLImageElement).loading = 'eager')))
@@ -47,7 +48,7 @@ try {
       const ancho = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, vp: window.innerWidth }))
       const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
       const estado = r?.status() ?? 0
-      const fallas = [estado !== 200 ? `HTTP ${estado}` : '', ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
+      const fallas = [estado !== esperado ? `HTTP ${estado}` : '', ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
       if (fallas.length) mal++
       console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${path}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
     }
