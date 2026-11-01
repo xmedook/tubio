@@ -85,6 +85,11 @@ describe('reporte', () => {
     expect(json.totals.views).toBe(4)
     const all = await a.get('/panel/stats?from=2026-10-01&to=2026-10-31')
     expect(all.body).toContain('Enlaces con más actividad')
+    // la gráfica trae su tabla alternativa con los mismos datos, día por día (el rango llega hasta hoy)
+    expect(all.body).toContain('Ver los datos en tabla')
+    const tabla = /<details class="chart-data">.*?<\/details>/s.exec(all.body)![0]
+    expect((tabla.match(/<tr><th scope="row">/g) ?? []).length).toBeGreaterThan(20)
+    expect(tabla).toMatch(/<th scope="col">Día<\/th><th scope="col">[^<]+<\/th><th scope="col">[^<]+<\/th><th scope="col">[^<]+<\/th>/)
   })
 
   it('estadísticas públicas sólo si el dueño las activa', async () => {

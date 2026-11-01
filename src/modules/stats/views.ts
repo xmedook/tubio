@@ -51,6 +51,10 @@ export function chartSvg(ctx: Ctx, r: Report): SafeHtml {
 </svg></div>
 <div class="chart-x"><span>${n ? shortDay(locale, r.series[0]!.day) : ''}</span><span>${mid ? shortDay(locale, mid.day) : ''}</span><span>${n ? shortDay(locale, r.series[n - 1]!.day) : ''}</span></div>
 <figcaption class="legend"><span class="k k-views"></span>${t('stats.views')} <span class="k k-clicks"></span>${t('stats.clicks')} <span class="k k-visitors"></span>${t('stats.visitors')}</figcaption>
+<details class="chart-data"><summary>${t('s9.chart_table')}</summary>
+<div class="table-scroll" tabindex="0" role="region" aria-label="${t('s9.chart_table')}"><table class="data"><caption class="sr-only">${t('stats.chart_label', { from: r.range.from, to: r.range.to })}</caption>
+<thead><tr><th scope="col">${t('s9.day')}</th><th scope="col">${t('stats.views')}</th><th scope="col">${t('stats.clicks')}</th><th scope="col">${t('stats.visitors')}</th></tr></thead>
+<tbody>${r.series.map((s) => html`<tr><th scope="row">${shortDay(locale, s.day)}</th><td>${formatNumber(locale, s.views)}</td><td>${formatNumber(locale, s.clicks)}</td><td>${formatNumber(locale, s.visitors)}</td></tr>`)}</tbody></table></div></details>
 </figure>`
 }
 

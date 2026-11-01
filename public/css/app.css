@@ -776,3 +776,9 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .kpi-s { font-size: 1.25rem; line-height: 1.2; overflow-wrap: anywhere; }
 .row-3 { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; margin-top: .3rem; }
 .tag-ok { background: #79e6a0; color: #10120d; }
+
+/* 9b · gráfica con tabla alternativa */
+.chart-data { margin-top: .75rem; }
+.chart-data summary { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; font-weight: 600; }
+.chart-data .table-scroll { max-height: 18rem; overflow: auto; }
+.chart-data th[scope="row"] { text-align: left; font-weight: 500; }

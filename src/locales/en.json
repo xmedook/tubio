@@ -2402,5 +2402,7 @@
   "s9.k_best_n": "{n} visits",
   "s9.k_plan": "Plan",
   "s9.k_plan_l": "See plans",
-  "s9.on": "Live"
+  "s9.on": "Live",
+  "s9.chart_table": "See the data as a table",
+  "s9.day": "Day"
 }
