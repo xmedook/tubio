@@ -36,7 +36,7 @@ try {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: w === 390 ? 2 : 1, locale })
     const page = await ctx.newPage()
     const errores: string[] = []
-    page.on('console', (m) => { if (m.type() === 'error') errores.push(m.text()) })
+    page.on('console', (m) => { if (m.type() === 'error' && !(args.includes('--asistida') && /status of 422/.test(m.text()))) errores.push(m.text()) }) // el 422 del formulario enviado vacío es lo esperado
     page.on('pageerror', (e) => errores.push(e.message))
     for (const path of rutas) {
       const id = path.replace(/^\//, '').replace(/[/?=&]+/g, '-') || 'inicio'
@@ -50,6 +50,27 @@ try {
       const fallas = [estado !== 200 ? `HTTP ${estado}` : '', ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
       if (fallas.length) mal++
       console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${path}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
+    }
+    if (args.includes('--asistida')) {
+      // flujo real del formulario: enviar vacío (errores) y enviar bien (folio). PoW apagado en la instancia desechable.
+      const revisa = async (id: string) => {
+        await page.waitForTimeout(200)
+        await page.screenshot({ path: join(out, `${id}-${nombre}.png`), fullPage: true })
+        const ancho = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, vp: window.innerWidth }))
+        const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze()
+        const fallas = [ancho.doc > ancho.vp ? `desborde ${ancho.doc}>${ancho.vp}` : '', ...axe.violations.map((v) => `axe ${v.id}: ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`)].filter(Boolean)
+        if (fallas.length) mal++
+        console.log(`${fallas.length ? '✗' : '✓'} ${nombre} ${id}${fallas.length ? ' — ' + fallas.join('; ') : ''}`)
+      }
+      await page.goto(`http://127.0.0.1:${PORT}/armamos-por-ti`, { waitUntil: 'networkidle' })
+      await page.fill('#a-wa', '33 1234 5678')
+      await Promise.all([page.waitForLoadState('load'), page.click('button[type=submit]')])
+      await revisa('armamos-por-ti-error')
+      await page.fill('#a-biz', 'Atelier Nácar')
+      await page.selectOption('#a-giro', 'belleza')
+      await page.check('input[name=priv]')
+      await Promise.all([page.waitForLoadState('load'), page.click('button[type=submit]')])
+      await revisa('armamos-por-ti-enviado')
     }
     if (errores.length) { mal++; console.log(`✗ ${nombre} errores de consola: ${[...new Set(errores)].slice(0, 3).join(' | ')}`) }
     await ctx.close()

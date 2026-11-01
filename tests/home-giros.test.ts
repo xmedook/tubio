@@ -163,7 +163,7 @@ describe('páginas por giro', () => {
 })
 
 describe('«lo armamos por ti»', () => {
-  const ok = { giro: 'restaurante', business: 'Fonda Doña Lupe', name: 'Lupe', whatsapp: '312 123 4567', email: '', city: 'Colima', offer: 'Comida corrida', links: 'https://instagram.com/fondalupe' }
+  const ok = { giro: 'restaurante', business: 'Fonda Doña Lupe', name: 'Lupe', whatsapp: '312 123 4567', email: '', city: 'Colima', offer: 'Comida corrida', links: 'https://instagram.com/fondalupe', priv: '1' }
 
   it('guarda la solicitud con el WhatsApp normalizado y confirma', async () => {
     const t = await makeApp()
@@ -171,12 +171,40 @@ describe('«lo armamos por ti»', () => {
     expect((await v.get('/armamos-por-ti')).statusCode).toBe(200)
     const r = await v.post('/armamos-por-ti', ok)
     expect(r.statusCode).toBe(200)
-    expect(r.body).toContain('Recibimos tu solicitud')
+    expect(r.body).toContain('Solicitud recibida')
+    expect(r.body).toContain('APT-0001') // el folio sale del registro guardado
     const row = t.deps.db.prepare('SELECT * FROM assisted_requests').get() as Record<string, unknown>
     expect(row.business).toBe('Fonda Doña Lupe')
     expect(row.whatsapp).toBe('523121234567')
     expect(row.links).toBe('https://instagram.com/fondalupe')
     expect(row.status).toBe('new')
+  })
+
+  it('lo que el diseño pide (bloques, horario) viaja en el texto para el equipo; @usuario se vuelve enlace de Instagram', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    const r = await v.post('/armamos-por-ti', { ...ok, links: '@fondalupe', b_wa: '1', b_gal: '1', hora: 't' })
+    expect(r.statusCode).toBe(200)
+    const row = t.deps.db.prepare('SELECT offer, links FROM assisted_requests').get() as { offer: string; links: string }
+    expect(row.links).toBe('https://instagram.com/fondalupe')
+    expect(row.offer).toContain('Comida corrida')
+    expect(row.offer).toContain('[Bloques que quiere] Botón de WhatsApp, Galería de fotos')
+    expect(row.offer).toContain('[Prefiere que le escribamos] por la tarde (15:00 a 19:00)')
+  })
+
+  it('sin aceptar el aviso de privacidad no se guarda y el error sale con texto e ícono, no solo color', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    await v.get('/armamos-por-ti')
+    const r = await v.post('/armamos-por-ti', { ...ok, priv: '', business: '' })
+    expect(r.statusCode).toBe(422)
+    expect(r.body).toContain('Revisa 2 campos.')
+    expect(r.body).toMatch(/<p class="msg-e" id="e-business"><svg class="ic" aria-hidden="true"><use href="#i-alert"\/><\/svg><span>Escribe el nombre de tu negocio\./)
+    expect(r.body).toContain('Acepta el aviso de privacidad')
+    expect(r.body).toContain('aria-invalid="true"')
+    expect(r.body).toMatch(/name="whatsapp"[^>]*value="312 123 4567"|value="312 123 4567"[^>]*name="whatsapp"/) // conserva lo escrito
+    expect(t.deps.db.prepare('SELECT COUNT(*) FROM assisted_requests').pluck().get()).toBe(0)
   })
 
   it('sin forma de contacto, sin giro o sin nombre del negocio no guarda nada', async () => {
