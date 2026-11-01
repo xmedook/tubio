@@ -94,7 +94,7 @@ export function authSite(ctx: Ctx, o: AuthSiteOpts): SafeHtml {
   const { t, locale } = ctx
   const other = locale === 'es-MX' ? 'en' : 'es-MX'
   return html`<html lang="${locale}">
-${siteHead(ctx, { title: `${o.title} · túbio`, description: t('s3.side_h'), path: o.path, noindex: o.noindex ?? true, scripts: o.scripts })}
+${siteHead(ctx, { title: `${o.title} · túbio`, description: t('s3.side_h'), path: o.path, noindex: o.noindex ?? true, scripts: [...(ctx.pow() ? ['pow.js'] : []), ...(o.scripts ?? [])] })}
 <body>
 <a class="skip" href="#main">${t('a11y.skip')}</a>
 ${sprite()}

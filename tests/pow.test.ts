@@ -42,4 +42,13 @@ describe('prueba de trabajo', () => {
     const res = await a.post('/register', { accept: '1', email: 'x@example.com', password: 'contrasena-segura', _pow: solve(JSON.parse(raw)) })
     expect(res.statusCode).toBe(303)
   })
+  it('toda página con un formulario que pide la prueba carga pow.js (sin él nadie puede registrarse ni pedir ayuda)', async () => {
+    const t = await makeApp({ config: loadConfig({ env: 'test', dbPath: ':memory:', baseUrl: 'http://tubio.test', dataDir: '/tmp/tubio-test', powMax: 300 }) })
+    const a = new Agent(t.app)
+    for (const ruta of ['/register', '/forgot', '/help/contact', '/armamos-por-ti']) {
+      const body = (await a.get(ruta)).body
+      expect(body, ruta).toContain('data-pow=')
+      expect(body, ruta).toMatch(/<script type="module" src="\/_\/static\/js\/pow\.js\?v=\d+"/)
+    }
+  })
 })
