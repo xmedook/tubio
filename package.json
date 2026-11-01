@@ -29,7 +29,9 @@
     "mobile-audit": "node scripts/mobile-audit.ts",
     "ejemplos-img": "node scripts/ejemplos-img.ts",
     "home-capturas": "node scripts/home-capturas.ts",
-    "marca-publica": "node scripts/marca-publica.ts"
+    "marca-publica": "node scripts/marca-publica.ts",
+    "logo-aplicar": "node scripts/logo-aplicar.ts",
+    "og-image": "node scripts/og-image.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.3",

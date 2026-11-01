@@ -115,9 +115,10 @@ describe('marca «túbio»', () => {
     const t = await makeApp()
     const v = new Agent(t.app)
     const home = (await v.get('/')).body
-    // cabecera y pie con el wordmark (viewBox 301×111 → 81×30 y 59×22), sin el texto «tú<span>bio</span>» de antes
+    // cabecera y pie con el wordmark (las medidas salen del viewBox del SVG), sin el texto «tú<span>bio</span>» de antes
+    const { WORDMARK_RATIO } = await import('../src/lib/wordmark.ts')
     expect((home.match(/tubio-logotipo-papel\.svg/g) ?? []).length).toBe(2)
-    expect(home).toMatch(/<img class="wm" src="[^"]*tubio-logotipo-papel\.svg[^"]*" width="81" height="30" alt="">/)
+    expect(home).toMatch(new RegExp(`<img class="wm" src="[^"]*tubio-logotipo-papel\\.svg[^"]*" width="${Math.round(30 * WORDMARK_RATIO)}" height="30" alt="">`))
     expect(home).not.toContain('tú<span>bio</span>')
     // íconos y manifiesto en el <head>
     expect(home).toMatch(/<link rel="icon" href="\/_\/static\/img\/favicon\.svg\?v=\d+" type="image\/svg\+xml">/)
@@ -159,7 +160,7 @@ describe('marca «túbio»', () => {
     // el correo lleva el logo en PNG (los clientes de correo no pintan SVG) y el texto alternativo con acento
     const { mailHtml } = await import('../src/lib/mail.ts')
     const correo = mailHtml({ to: 'x@example.com', subject: 's', text: 'Hola' })
-    expect(correo).toMatch(/<img src="https?:\/\/[^"]+\/_\/static\/img\/brand\/tubio-logotipo-papel\.png" width="94" height="35" alt="túbio"/)
+    expect(correo).toMatch(new RegExp(`<img src="https?://[^"]+/_/static/img/brand/tubio-logotipo-papel\\.png" width="94" height="${Math.round(94 / WORDMARK_RATIO)}" alt="túbio"`))
     expect(correo).not.toContain('tu<span')
   })
 })

@@ -1,11 +1,12 @@
 import { html, type SafeHtml } from '../lib/html.ts'
+import { WORDMARK_RATIO } from '../lib/wordmark.ts'
 import { ASSET_VERSION } from './layout.ts'
 
 /**
  * Marca «túbio» (logo final de design, 1-nov-2026, opción B con acento). Archivos en public/img/brand/ y public/img/favicon.*.
- * Wordmark: viewBox 301×111. «papel» = tinta sobre fondo claro; «tinta» = claro con la tilde y el punto en lima, sobre fondo oscuro.
+ * Wordmark: la proporción sale del viewBox del SVG (src/lib/wordmark.ts). «papel» = tinta sobre fondo claro; «tinta» = claro con la tilde y el punto en lima, sobre fondo oscuro.
  */
-const RATIO = 300.99 / 111
+const RATIO = WORDMARK_RATIO
 
 /** Wordmark SVG. `tono`: 'auto' (claro/oscuro del sistema), 'papel' (fondo claro) o 'tinta' (fondo oscuro). El acento y el punto ya vienen en el archivo. */
 export function wordmark(h: number, tono: 'auto' | 'papel' | 'tinta' = 'papel', cls = 'wm'): SafeHtml {

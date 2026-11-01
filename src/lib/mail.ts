@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import nodemailer, { type Transporter } from 'nodemailer'
 
 import { esc } from './html.ts'
+import { WORDMARK_RATIO } from './wordmark.ts'
 
 /** button: texto del botón para la línea que sea sólo una URL */
 export type Mail = { to: string; subject: string; text: string; button?: string; replyTo?: string }
@@ -26,7 +27,7 @@ export function mailHtml(mail: Mail): string {
   return `<!doctype html><html><body style="margin:0;background:#F2F0EE;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1F1A1C">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F2F0EE;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #D6CFCC;border-radius:12px">
-<tr><td style="padding:28px 28px 8px"><img src="${LOGO_URL}" width="94" height="35" alt="túbio" style="display:block;border:0;outline:none;font-size:22px;font-weight:800;color:#1F1A1C"></td></tr>
+<tr><td style="padding:28px 28px 8px"><img src="${LOGO_URL}" width="94" height="${Math.round(94 / WORDMARK_RATIO)}" alt="túbio" style="display:block;border:0;outline:none;font-size:22px;font-weight:800;color:#1F1A1C"></td></tr>
 <tr><td style="padding:8px 28px 20px;font-size:15px;line-height:1.55">${blocks.join('')}</td></tr>
 </table>
 <p style="font-size:12px;color:#5E5559;margin:16px 0 0">tubio.link</p>
