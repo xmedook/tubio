@@ -185,3 +185,4 @@ fieldset{border:0;padding:0;min-width:0}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
 .tel img{width:100%;height:100%;object-fit:cover;object-position:top}
+.auth-side .ck .ic{color:var(--lima)}

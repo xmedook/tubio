@@ -142,6 +142,23 @@ describe('recuperar contraseña', () => {
     await loginAgent(t, 'ana@example.com', 'nueva-contrasena-1')
   })
 
+  it('al repetir la contraseña, si no coincide no la cambia y avisa con texto e ícono; el enlace sigue sirviendo', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = new Agent(t.app)
+    await a.get('/forgot')
+    const sent = await a.post('/forgot', { email: 'ana@example.com' })
+    expect(sent.body).toContain('Enlace enviado a ana@example.com') // el diseño nuevo confirma a qué correo (el que la persona escribió)
+    const link = /\/reset\/[\w-]+/.exec(t.mailer.sent.at(-1)!.text)![0]
+    const page = (await a.get(link)).body
+    expect(page).toContain('name="password2"')
+    const bad = await a.post(link, { password: 'nueva-contrasena-1', password2: 'otra-contrasena-12' })
+    expect(bad.statusCode).toBe(422)
+    expect(bad.body).toMatch(/<p class="msg-e" id="f-password2-e"><svg class="ic" aria-hidden="true"><use href="#i-alert"\/><\/svg><span>Las contraseñas no coinciden\./)
+    expect((await a.get(link)).statusCode).toBe(200) // el token no se gastó
+    expect((await a.post(link, { password: 'nueva-contrasena-1', password2: 'nueva-contrasena-1' })).statusCode).toBe(303)
+  })
+
   it('misma respuesta para correos que no existen', async () => {
     const t = await makeApp()
     const a = new Agent(t.app)

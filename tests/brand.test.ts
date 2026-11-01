@@ -131,7 +131,10 @@ describe('marca «túbio»', () => {
     expect(home).toContain('<meta name="twitter:card" content="summary_large_image">')
     expect((await v.get('/salud')).body).toContain('og:image')
     // el panel y las páginas con el diseño viejo usan el wordmark con versión clara y oscura
-    expect((await v.get('/login')).body).toMatch(/<picture><source media="\(prefers-color-scheme: dark\)" srcset="[^"]*tubio-logotipo-tinta\.svg[^"]*"><img class="wm" src="[^"]*tubio-logotipo-papel\.svg/)
+    const login = (await v.get('/login')).body
+    expect(login).toContain('tubio-logotipo-tinta.svg') // acceso con el diseño nuevo: wordmark claro en el panel oscuro
+    expect(login).toContain('tubio-logotipo-papel.svg')
+    expect((await v.get('/help')).body).toMatch(/<picture><source media="\(prefers-color-scheme: dark\)" srcset="[^"]*tubio-logotipo-tinta\.svg[^"]*"><img class="wm" src="[^"]*tubio-logotipo-papel\.svg/)
     // /favicon.ico es el .ico real (16/32/48), no una redirección
     const ico = await v.get('/favicon.ico')
     expect(ico.statusCode).toBe(200)
@@ -160,7 +163,14 @@ describe('marca «túbio»', () => {
     // el correo lleva el logo en PNG (los clientes de correo no pintan SVG) y el texto alternativo con acento
     const { mailHtml } = await import('../src/lib/mail.ts')
     const correo = mailHtml({ to: 'x@example.com', subject: 's', text: 'Hola' })
-    expect(correo).toMatch(new RegExp(`<img src="https?://[^"]+/_/static/img/brand/tubio-logotipo-papel\\.png" width="94" height="${Math.round(94 / WORDMARK_RATIO)}" alt="túbio"`))
+    expect(correo).toMatch(new RegExp(`<img src="https?://[^"]+/_/static/img/brand/tubio-logotipo-papel\\.png" width="150" height="${Math.round(150 / WORDMARK_RATIO)}" alt="túbio"`))
     expect(correo).not.toContain('tu<span')
+    // diseño del bloque 3: 600 px, solo Arial, botón lima con borde tinta, pie con privacidad y ayuda
+    expect(correo).toContain('max-width:600px')
+    expect(correo).not.toMatch(/system-ui|Roboto|Segoe/)
+    const conBoton = mailHtml({ to: 'x@example.com', subject: 'Confirma tu correo', text: 'Hola\n\nhttps://tubio.link/verify/abc', button: 'Confirmar mi correo' })
+    expect(conBoton).toContain('bgcolor="#d6f23a" style="border:2px solid #10120d')
+    expect(conBoton).toContain('<h1')
+    expect(conBoton).toContain('/privacy')
   })
 })

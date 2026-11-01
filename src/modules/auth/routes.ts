@@ -232,7 +232,7 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
       })
     }
     // misma respuesta exista o no la cuenta
-    return sendHtml(reply, forgotPage(req.ctx, {}, {}, true))
+    return sendHtml(reply, forgotPage(req.ctx, {}, {}, true, r.data.email))
   })
 
   app.get('/reset/:token', async (req, reply) => {
@@ -252,6 +252,10 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     }
     const r = parseForm(z.object({ password: passwordSchema }), req.body)
     if (!r.ok) return sendHtml(reply, resetPage(req.ctx, token, r.errors), 422)
+    // el diseño pide repetir la contraseña; si el campo viene (formulario viejo sin él, no), debe coincidir
+    if (typeof (req.body as Record<string, unknown> | undefined)?.password2 === 'string' && field(req.body, 'password2') !== r.data.password) {
+      return sendHtml(reply, resetPage(req.ctx, token, { password2: 's3.rst_mismatch' }), 422)
+    }
     const userId = consumeAuthToken(db, token, 'reset_password', deps.now()) as number
     // quien recibió el correo demostró ser dueño del buzón: también queda verificado
     const user = findUserById(db, userId)
