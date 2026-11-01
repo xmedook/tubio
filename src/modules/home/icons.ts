@@ -22,6 +22,7 @@ const I: Record<string, string> = {
   cal: "<rect x=\"4\" y=\"5.5\" width=\"16\" height=\"14\" rx=\"2\"/><path d=\"M4 10h16M9 3.5v4M15 3.5v4\"/>",
   copy: "<rect x=\"8\" y=\"8\" width=\"11\" height=\"11\" rx=\"2\"/><path d=\"M5 15V6a1 1 0 0 1 1-1h9\"/>",
   check: "<path d=\"M5 12.5l4.5 4.5L19 7.5\"/>",
+  arrow: "<path d=\"M5 12h14M13 6l6 6-6 6\"/>",
   ig: "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"3.6\"/><circle cx=\"17\" cy=\"7\" r=\".9\" fill=\"currentColor\" stroke=\"none\"/>",
   tt: "<path d=\"M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5\"/><path d=\"M14 4c.5 2.5 2.4 4 5 4.2\"/>",
   fb: "<path d=\"M14.5 20v-7h2.4l.4-2.8h-2.8V8.5c0-.8.3-1.4 1.4-1.4h1.5V4.6c-.3 0-1.2-.1-2.2-.1-2.2 0-3.6 1.3-3.6 3.8v1.9H9.2V13h2.4v7\"/>",

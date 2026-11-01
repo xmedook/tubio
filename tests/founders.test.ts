@@ -10,7 +10,8 @@ describe('fundadores', () => {
     const t = await makeApp()
     setSetting(t.deps.db, 'founders_max', 2)
     const a = new Agent(t.app)
-    expect((await a.get('/')).body).toContain('data-quedan>2<')
+    // el home nuevo (diseño de design, 31-oct) ya no muestra el contador ni los planes: el precio sigue como marcador
+    expect((await a.get('/')).body).not.toContain('data-fundadores')
     await a.get('/register')
     await a.post('/register', { email: 'uno@example.com', password: 'contrasena-segura', accept: '1' })
     const link = /\/verify\/[\w-]+/.exec(t.mailer.sent.at(-1)!.text)![0]

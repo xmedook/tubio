@@ -19,6 +19,7 @@ import { warmFeedCache } from './blocks-feeds.ts'
 import { BLOCK_BY_TYPE, blockTarget, MAX_BLOCKS_PER_PAGE } from './blocks.ts'
 import { VIDEO_MAX_BYTES } from './blocks-minisitio.ts'
 import { designSchema, readDesign, themeById, WEB_FONTS, type Design } from './design.ts'
+import { HOME_FONTS } from '../home/fonts.ts'
 import sharp from 'sharp'
 import { esc } from '../../lib/html.ts'
 import { contrastInk } from '../../lib/qr.ts'
@@ -128,6 +129,7 @@ export function registerBio(app: FastifyInstance, deps: AppDeps): void {
   // archivos de fuentes web (sólo los de la lista blanca)
   const fontFiles = new Map<string, string>()
   for (const f of Object.values(WEB_FONTS)) for (const x of f?.faces ?? []) fontFiles.set(x.file, x.pkg)
+  for (const x of HOME_FONTS) fontFiles.set(x.file, x.pkg) // las del home nuevo
   const req_ = createRequire(import.meta.url)
   app.get('/_/fonts/:file', async (req, reply) => {
     const file = (req.params as { file: string }).file

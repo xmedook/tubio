@@ -245,6 +245,7 @@ section > h2, .f-txt h2, .privacidad h2 { font: 700 clamp(28px, 6.4vw, 40px)/1.1
 @media (min-width: 1080px) { .giro-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 
 .cierre-b { display: flex; flex-wrap: wrap; gap: 12px; }
+.cierre-b .btn { flex: 1 1 220px; max-width: 100%; white-space: normal; text-align: center; justify-content: center; }
 .barra-m { position: fixed; inset: auto 0 0 0; z-index: 15; display: flex; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1px solid var(--line); }
 .barra-m .btn { flex: 1; }
 @media (max-width: 767px) { body.con-barra { padding-bottom: 76px; } }

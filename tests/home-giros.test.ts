@@ -4,32 +4,107 @@ import { aliasError } from '../src/lib/alias.ts'
 import { setSetting } from '../src/modules/settings/repo.ts'
 import { Agent, loginAgent, makeApp, seedUser } from './helpers.ts'
 
-describe('portada nueva', () => {
-  it('trae los chips de giro, los ejemplos vivos, los pasos y la alternativa «lo armamos por ti»', async () => {
+describe('portada nueva (diseño de design, sección C)', () => {
+  it('trae el titular, la prueba de la liga, los 6 ejemplos reales con su vista, las páginas por giro, lo que incluye, los pasos, el precio como marcador y el FAQ', async () => {
     const t = await makeApp()
     const v = new Agent(t.app)
-    const body = (await v.get('/')).body
-    expect(body).toContain('que termina en WhatsApp')
+    const r = await v.get('/')
+    const body = r.body
+    expect(r.statusCode).toBe(200)
+    expect(body).toContain('Tu negocio, en <mark class="mk">una liga</mark> que da gusto abrir.')
+    expect(body).toContain('id="neg"')
+    expect(body).toMatch(/tubio\.test\/<b id="slug">tunegocio<\/b>/)
     for (const g of GIROS) {
-      expect(body).toContain(`id="g-${g}"`)
-      expect(body).toContain(`href="/${GIRO_META[g].example}"`)
-      expect(body).toContain(`href="/${GIRO_META[g].slug}"`)
+      expect(body).toContain(`href="/${GIRO_META[g].example}"`) // ejemplo vivo
+      expect(body).toContain(`/_/static/img/ejemplos/${g}.webp`) // su vista
+      expect(body).toContain(`href="/${GIRO_META[g].slug}"`) // página por giro
     }
-    expect(body).toContain('name="giro"')
-    expect(body).toContain('href="/armamos-por-ti"')
-    expect(body).toContain('id="como"')
-    expect(body).toContain('/_/static/js/home.js')
-    expect(body).toContain('class="barra-m"')
+    expect((body.match(/class="ej"/g) ?? []).length).toBe(6)
+    for (const id of ['ejemplos', 'incluye', 'como', 'precio', 'preguntas', 'cierre']) expect(body).toContain(`id="${id}"`)
+    expect((body.match(/<li><svg[^>]*><path d="M5 12\.5l4\.5 4\.5L19 7\.5"\/><\/svg><div><b>/g) ?? []).length).toBe(8)
+    expect((body.match(/<details>/g) ?? []).length).toBe(4)
+    // el precio sigue como marcador: ninguna cifra real ni los planes del panel
+    expect(body).toContain('aria-label="Precio por definir"')
+    expect(body).not.toMatch(/\$\s?[1-9]\d{2,}/)
+    expect(body).not.toContain('class="plan')
+    expect(body).not.toContain('data-fundadores')
+    // camino principal: «lo armamos por ti», con el nombre que se escribió
+    expect(body).toContain('href="/armamos-por-ti" data-negocio-href="/armamos-por-ti"')
     expect(body).toMatch(/<link rel="canonical" href="http:\/\/tubio\.test\/">/)
   })
 
-  it('el WhatsApp de ventas sólo aparece si el admin lo configura (cabecera, cierre y barra móvil)', async () => {
+  it('estáticos versionados, fuentes propias, sin estilos ni scripts en línea y con la CSP con nonce', async () => {
     const t = await makeApp()
     const v = new Agent(t.app)
-    expect((await v.get('/')).body).not.toContain('wa.me/')
+    const r = await v.get('/')
+    const body = r.body
+    expect(body).toMatch(/\/_\/static\/css\/home-v3\.css\?v=\d+/)
+    expect(body).toMatch(/<script type="module" src="\/_\/static\/js\/home-v3\.js\?v=\d+" nonce="[^"]+">/)
+    expect(body).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>/) // ningún script en línea
+    expect(body).not.toMatch(/\sstyle="/) // ni atributos de estilo
+    expect(body).not.toContain('fonts.googleapis.com')
+    expect(body).toContain('/_/fonts/bricolage-grotesque-latin-wght-normal.woff2')
+    const csp = String(r.headers['content-security-policy'])
+    expect(csp).toContain("script-src 'self' 'nonce-")
+    expect(csp).toContain("font-src 'self'")
+    for (const f of ['bricolage-grotesque-latin-wght-normal.woff2', 'figtree-latin-wght-normal.woff2']) {
+      const font = await v.get(`/_/fonts/${f}`)
+      expect(font.statusCode).toBe(200)
+      expect(font.headers['content-type']).toBe('font/woff2')
+    }
+    for (const g of GIROS) expect((await v.get(`/_/static/img/ejemplos/${g}.webp`)).statusCode).toBe(200)
+    expect((await v.get('/_/static/css/home-v3.css')).body).toContain('#d6f23a')
+  })
+
+  it('lleva a quien entra al panel, al idioma y al código fuente (AGPL) desde cabecera y pie', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    const body = (await v.get('/')).body
+    expect(body).toContain('href="/login"')
+    expect(body).toContain('href="/lang/en?next=%2F"')
+    expect(body).toContain('href="/source"')
+    for (const p of ['/privacy', '/terms', '/acceptable-use', '/security', '/directory', '/blog', '/help']) expect(body).toContain(`href="${p}"`)
+    const en = new Agent(t.app)
+    await en.get('/lang/en')
+    const b = (await en.get('/')).body
+    expect(b).toContain('Your business, on <mark class="mk">one link</mark> that')
+    expect(b).toContain('Make it for my business')
+    expect(b).toContain('Every business, its own style.')
+    expect(b).not.toContain('Tu negocio, en')
+  })
+
+  it('«Hazlo para mi negocio» abre «lo armamos por ti» ya con el nombre que se escribió', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    const f = (await v.get('/armamos-por-ti?negocio=Caf%C3%A9%20La%20Ceiba&giro=salud')).body
+    expect(f).toMatch(/name="business" value="Café La Ceiba"/)
+    expect(f).toMatch(/<option value="salud" selected>/)
+    expect((await v.get('/armamos-por-ti?negocio=' + 'x'.repeat(500))).body).toMatch(/name="business" value="x{120}"/)
+  })
+
+  it('el registro propio sale como alternativa sólo si está abierto; cerrado, queda la lista de espera', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    setSetting(t.deps.db, 'registration_open', false)
+    const cerrado = (await v.get('/')).body
+    expect(cerrado).not.toContain('data-negocio-param="alias"')
+    expect(cerrado).toContain('action="/waitlist"')
+    setSetting(t.deps.db, 'registration_open', true)
+    const abierto = (await v.get('/')).body
+    expect(abierto).toContain('data-negocio-param="alias"')
+    expect(abierto).not.toContain('action="/waitlist"')
+  })
+
+  it('el WhatsApp de ventas sólo aparece si el admin lo configura (botón de la portada, barra fija y cierre)', async () => {
+    const t = await makeApp()
+    const v = new Agent(t.app)
+    const sin = (await v.get('/')).body
+    expect(sin).not.toContain('wa.me/')
+    expect(sin).not.toContain('Hablar con una persona')
     setSetting(t.deps.db, 'sales_whatsapp', '5213121234567')
     const body = (await v.get('/')).body
-    expect((body.match(/https:\/\/wa\.me\/5213121234567\?text=/g) ?? []).length).toBeGreaterThanOrEqual(3)
+    expect((body.match(/https:\/\/wa\.me\/5213121234567\?text=/g) ?? []).length).toBeGreaterThanOrEqual(3) // «Hablar con una persona», barra fija y cierre
+    expect(body).toContain('Hablar con una persona')
   })
 
   it('el admin guarda el WhatsApp de ventas (10 dígitos → lada 52) y rechaza basura', async () => {
