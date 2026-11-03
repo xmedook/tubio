@@ -1,7 +1,7 @@
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import type { T } from '../../lib/i18n.ts'
 import { contrastInk } from '../../lib/qr.ts'
-import { WA_SVG } from '../../lib/whatsapp-icon.ts'
+import { iconSvg, WA_SVG } from '../../lib/whatsapp-icon.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import type { BlockRow } from '../bio/blocks.ts'
 import type { MsPage, MsSection, Site } from './repo.ts'
@@ -43,10 +43,12 @@ export function actionHref(a: { tipo: Action['tipo'] | 'pagina' | 'ancla' | 'enl
 
 const isExternal = (href: string) => /^https?:\/\//.test(href)
 
-function actionLink(a: Action, site: Site, alias: string, cls: string): SafeHtml {
+function actionLink(a: Action, site: Site, alias: string, cls: string, icons = false): SafeHtml {
   const href = actionHref(a, site, alias)
   if (!href || !a.texto) return html``
-  return html`<a class="${cls}" href="${href}"${isExternal(href) ? html` target="_blank" rel="noopener"` : ''}>${a.texto}</a>`
+  const ic = icons ? iconSvg(a.tipo === 'llamar' ? 'phone' : a.tipo === 'whatsapp' ? 'whatsapp' : '') : ''
+  const wa = icons && a.tipo === 'whatsapp' ? ' wa' : ''
+  return html`<a class="${cls}${wa}" href="${href}"${isExternal(href) ? html` target="_blank" rel="noopener"` : ''}>${ic ? html`<span class="btn-t">${raw(ic)}${a.texto}</span>` : a.texto}</a>`
 }
 
 /** Variables y relleno de una sección; sólo valores validados (hex, enumeraciones, llaves de imagen) */
@@ -88,7 +90,7 @@ type BodyArgs = {
   legal: SafeHtml
 }
 
-export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bottom: SafeHtml; hasBar: boolean; hasDock: boolean; hasFab: boolean } {
+export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bottom: SafeHtml; hasBar: boolean; hasDock: boolean; hasDockDesk: boolean; hasFab: boolean } {
   const { t, site, page, alias, title } = a
   const c = site.config
   const sections = (a.sections ?? sectionsOf(site, page.id)).filter((s) => s.is_enabled && (a.grouped.get(s.id)?.length || !s.data.classic || s.data.titulo))
@@ -134,7 +136,7 @@ export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bo
 
   const dockItems = c.barra.activa ? c.barra.acciones.filter((x) => actionHref(x, site, alias) && x.texto) : []
   const dock = dockItems.length
-    ? html`<nav class="ms-dock n${dockItems.length}" aria-label="${t('ms.dock')}">${dockItems.map((x, i) => actionLink(x, site, alias, i === 0 ? 'ms-act primary' : 'ms-act'))}</nav>`
+    ? html`<nav class="ms-dock n${dockItems.length}${c.barra.escritorio ? ' desk' : ''}" aria-label="${t('ms.dock')}">${dockItems.map((x, i) => actionLink(x, site, alias, i === 0 ? 'ms-act primary' : 'ms-act', c.barra.iconos))}</nav>`
     : html``
 
   // botón flotante de WhatsApp: sólo si está encendido Y el sitio tiene número (sin número no se pinta nada)
@@ -150,6 +152,7 @@ export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bo
     bottom: html`${dock}${fab}`,
     hasBar: c.cabecera.activa,
     hasDock: dockItems.length > 0,
+    hasDockDesk: dockItems.length > 0 && c.barra.escritorio,
     hasFab: showFab,
   }
 }

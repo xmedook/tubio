@@ -316,3 +316,13 @@ body.has-fab .ms-foot { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom
 body.has-fab.has-dock .ms-foot { padding-bottom: calc(10rem + env(safe-area-inset-bottom)); }
 @media (min-width: 860px) { body.has-dock .ms-fab { bottom: calc(1rem + env(safe-area-inset-bottom)); } body.has-fab.has-dock .ms-foot { padding-bottom: 5.5rem; } }
 @media print { .ms-fab { display: none; } }
+
+/* ---- barra fija con íconos (WhatsApp verde, auricular) y variante de escritorio: centrada, con el ancho de la columna */
+.ms-act .btn-t { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; }
+.ms-act .btn-t .ic { width: 1.35em; height: 1.35em; aspect-ratio: 1 / 1; flex: none; display: block; fill: currentColor; }
+.ms-act .btn-t .ic-line { fill: none; }
+.ms-act.wa { background: #25D366; color: #0b3d20; border: 1.5px solid #25D366; }
+@media (min-width: 860px) {
+  .ms-dock.desk { display: grid; left: 50%; right: auto; width: min(100%, calc(var(--ms-w-angosto) + 2 * var(--ms-pad))); transform: translateX(-50%); border-radius: 16px 16px 0 0; border: 1px solid var(--ms-line); border-bottom: 0; box-shadow: 0 -6px 24px rgb(0 0 0 / .08); }
+  body.has-dock-desk .ms-foot { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+}

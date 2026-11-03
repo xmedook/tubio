@@ -2,7 +2,7 @@ import type { DB } from '../../db/index.ts'
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import type { Locale, T } from '../../lib/i18n.ts'
 import { renderMarkdown } from '../../lib/markdown.ts'
-import { WA_SVG } from '../../lib/whatsapp-icon.ts'
+import { iconSvg } from '../../lib/whatsapp-icon.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import {
   mediaUrl,
@@ -133,9 +133,9 @@ export const BLOCKS: BlockDef[] = [
       { name: 'label', kind: 'text', label: 'bio.f.label', max: 120, required: true },
       { name: 'url', kind: 'url', label: 'bio.f.url', required: true, schemes: 'button', placeholder: 'https://' },
       { name: 'subtitle', kind: 'text', label: 'bio.f.subtitle', max: 160 },
-      { name: 'icon', kind: 'select', label: 'bio.f.icon', options: ['none', 'whatsapp'], default: 'none' },
+      { name: 'icon', kind: 'select', label: 'bio.f.icon', options: ['none', 'whatsapp', 'phone'], default: 'none' },
     ],
-    render: (_rc, b) => html`<a class="btn" href="${clickHref(b)}">${s(b.data.icon) === 'whatsapp' ? html`<span class="btn-t">${raw(WA_SVG)}${s(b.data.label)}</span>` : s(b.data.label)}${b.data.subtitle ? html`<small>${s(b.data.subtitle)}</small>` : ''}</a>`,
+    render: (_rc, b) => html`<a class="btn" href="${clickHref(b)}">${iconSvg(s(b.data.icon)) ? html`<span class="btn-t">${raw(iconSvg(s(b.data.icon)))}${s(b.data.label)}</span>` : s(b.data.label)}${b.data.subtitle ? html`<small>${s(b.data.subtitle)}</small>` : ''}</a>`,
     summary: (b) => s(b.data.label),
   },
   {

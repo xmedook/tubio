@@ -102,6 +102,8 @@ ${viewToggle(ctx)}
 
       <details class="opt"${cfg.barra.activa ? html` open` : ''}><summary>${t('ms.dock_title')}</summary><div class="opt-body">
         ${checkbox({ name: 'bar_activa', label: t('ms.dock_on'), checked: cfg.barra.activa, hint: t('ms.dock_hint') })}
+        ${checkbox({ name: 'bar_escritorio', label: t('ms.dock_desktop'), checked: cfg.barra.escritorio })}
+        ${checkbox({ name: 'bar_iconos', label: t('ms.dock_icons'), checked: cfg.barra.iconos, hint: t('ms.dock_icons_hint') })}
         ${[0, 1, 2].map((i) => actionFields(ctx, `bar_${i}`, cfg.barra.acciones[i] ?? emptyAct, errors, t('ms.action_n', { n: i + 1 })))}
       </div></details>
 

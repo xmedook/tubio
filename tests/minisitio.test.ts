@@ -295,3 +295,37 @@ describe('botón flotante de WhatsApp y botón con ícono', () => {
     void t
   })
 })
+
+describe('barra fija con íconos y en escritorio', () => {
+  it('con íconos: auricular en «llamar», logo y verde en «whatsapp»; sin número la acción de WhatsApp no se pinta; clase de escritorio', async () => {
+    const { a, id } = await setup()
+    await a.get(`/panel/links/${id}/site`)
+    const base = { bar_activa: '1', bar_iconos: '1', bar_escritorio: '1', bar_0_texto: 'Agendar cita', bar_0_tipo: 'llamar', bar_0_destino: '523336690222', bar_1_texto: 'WhatsApp', bar_1_tipo: 'whatsapp', bar_1_destino: '', bar_1_mensaje: 'Hola, quiero agendar' }
+    // sin número del sitio: solo queda «Agendar cita»
+    expect((await a.postMultipart(`/panel/links/${id}/site`, base)).statusCode).toBe(303)
+    let html = (await a.get('/clinica')).body
+    expect(html).toContain('class="ms-dock n1 desk"')
+    expect(html).not.toContain('ms-act primary wa')
+    expect(html).not.toMatch(/class="ms-act wa"/)
+    expect(html).toMatch(/class="ms-act primary" href="tel:\+?523336690222"[^>]*><span class="btn-t"><svg class="ic ic-line" viewBox="0 0 24 24"[^>]*><path d="M22 16\.92v3/)
+    // con número: dos botones, el de WhatsApp verde con su logo y el mensaje prellenado; body con has-dock-desk
+    expect((await a.postMultipart(`/panel/links/${id}/site`, { ...base, whatsapp: '523310660855' })).statusCode).toBe(303)
+    html = (await a.get('/clinica')).body
+    expect(html).toContain('class="ms-dock n2 desk"')
+    expect(html).toMatch(/class="ms-act wa" href="https:\/\/wa\.me\/523310660855\?text=Hola%2C%20quiero%20agendar" target="_blank" rel="noopener"><span class="btn-t"><svg class="ic" viewBox="0 0 24 24"[^>]*><path d="M17\.472/)
+    expect(html).toMatch(/class="bio [^"]*has-dock has-dock-desk/)
+    // sin las casillas: barra de siempre (sin íconos ni escritorio)
+    expect((await a.postMultipart(`/panel/links/${id}/site`, { whatsapp: '523310660855', bar_activa: '1', bar_0_texto: 'Agendar cita', bar_0_tipo: 'llamar', bar_0_destino: '523336690222' })).statusCode).toBe(303)
+    html = (await a.get('/clinica')).body
+    expect(html).toContain('class="ms-dock n1"')
+    expect(html).toMatch(/class="ms-act primary" href="tel:\+?523336690222"[^>]*>Agendar cita<\/a>/)
+    expect(html).not.toContain('has-dock-desk')
+  })
+  it('el bloque link acepta el ícono de teléfono', async () => {
+    const { a, id } = await setup()
+    await a.get(`/panel/links/${id}/blocks/new?type=link`)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=link`, { label: 'Agendar cita', url: 'tel:+523336690222', icon: 'phone', is_enabled: '1' })).statusCode).toBe(303)
+    const html = (await a.get('/clinica')).body
+    expect(html).toMatch(/<span class="btn-t"><svg class="ic ic-line" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"[^>]*><path d="M22 16\.92v3[^"]*"\/><\/svg>Agendar cita<\/span>/)
+  })
+})

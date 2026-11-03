@@ -57,8 +57,12 @@ export const siteSchema = z.object({
     .object({
       activa: z.boolean().default(false),
       acciones: z.array(actionSchema).max(3).default([]),
+      /** con íconos: «llamar» lleva el auricular y «whatsapp» el logo y su verde (#25D366 con texto #0b3d20) */
+      iconos: z.boolean().default(false),
+      /** también en escritorio: centrada, con el ancho de la columna del contenido */
+      escritorio: z.boolean().default(false),
     })
-    .default(() => ({ activa: false, acciones: [] })),
+    .default(() => ({ activa: false, acciones: [], iconos: false, escritorio: false })),
   /** botón flotante de WhatsApp (círculo verde abajo a la derecha); usa el número del sitio y no se pinta si falta */
   flotante_wa: z
     .object({ activo: z.boolean().default(false), mensaje: text(200) })
