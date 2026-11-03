@@ -318,8 +318,8 @@ body.has-fab.has-dock .ms-foot { padding-bottom: calc(10rem + env(safe-area-inse
 @media print { .ms-fab { display: none; } }
 
 /* ---- barra fija con íconos (WhatsApp verde, auricular) y variante de escritorio: centrada, con el ancho de la columna */
-.ms-act .btn-t { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; }
-.ms-act .btn-t .ic { width: 1.35em; height: 1.35em; aspect-ratio: 1 / 1; flex: none; display: block; fill: currentColor; }
+.ms-act .btn-t { display: inline-flex; align-items: center; justify-content: center; gap: 12px; white-space: nowrap; }
+.ms-act .btn-t .ic { width: 15px; height: 15px; aspect-ratio: 1 / 1; flex: none; display: block; fill: currentColor; }
 .ms-act .btn-t .ic-line { fill: none; }
 .ms-act.wa { background: #25D366; color: #0b3d20; border: 1.5px solid #25D366; }
 @media (min-width: 860px) {
