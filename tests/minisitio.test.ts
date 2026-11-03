@@ -261,3 +261,37 @@ describe('duplicar', () => {
     expect(copySite(t.deps.db, 99999, copy.id, t.clock.now)).toBe(false)
   })
 })
+
+describe('botón flotante de WhatsApp y botón con ícono', () => {
+  it('sin número no se pinta aunque esté encendido; con número queda sobre la barra y el pie respeta el espacio', async () => {
+    const { t, a, id } = await setup()
+    await a.get(`/panel/links/${id}/site`)
+    // encendido pero SIN número del sitio → nada en la página
+    let res = await a.postMultipart(`/panel/links/${id}/site`, { fab_activa: '1', fab_mensaje: 'Hola, quiero agendar una cita', bar_activa: '1', bar_0_texto: 'Llamar', bar_0_tipo: 'llamar', bar_0_destino: '523336690222' })
+    expect(res.statusCode).toBe(303)
+    let html = (await a.get('/clinica')).body
+    expect(html).not.toContain('ms-fab')
+    expect(html).not.toMatch(/class="bio [^"]*has-fab/)
+    // con número → botón con enlace wa.me, mensaje, etiqueta accesible y clase en el body
+    res = await a.postMultipart(`/panel/links/${id}/site`, { whatsapp: '5213121234567', fab_activa: '1', fab_mensaje: 'Hola, quiero agendar una cita', bar_activa: '1', bar_0_texto: 'Llamar', bar_0_tipo: 'llamar', bar_0_destino: '523336690222' })
+    expect(res.statusCode).toBe(303)
+    html = (await a.get('/clinica')).body
+    expect(html).toContain(`<aside class="ms-fab-box" aria-label="Escribir por WhatsApp"><a class="ms-fab" href="https://wa.me/5213121234567?text=Hola%2C%20quiero%20agendar%20una%20cita"`)
+    expect(html).toContain('aria-label="Escribir por WhatsApp"')
+    expect(html).toMatch(/class="bio [^"]*has-dock has-fab"/)
+    // apagado → desaparece
+    res = await a.postMultipart(`/panel/links/${id}/site`, { whatsapp: '5213121234567' })
+    expect(res.statusCode).toBe(303)
+    expect((await a.get('/clinica')).body).not.toContain('ms-fab')
+  })
+  it('el bloque link con ícono WhatsApp pinta el SVG en línea y los demás no cambian', async () => {
+    const { t, a, id } = await setup()
+    await a.get(`/panel/links/${id}/blocks/new?type=link`)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=link`, { label: 'Escribir por WhatsApp', url: 'https://wa.me/5213121234567', icon: 'whatsapp', is_enabled: '1' })).statusCode).toBe(303)
+    expect((await a.postMultipart(`/panel/links/${id}/blocks?type=link`, { label: 'Sitio', url: 'https://example.com', is_enabled: '1' })).statusCode).toBe(303)
+    const html = (await a.get('/clinica')).body
+    expect(html).toMatch(/<span class="btn-t"><svg class="ic" viewBox="0 0 24 24"[^>]*><path d="M17\.472[^"]*"\/><\/svg>Escribir por WhatsApp<\/span>/)
+    expect(html).toMatch(/class="btn" href="\/_\/c\/\d+">Sitio</)
+    void t
+  })
+})

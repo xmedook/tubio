@@ -1,6 +1,7 @@
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import type { T } from '../../lib/i18n.ts'
 import { contrastInk } from '../../lib/qr.ts'
+import { WA_SVG } from '../../lib/whatsapp-icon.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import type { BlockRow } from '../bio/blocks.ts'
 import type { MsPage, MsSection, Site } from './repo.ts'
@@ -87,7 +88,7 @@ type BodyArgs = {
   legal: SafeHtml
 }
 
-export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bottom: SafeHtml; hasBar: boolean; hasDock: boolean } {
+export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bottom: SafeHtml; hasBar: boolean; hasDock: boolean; hasFab: boolean } {
   const { t, site, page, alias, title } = a
   const c = site.config
   const sections = (a.sections ?? sectionsOf(site, page.id)).filter((s) => s.is_enabled && (a.grouped.get(s.id)?.length || !s.data.classic || s.data.titulo))
@@ -136,11 +137,19 @@ export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bo
     ? html`<nav class="ms-dock n${dockItems.length}" aria-label="${t('ms.dock')}">${dockItems.map((x, i) => actionLink(x, site, alias, i === 0 ? 'ms-act primary' : 'ms-act'))}</nav>`
     : html``
 
+  // botón flotante de WhatsApp: sólo si está encendido Y el sitio tiene número (sin número no se pinta nada)
+  const waN = digits(site.config.whatsapp)
+  const showFab = c.flotante_wa.activo && waN.length >= 8 && waN.length <= 15
+  const fab = showFab
+    ? html`<aside class="ms-fab-box" aria-label="${t('ms.fab_label')}"><a class="ms-fab" href="https://wa.me/${waN}${c.flotante_wa.mensaje ? `?text=${encodeURIComponent(c.flotante_wa.mensaje)}` : ''}" target="_blank" rel="noopener" aria-label="${t('ms.fab_label')}">${raw(WA_SVG)}</a></aside>`
+    : html``
+
   return {
     top,
     main: html`<main class="ms-main" data-ms>${body.length ? body : html`<p class="para empty">${t('bio.empty_public')}</p>`}</main>${foot}`,
-    bottom: dock,
+    bottom: html`${dock}${fab}`,
     hasBar: c.cabecera.activa,
     hasDock: dockItems.length > 0,
+    hasFab: showFab,
   }
 }

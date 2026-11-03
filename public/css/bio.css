@@ -20,6 +20,8 @@ a { color: inherit; }
   box-shadow: var(--btn-sh); font: 600 1em/1.25 var(--font); text-decoration: none; text-align: inherit; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; -webkit-tap-highlight-color: transparent; }
 .al-center .btn { text-align: center; }
 .btn small { font-weight: 400; font-size: .82em; opacity: .8; }
+.btn-t { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; }
+.btn-t .ic { width: 1.35em; height: 1.35em; flex: none; fill: currentColor; }
 .btn-big { min-height: 4.6rem; font-size: 1.08em; }
 .btn-big strong { font-weight: 750; }
 .btn-img { flex-direction: row; align-items: center; gap: .9rem; padding: .5rem 1.1rem .5rem .5rem; text-align: left; }

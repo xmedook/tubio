@@ -59,6 +59,10 @@ export const siteSchema = z.object({
       acciones: z.array(actionSchema).max(3).default([]),
     })
     .default(() => ({ activa: false, acciones: [] })),
+  /** botón flotante de WhatsApp (círculo verde abajo a la derecha); usa el número del sitio y no se pinta si falta */
+  flotante_wa: z
+    .object({ activo: z.boolean().default(false), mensaje: text(200) })
+    .default(() => ({ activo: false, mensaje: '' })),
   pie: z
     .object({
       activo: z.boolean().default(false),

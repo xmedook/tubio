@@ -305,3 +305,14 @@ body.has-dock .cart-bar { bottom: calc(5.2rem + env(safe-area-inset-bottom)); }
 .prg-t { margin: 0; font: 700 1.15em/1.2 var(--font-h, var(--font)); }
 .prg-m { margin: 0; font-size: .88em; opacity: .85; }
 .prg-d { margin: 0; }
+
+/* ---- botón flotante de WhatsApp (sitio): círculo verde fijo abajo a la derecha; en móvil queda ENCIMA de la barra de acciones */
+.ms-fab { position: fixed; z-index: 31; right: max(1rem, env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom)); width: 3.5rem; height: 3.5rem; border-radius: 50%; display: grid; place-items: center; background: #25D366; color: #0b3d20; box-shadow: 0 4px 14px rgb(0 0 0 / .28); text-decoration: none; }
+.ms-fab svg { width: 1.9rem; height: 1.9rem; fill: currentColor; }
+.ms-fab:hover { filter: brightness(.96); }
+.ms-fab:focus-visible { outline: 3px solid #0b3d20; outline-offset: 3px; }
+body.has-dock .ms-fab { bottom: calc(5.4rem + env(safe-area-inset-bottom)); }
+body.has-fab .ms-foot { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+body.has-fab.has-dock .ms-foot { padding-bottom: calc(10rem + env(safe-area-inset-bottom)); }
+@media (min-width: 860px) { body.has-dock .ms-fab { bottom: calc(1rem + env(safe-area-inset-bottom)); } body.has-fab.has-dock .ms-foot { padding-bottom: 5.5rem; } }
+@media print { .ms-fab { display: none; } }

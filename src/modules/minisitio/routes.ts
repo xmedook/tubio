@@ -115,6 +115,7 @@ async function parseSite(deps: AppDeps, user: User, mp: MultipartData, cur: Site
     whatsapp: errors.whatsapp ? cur.whatsapp : wa,
     cabecera: { activa: checked(b, 'cab_activa'), logo, nombre: field(b, 'cab_nombre').trim().slice(0, 40), nav, nav_manual, cta: parseAction(deps, b, 'cta', errors) },
     barra: { activa: checked(b, 'bar_activa'), acciones: [0, 1, 2].map((i) => parseAction(deps, b, `bar_${i}`, errors)).filter((a) => a.texto) },
+    flotante_wa: { activo: checked(b, 'fab_activa'), mensaje: field(b, 'fab_mensaje').trim().slice(0, 200) },
     pie: { activo: checked(b, 'pie_activo'), direccion: field(b, 'pie_direccion').trim().slice(0, 160), servicios: field(b, 'pie_servicios').trim().slice(0, 160), texto: field(b, 'pie_texto').trim().slice(0, 200) },
   }
   return { config, errors }

@@ -105,6 +105,11 @@ ${viewToggle(ctx)}
         ${[0, 1, 2].map((i) => actionFields(ctx, `bar_${i}`, cfg.barra.acciones[i] ?? emptyAct, errors, t('ms.action_n', { n: i + 1 })))}
       </div></details>
 
+      <details class="opt"${cfg.flotante_wa.activo ? html` open` : ''}><summary>${t('ms.fab_title')}</summary><div class="opt-body">
+        ${checkbox({ name: 'fab_activa', label: t('ms.fab_on'), checked: cfg.flotante_wa.activo, hint: t('ms.fab_hint') })}
+        ${input({ ctx, name: 'fab_mensaje', label: t('ms.fab_msg'), value: cfg.flotante_wa.mensaje, maxlength: 200 })}
+      </div></details>
+
       <details class="opt"${cfg.pie.activo ? html` open` : ''}><summary>${t('ms.footer')}</summary><div class="opt-body">
         ${checkbox({ name: 'pie_activo', label: t('ms.footer_on'), checked: cfg.pie.activo })}
         ${input({ ctx, name: 'pie_servicios', label: t('ms.footer_services'), value: cfg.pie.servicios, maxlength: 160 })}
