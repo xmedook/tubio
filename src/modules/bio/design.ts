@@ -36,11 +36,14 @@ export const FONTS = {
   familjen: '"Familjen Grotesk Variable", system-ui, sans-serif',
   schibsted: '"Schibsted Grotesk Variable", system-ui, sans-serif',
   chivo: 'Chivo, system-ui, sans-serif',
+  figtree: '"Figtree Variable", system-ui, sans-serif',
+  bigshoulders: '"Big Shoulders Display Variable", Impact, "Arial Narrow", sans-serif',
+  instrument: '"Instrument Serif", Georgia, serif',
 } as const
 export type FontId = keyof typeof FONTS
 
 /** @font-face de las fuentes web: archivo en node_modules → ruta pública /_/fonts/<archivo> */
-export const WEB_FONTS: Partial<Record<FontId, { family: string; faces: { file: string; pkg: string; weight: string }[] }>> = {
+export const WEB_FONTS: Partial<Record<FontId, { family: string; faces: { file: string; pkg: string; weight: string; style?: 'italic' }[] }>> = {
   inter: { family: 'Inter Variable', faces: [{ pkg: '@fontsource-variable/inter', file: 'inter-latin-wght-normal.woff2', weight: '100 900' }] },
   montserrat: { family: 'Montserrat Variable', faces: [{ pkg: '@fontsource-variable/montserrat', file: 'montserrat-latin-wght-normal.woff2', weight: '100 900' }] },
   poppins: {
@@ -55,12 +58,21 @@ export const WEB_FONTS: Partial<Record<FontId, { family: string; faces: { file: 
   familjen: { family: 'Familjen Grotesk Variable', faces: [{ pkg: '@fontsource-variable/familjen-grotesk', file: 'familjen-grotesk-latin-wght-normal.woff2', weight: '400 700' }] },
   schibsted: { family: 'Schibsted Grotesk Variable', faces: [{ pkg: '@fontsource-variable/schibsted-grotesk', file: 'schibsted-grotesk-latin-wght-normal.woff2', weight: '400 900' }] },
   chivo: { family: 'Chivo', faces: [{ pkg: '@fontsource/chivo', file: 'chivo-latin-900-normal.woff2', weight: '900' }] },
+  figtree: { family: 'Figtree Variable', faces: [{ pkg: '@fontsource-variable/figtree', file: 'figtree-latin-wght-normal.woff2', weight: '300 900' }] },
+  bigshoulders: { family: 'Big Shoulders Display Variable', faces: [{ pkg: '@fontsource-variable/big-shoulders-display', file: 'big-shoulders-display-latin-wght-normal.woff2', weight: '100 900' }] },
+  instrument: {
+    family: 'Instrument Serif',
+    faces: [
+      { pkg: '@fontsource/instrument-serif', file: 'instrument-serif-latin-400-normal.woff2', weight: '400' },
+      { pkg: '@fontsource/instrument-serif', file: 'instrument-serif-latin-400-italic.woff2', weight: '400', style: 'italic' },
+    ],
+  },
 }
 
 export function fontFaceCss(id: FontId): string {
   const f = WEB_FONTS[id]
   if (!f) return ''
-  return f.faces.map((x) => `@font-face{font-family:"${f.family}";font-style:normal;font-display:swap;font-weight:${x.weight};src:url("/_/fonts/${x.file}") format("woff2")}`).join('')
+  return f.faces.map((x) => `@font-face{font-family:"${f.family}";font-style:${x.style ?? 'normal'};font-display:swap;font-weight:${x.weight};src:url("/_/fonts/${x.file}") format("woff2")}`).join('')
 }
 export const FONT_IDS = Object.keys(FONTS) as [FontId, ...FontId[]]
 

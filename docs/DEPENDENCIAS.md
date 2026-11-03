@@ -28,7 +28,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | maxmind | MIT | leer base geo MMDB |
 | nodemailer | MIT-0 | correo SMTP |
 | sortablejs | MIT | ordenar bloques arrastrando (servido localmente) |
-| @fontsource-variable/{inter,montserrat,space-grotesk,playfair-display,lora,caveat,jetbrains-mono,familjen-grotesk,schibsted-grotesk}, @fontsource/{poppins,chivo} | fuentes OFL-1.1 (paquete MIT) | fuentes web de páginas bio, servidas desde /_/fonts/ |
+| @fontsource-variable/{inter,montserrat,space-grotesk,playfair-display,lora,caveat,jetbrains-mono,familjen-grotesk,schibsted-grotesk}, @fontsource/{poppins,chivo,instrument-serif}, @fontsource-variable/{figtree,big-shoulders-display} | fuentes OFL-1.1 (paquete MIT) | fuentes web de páginas bio, servidas desde /_/fonts/ |
 | fast-xml-parser | MIT | leer feeds RSS/Atom (bloques RSS y YouTube) |
 | pdfkit (+ png-js, fontkit…) | MIT | recibos en PDF |
 | simple-icons | CC0-1.0 | logos de redes sociales (path SVG y color de marca) |

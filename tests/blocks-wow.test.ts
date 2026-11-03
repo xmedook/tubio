@@ -49,4 +49,18 @@ describe('bloques de cifra, fichas y pasos; marco, giro y fuentes de títulos', 
     expect(css).not.toContain('inter-latin')
     expect((await (await makeApp()).app.inject({ url: '/_/fonts/chivo-latin-900-normal.woff2' })).statusCode).toBe(200)
   })
+
+  it('fuentes de marca Intursport: Big Shoulders, Instrument Serif (con cursiva) y Figtree se sirven y se declaran', async () => {
+    const { pageCss } = await import('../src/modules/bio/render.ts')
+    const { readDesign } = await import('../src/modules/bio/design.ts')
+    const css = pageCss(readDesign({ font: 'figtree', font_heading: 'bigshoulders', font_num: 'instrument' }), [])
+    expect(css).toContain('figtree-latin-wght-normal.woff2')
+    expect(css).toContain('big-shoulders-display-latin-wght-normal.woff2')
+    expect(css).toContain('instrument-serif-latin-400-normal.woff2')
+    expect(css).toMatch(/font-style:italic[^}]*instrument-serif-latin-400-italic\.woff2/)
+    const { app } = await makeApp()
+    for (const f of ['figtree-latin-wght-normal', 'big-shoulders-display-latin-wght-normal', 'instrument-serif-latin-400-normal', 'instrument-serif-latin-400-italic']) {
+      expect((await app.inject({ url: `/_/fonts/${f}.woff2` })).statusCode).toBe(200)
+    }
+  })
 })
