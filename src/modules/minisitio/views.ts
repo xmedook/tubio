@@ -57,7 +57,7 @@ ${viewToggle(ctx)}
     ${site.materialized ? '' : html`<p class="muted">${t('ms.intro')}</p>`}
     ${todos.some((x) => !x.done) ? html`<section class="todos" aria-labelledby="todos-h">
       <div class="todos-top"><h2 id="todos-h">${t('ms.todo_title')}</h2><span class="todos-n">${t('ms.todo_count', { n: todos.filter((x) => x.done).length, total: todos.length })}</span></div>
-      <div class="todos-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${todos.length}" aria-valuenow="${todos.filter((x) => x.done).length}"><i style="--p:${Math.round((100 * todos.filter((x) => x.done).length) / todos.length)}%"></i></div>
+      <div class="todos-bar" role="progressbar" aria-labelledby="todos-h" aria-valuemin="0" aria-valuemax="${todos.length}" aria-valuenow="${todos.filter((x) => x.done).length}"><i style="--p:${Math.round((100 * todos.filter((x) => x.done).length) / todos.length)}%"></i></div>
       <ul>${todos.map((x) => html`<li class="${x.done ? 'done' : ''}">${x.done ? html`<span class="todo-ic" aria-hidden="true">✓</span><span>${t(`ms.todo_${x.key}`)}</span>` : html`<a href="${x.href}"><span class="todo-ic" aria-hidden="true"></span><span><b>${t(`ms.todo_${x.key}`)}</b><small>${t(`ms.todo_${x.key}_why`)}</small></span>${icon('back')}</a>`}</li>`)}</ul>
     </section>` : ''}
 

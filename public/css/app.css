@@ -799,7 +799,7 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 @media (min-width: 900px) { .card-more { display: none; } } /* en escritorio todo eso ya está en la barra lateral */
 
 /* ── Varita: sitio completo con IA desde una descripción ─────────────────────────── */
-.varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; }
+.varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; overflow-x: clip; }
 .varita-orb { position: absolute; z-index: -1; inset: -60px -40px auto auto; width: 320px; height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
   background: conic-gradient(from 0deg, #d7f25c, #7fd6c2, #f3b7d4, #ffd36e, #d7f25c); animation: v-spin 14s linear infinite; pointer-events: none; }
 .varita-k { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-on-soft); font-weight: 700; font-size: var(--t-xs); }
@@ -888,7 +888,7 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .todos li > a > span:nth-child(2) { flex: 1; display: grid; gap: 2px; }
 .todos li small { color: var(--muted); font-size: var(--t-xs); }
 .todos li > a > svg { width: 18px; height: 18px; transform: rotate(180deg); color: var(--muted); }
-.todos .todo-ic { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+.todos .todo-ic { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; font-size: 14px; font-weight: 800; }
 .todos li.done { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
 .todos li.done .todo-ic { border-color: var(--ok); background: var(--ok); color: #fff; text-decoration: none; }
 .todos-n { white-space: nowrap; }

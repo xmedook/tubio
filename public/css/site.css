@@ -337,3 +337,7 @@ body.has-fab.has-dock .ms-foot { padding-bottom: calc(10rem + env(safe-area-inse
 .anc-portada .ms-sub { font-size: clamp(1.05rem, 4.2vw, 1.3rem); max-width: 34ch; opacity: .92; }
 .anc-portada .ms-k { opacity: .85; }
 .anc-acciones .ms-fx { padding-top: 1.25rem; padding-bottom: 1.5rem; }
+
+/* Legibilidad mínima en el celular (auditoría: nada de texto < 14 px ni toques < 44 px) */
+.ms-k { font-size: .875rem; letter-spacing: .1em; }
+.act-s { font-size: .875rem; }

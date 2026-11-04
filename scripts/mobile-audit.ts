@@ -10,7 +10,11 @@ const base = (process.env.TUBIO_A11Y_URL ?? 'http://127.0.0.1:3095').replace(/\/
 const out = process.env.OUT ?? 'data/mobile-audit'
 mkdirSync(out, { recursive: true })
 const PUBLIC = ['/', '/login', '/register', '/help', '/directory', '/demo', '/demo-negocio']
-const PANEL = ['/panel', '/panel/links', '/panel/links/new?kind=short', '/panel/links/new?kind=bio', '/panel/qr', '/panel/qr/new?kind=url', '/panel/stats', '/panel/account', '/panel/plan', '/panel/domains', '/panel/team']
+/** rutas extra separadas por coma (p. ej. sitios armados con la Varita): TUBIO_AUDIT_EXTRA=/v-taqueria,/panel/links/24/blocks */
+const EXTRA = (process.env.TUBIO_AUDIT_EXTRA ?? '').split(',').map((x) => x.trim()).filter(Boolean)
+PUBLIC.push(...EXTRA.filter((x) => !x.startsWith('/panel')))
+const PANEL = ['/panel', '/panel/links', '/panel/links/new?kind=short', '/panel/links/new?kind=bio', '/panel/qr', '/panel/qr/new?kind=url', '/panel/stats', '/panel/account', '/panel/plan', '/panel/domains', '/panel/team', '/panel/varita']
+PANEL.push(...EXTRA.filter((x) => x.startsWith('/panel')))
 
 type Row = { path: string; hscroll: number; smallTargets: number; tinyText: number; examples: string[] }
 const rows: Row[] = []
