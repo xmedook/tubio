@@ -99,7 +99,7 @@ function varitaBar(ctx: Ctx, link: Link, pageId?: number): SafeHtml {
     <div data-vdlg-body></div>
   </form></dialog>
   <template data-vtpl-option><article class="vopt"><p class="vopt-sum"></p><ol class="vopt-list"></ol><button type="button" class="btn btn-primary vopt-go">${t('varita.apply')}</button></article></template>
-  <div class="vtoast" role="status" hidden data-vtoast><span>${t('varita.applied')}</span><button type="button" class="btn" data-vundo>${t('varita.undo')}</button></div>
+  <div class="vtoast" role="status" hidden data-vtoast><span>${t('varita.applied')}</span><a class="btn" data-vupload hidden href="#">${t('varita.upload')}</a><button type="button" class="btn" data-vundo>${t('varita.undo')}</button></div>
   <span hidden data-vmsg-none>${t('varita.no_changes')}</span><span hidden data-vmsg-wait>${t('varita.thinking')}</span><span hidden data-vmsg-fail>${t('ai.err_failed')}</span>
 </section>
 <script type="module" src="/_/static/js/varita-edit.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`

@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { BLOCK_BY_TYPE } from '../bio/blocks.ts'
 import { siteTodos, type Todo } from '../minisitio/todos.ts'
 import { loadSite } from '../minisitio/repo.ts'
 import type { AppDeps } from '../../app.ts'
@@ -18,6 +19,7 @@ import type { User } from '../users/repo.ts'
 import { buildSite, planDesign } from './build.ts'
 import { generatePlan, type Stage } from './generate.ts'
 import { proposeEdits, QUICK, setText, takeProposal, type Quick } from './edit.ts'
+import { applyPrepared, prepareOps, proposeAgent, restoreSnapshot, takeAgentProposal } from './agent.ts'
 import { getBlock, listBlocks, updateBlock } from '../bio/repo.ts'
 import { ownLinkOr404 } from '../links/routes.ts'
 import { slugify } from './plan.ts'
@@ -149,6 +151,63 @@ export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
       req.log.warn({ err: e instanceof Error ? e.message : String(e) }, 'varita: no se pudo proponer')
       return jsonErr(reply, req, e instanceof AiError ? e.key : 'ai.err_failed', 502)
     }
+  })
+
+  /** Varita agente: pedido libre → operaciones de estructura, estilo y texto (vista previa; no escribe nada) */
+  app.post('/panel/links/:id/varita/agent', { preHandler: userGuard, config: { rateLimit: { max: 15, timeWindow: '5 minutes' } } }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    if (link.kind !== 'bio') return reply.callNotFound()
+    const u = req.ctx.user as User
+    const body = (req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>
+    const instruction = typeof body.instruction === 'string' ? body.instruction.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, 800) : ''
+    if (instruction.length < 4) return jsonErr(reply, req, 'varita.err_ask', 422)
+    const cfg = aiConfig()
+    if (cfg.provider === 'off') return jsonErr(reply, req, 'ai.err_off', 503)
+    if (editsLeft(u) <= 0) return jsonErr(reply, req, 'varita.err_quota_edit', 429)
+    const pageId = Number(body.page) || undefined
+    try {
+      const { proposal, usage } = await proposeAgent(cfg, deps, u, link, pageId, instruction)
+      audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.propose', target: `link:${link.id}`, meta: { model: usage.model, usd: Number(usage.usd.toFixed(4)), agent: true, ops: proposal.ops.length } }, deps.now())
+      const prepared = await prepareOps(deps, u, link, pageId, proposal.ops, req.ctx.t)
+      return { token: proposal.token, resumen: proposal.resumen, mensaje: proposal.mensaje, steps: prepared.map((p) => ({ ...p.step, verb: req.ctx.t(`varita.op_${p.step.op}`), error: p.step.error ? req.ctx.t(p.step.error) : undefined })) }
+    } catch (e) {
+      req.log.warn({ err: e instanceof Error ? e.message : String(e) }, 'varita agente: no se pudo proponer')
+      return jsonErr(reply, req, e instanceof AiError ? e.key : 'ai.err_failed', 502)
+    }
+  })
+
+  app.post('/panel/links/:id/varita/agent/apply', { preHandler: userGuard }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const u = req.ctx.user as User
+    const p = takeAgentProposal(String((req.body as Record<string, unknown> | undefined)?.token ?? ''), u.id, deps.now())
+    if (!p || p.linkId !== link.id) return jsonErr(reply, req, 'varita.err_expired', 410)
+    // se vuelve a validar contra el estado actual: la página pudo cambiar desde la vista previa
+    const prepared = await prepareOps(deps, u, link, p.pageId, p.ops, req.ctx.t)
+    if (!prepared.some((x) => x.step.ok && x.op.op !== 'falta_archivo')) return jsonErr(reply, req, 'varita.no_changes', 422)
+    const { snap: undo, created } = applyPrepared(db, u.id, link, prepared, deps.now())
+    // si falta un archivo: el bloque (nuevo o editado) donde se sube
+    let upload: string | undefined
+    if (prepared.some((x) => x.step.ok && x.op.op === 'falta_archivo')) {
+      const candidates = [...created, ...prepared.filter((x) => x.op.op === 'editar_bloque').map((x) => x.op.id), ...prepared.filter((x) => x.op.op === 'falta_archivo').map((x) => x.op.id)]
+      const target = candidates.find((id) => { const b = id > 0 ? getBlock(db, id) : undefined; return b && b.link_id === link.id && BLOCK_BY_TYPE.get(b.type)?.fields.some((f) => (f.kind === 'image' || f.kind === 'file') && !b.data[f.name]) })
+      if (target) upload = `/panel/blocks/${target}`
+    }
+    audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.agent_apply', target: `link:${link.id}`, meta: { snapshot: undo, ops: prepared.filter((x) => x.step.ok).map((x) => x.op.op) } }, deps.now())
+    return { ok: true, undo, agent: true, upload }
+  })
+
+  app.post('/panel/links/:id/varita/agent/undo', { preHandler: userGuard }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const u = req.ctx.user as User
+    const id = Number((req.body as Record<string, unknown> | undefined)?.undo)
+    const raw = db.prepare('SELECT data FROM ai_snapshots WHERE id = ? AND user_id = ? AND link_id = ?').pluck().get(id, u.id, link.id) as string | undefined
+    if (!raw) return jsonErr(reply, req, 'varita.err_expired', 410)
+    restoreSnapshot(db, link.id, raw)
+    audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.undo', target: `link:${link.id}`, meta: { snapshot: id } }, deps.now())
+    return { ok: true }
   })
 
   /** Aplica una opción de la propuesta; guarda el antes en la bitácora para poder deshacer */

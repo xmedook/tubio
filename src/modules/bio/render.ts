@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import { sanitizeCss } from '../../lib/safe-css.ts'
 import type { AppDeps } from '../../app.ts'
 import { html, raw, type SafeHtml } from '../../lib/html.ts'
 import { isLocale, translator, type Locale } from '../../lib/i18n.ts'
@@ -73,6 +74,10 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
     if (st.border_color) rules.push(`--b-bc:${st.border_color}`)
     if (st.align && st.align !== 'inherit') rules.push(`text-align:${st.align}`, `--b-justify:${st.align === 'left' ? 'flex-start' : st.align === 'right' ? 'flex-end' : 'center'}`)
     if (rules.length) css += `#b${b.id}{${rules.join(';')}}`
+    if (st.css) {
+      const c = sanitizeCss(st.css)
+      if (c) css += `#b${b.id} > *{${c}}`
+    }
     if (b.type === 'html') css += `#b${b.id} .embed{height:${Math.min(1200, Math.max(60, Number(b.data.height) || 300))}px}`
   }
   return css

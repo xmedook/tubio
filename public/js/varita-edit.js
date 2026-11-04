@@ -75,10 +75,75 @@ if (bar) {
     dlg.showModal()
   }
 
+  // pedido libre: el agente (estructura, estilo y textos)
+  async function agent(q) {
+    if (busy) return
+    busy = true
+    bar.classList.add('busy')
+    status.textContent = msg('wait')
+    try {
+      const res = await post('/agent', { instruction: q, ...(page ? { page: Number(page) } : {}) })
+      status.textContent = ''
+      showAgent(res)
+    } catch (e) {
+      status.textContent = e.message
+    } finally {
+      busy = false
+      bar.classList.remove('busy')
+    }
+  }
+
+  function showAgent(res) {
+    body.replaceChildren()
+    const ok = res.steps.filter((s) => s.ok)
+    const art = document.createElement('article')
+    art.className = 'vopt vagent'
+    const p = document.createElement('p')
+    p.className = 'vopt-sum'
+    p.textContent = res.mensaje || res.resumen
+    art.append(p)
+    const ol = document.createElement('ol')
+    ol.className = 'vsteps'
+    for (const s of res.steps) {
+      const li = document.createElement('li')
+      li.className = s.ok ? `vs vs-${s.op}` : 'vs vs-fail'
+      const h = document.createElement('b')
+      h.textContent = `${s.verb} · ${s.label}`
+      li.append(h)
+      if (s.detalle) { const d = document.createElement('small'); d.textContent = s.detalle; li.append(d) }
+      if (s.antes) { const a = document.createElement('del'); a.textContent = s.antes; li.append(a) }
+      if (s.despues) { const b = document.createElement('ins'); b.textContent = s.despues; li.append(b) }
+      if (s.error) { const er = document.createElement('small'); er.className = 'vs-err'; er.textContent = s.error; li.append(er) }
+      ol.append(li)
+    }
+    art.append(ol)
+    if (ok.some((s) => s.op !== 'falta_archivo')) {
+      const go = document.createElement('button')
+      go.type = 'button'
+      go.className = 'btn btn-primary vopt-go'
+      go.textContent = tpl.content.querySelector('.vopt-go')?.textContent ?? 'OK'
+      go.addEventListener('click', async () => {
+        go.disabled = true
+        try {
+          const r = await post('/agent/apply', { token: res.token })
+          sessionStorage.setItem('tubio-varita-undo', `agent:${r.undo}`)
+          if (r.upload) sessionStorage.setItem('tubio-varita-upload', r.upload)
+          location.reload()
+        } catch (e) {
+          status.textContent = e.message
+          dlg.close()
+        }
+      })
+      art.append(go)
+    }
+    body.append(art)
+    dlg.showModal()
+  }
+
   bar.querySelector('[data-vbar-form]')?.addEventListener('submit', (e) => {
     e.preventDefault()
     const q = e.target.instruction.value.trim()
-    if (q) ask({ instruction: q })
+    if (q) agent(q)
   })
   document.addEventListener('click', (e) => {
     const b = e.target instanceof Element ? e.target.closest('[data-vq]') : null
@@ -93,13 +158,23 @@ if (bar) {
     undo = sessionStorage.getItem('tubio-varita-undo')
     sessionStorage.removeItem('tubio-varita-undo')
   } catch {}
+  let upload = null
+  try {
+    upload = sessionStorage.getItem('tubio-varita-upload')
+    sessionStorage.removeItem('tubio-varita-upload')
+  } catch {}
+  if (undo && upload && /^\/panel\/blocks\/\d+$/.test(upload)) {
+    const a = toast.querySelector('[data-vupload]')
+    if (a) { a.href = upload; a.hidden = false }
+  }
   if (undo) {
     toast.hidden = false
-    const hide = setTimeout(() => (toast.hidden = true), 12000)
+    const hide = setTimeout(() => (toast.hidden = true), upload ? 30000 : 12000)
     toast.querySelector('[data-vundo]').addEventListener('click', async () => {
       clearTimeout(hide)
       try {
-        await post('/undo', { undo: Number(undo) })
+        if (undo.startsWith('agent:')) await post('/agent/undo', { undo: Number(undo.slice(6)) })
+        else await post('/undo', { undo: Number(undo) })
         location.reload()
       } catch (e) {
         status.textContent = e.message
