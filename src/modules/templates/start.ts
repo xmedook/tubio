@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { aiConfig } from '../../lib/ai.ts'
 import type { AppDeps } from '../../app.ts'
 import type { DB } from '../../db/index.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
@@ -31,6 +32,7 @@ function startPage(ctx: Ctx, opts: { tpls: { id: number; name: string; theme: st
     active: 'links',
     path: '/panel/start',
     body: html`<h1>${t('start.title')}</h1><p class="muted">${t('start.lead')}</p>
+${aiConfig().provider !== 'off' ? html`<a class="vcard" href="/panel/varita"><span class="vcard-ic" aria-hidden="true">${icon('wand')}</span><span class="vcard-b"><b>${t('varita.card_t')}</b><small>${t('varita.card_s')}</small></span><span class="vcard-go" aria-hidden="true">→</span></a>` : ''}
 ${opts.full ? html`<p class="flash flash-error" role="alert">${t('err.plan_bio_pages')} <a href="/panel/plan">${t('plan.see_plans')}</a></p>` : ''}
 ${opts.errors._form ? html`<p class="flash flash-error" role="alert">${t(opts.errors._form)}</p>` : ''}
 <form method="post" action="/panel/start?_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate class="start">

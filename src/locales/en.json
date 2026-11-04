@@ -2497,5 +2497,7 @@
   "varita.err_quota_edit": "You've used today's AI changes. Come back tomorrow.",
   "varita.err_no_text": "There's no text here the wand can change.",
   "varita.err_expired": "That suggestion is no longer available. Ask again.",
-  "common.close": "Close"
+  "common.close": "Close",
+  "varita.card_t": "Build your site with AI",
+  "varita.card_s": "Describe your business in a sentence and the wand builds everything in a minute."
 }

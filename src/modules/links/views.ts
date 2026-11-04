@@ -1,4 +1,5 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
+import { aiConfig } from '../../lib/ai.ts'
 import { formatNumber, plural } from '../../lib/i18n.ts'
 import { UTM_KEYS } from '../../lib/urls.ts'
 import { icon } from '../../views/icons.ts'
@@ -67,6 +68,7 @@ export function dashboardPage(
     </details>
   </div>
 </div>
+${!filtered && aiConfig().provider !== 'off' ? html`<a class="vcard" href="/panel/varita"><span class="vcard-ic" aria-hidden="true">${icon('wand')}</span><span class="vcard-b"><b>${t('varita.card_t')}</b><small>${t('varita.card_s')}</small></span><span class="vcard-go" aria-hidden="true">→</span></a>` : ''}
 ${opts.summary && !filtered ? html`<div class="kpis">
   <div class="kpi"><span class="kpi-l">${t('s9.k_views')}</span><span class="kpi-n">${formatNumber(ctx.locale, opts.summary.views)}</span></div>
   <div class="kpi"><span class="kpi-l">${t('s9.k_clicks')}</span><span class="kpi-n">${formatNumber(ctx.locale, opts.summary.clicks)}</span>${opts.summary.views ? html`<span class="muted">${t('s9.k_ctr', { pct: Math.round((opts.summary.clicks / opts.summary.views) * 100) })}</span>` : ''}</div>
