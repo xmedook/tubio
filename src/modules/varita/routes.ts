@@ -55,6 +55,13 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     ${opts.left !== null ? html`<p class="hint varita-left">${t('varita.left', { n: opts.left })}</p>` : ''}
     <p class="flash flash-error" role="alert" hidden data-varita-err data-generic="${t('ai.err_failed')}"></p>
   </form>
+  <div class="varita-live" hidden data-varita-live aria-hidden="true">
+    <div class="vm-phone">
+      <div class="vm-bar"><span class="vm-name" data-vm-name></span></div>
+      <div class="vm-hero" data-vm-hero><span class="vm-k"></span><span class="vm-t" data-vm-title></span><span class="vm-s"></span></div>
+      <div class="vm-secs" data-vm-secs></div>
+    </div>
+  </div>
   <ol class="varita-steps" hidden data-varita-steps aria-live="polite">
     ${(['reading', 'style', 'cover', 'section', 'page', 'done'] as Stage[]).map((s) => html`<li data-stage="${s}"><span class="dot" aria-hidden="true"></span><span>${t(`varita.st_${s}`)}</span><small data-n></small></li>`)}
   </ol>
@@ -135,7 +142,7 @@ export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
     res.writeHead(200, { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' })
     const send = (o: object) => res.write(JSON.stringify(o) + '\n')
     try {
-      const { plan, usage } = await generatePlan(cfg, description, (s, n) => send(n ? { s, n } : { s }))
+      const { plan, usage } = await generatePlan(cfg, description, (s, n, peek) => send({ s, ...(n ? { n } : {}), ...(peek ? { peek } : {}) }))
       if (!alias) {
         const base = slugify(plan.nombre) || 'mi-negocio'
         alias = base

@@ -842,3 +842,35 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
   .varita-ready .varita-phone { order: -1; width: min(300px, 82vw); }
   .varita-ready .start-url { font-size: 18px; }
 }
+/* Varita, en vivo: un teléfono que se llena con lo que va llegando */
+.varita { --vm-c1: #10120d; --vm-c2: #4f5448; }
+.varita.working .varita-orb { background: conic-gradient(from 0deg, var(--vm-c1), var(--vm-c2), #d7f25c, var(--vm-c2), var(--vm-c1)); transition: background 1s; }
+.varita-live[hidden] { display: none; }
+.varita-live { margin-top: 22px; display: grid; justify-items: center; }
+.vm-phone { width: min(300px, 86vw); height: 520px; border: 9px solid var(--text); border-radius: 38px; overflow: hidden; background: #fff; box-shadow: 10px 10px 0 var(--accent-soft); display: flex; flex-direction: column; animation: v-rise .6s cubic-bezier(.2, .8, .2, 1) both; }
+.vm-bar { flex: none; height: 44px; display: flex; align-items: center; padding: 0 14px; border-bottom: 1px solid #eee; }
+.vm-name { font: 700 15px/1 var(--f-display); color: #111; min-height: 1em; }
+.vm-name:empty, .vm-t:empty { width: 55%; height: 12px; border-radius: 6px; background: #ececec; animation: v-shim 1.2s ease-in-out infinite; }
+.vm-hero { flex: none; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 190px; padding: 18px; color: #fff;
+  background: linear-gradient(150deg, #d9d9d9, #c4c4c4); transition: background .9s; }
+.has-color .vm-hero { background: radial-gradient(60% 70% at 85% 10%, rgb(255 255 255 / 18%), transparent 70%), linear-gradient(150deg, var(--vm-c1), var(--vm-c2)); }
+.vm-k { width: 40%; height: 8px; border-radius: 4px; background: rgb(255 255 255 / 45%); }
+.vm-t { font: 800 22px/1.05 var(--f-display); letter-spacing: -.02em; min-height: 1.05em; }
+.vm-t:empty { background: rgb(255 255 255 / 35%); height: 18px; width: 75%; }
+.vm-s { width: 70%; height: 8px; border-radius: 4px; background: rgb(255 255 255 / 35%); }
+.vm-secs { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.vm-sec { display: grid; gap: 7px; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--vm-c1) 7%, #fff); animation: v-rise .5s cubic-bezier(.2, .8, .2, 1) both; }
+.vm-sec b { font: 700 14px/1.15 var(--f-display); color: color-mix(in srgb, var(--vm-c1) 85%, #000); }
+.vm-sec i { display: block; height: 7px; border-radius: 4px; background: color-mix(in srgb, var(--vm-c1) 16%, #fff); }
+.vm-sec i + i { width: 64%; }
+@keyframes v-shim { 50% { opacity: .45; } }
+@media (min-width: 900px) {
+  .varita.working { max-width: 980px; display: grid; grid-template-columns: 1fr 320px; column-gap: 40px; align-items: start; }
+  .varita.working > :not(.varita-live) { grid-column: 1; }
+  .varita.working .varita-live { grid-column: 2; grid-row: 1 / span 8; margin-top: 0; position: sticky; top: 24px; }
+}
+@media (prefers-reduced-motion: reduce) { .vm-phone, .vm-sec, .vm-name:empty, .vm-t:empty { animation: none; } }
+@media (max-width: 899px) {
+  .varita.working .varita-steps { padding: 12px 16px; box-shadow: none; border-width: 1px; }
+  .varita.working .varita-steps li:not(.now) { display: none; }
+}

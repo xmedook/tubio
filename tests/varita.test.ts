@@ -40,6 +40,11 @@ describe('varita: sitio con IA desde una descripción', () => {
     expect(r.statusCode).toBe(200)
     const out = lines(r.body)
     expect(out.map((o) => o.s).filter(Boolean)).toEqual(expect.arrayContaining(['reading', 'style', 'cover', 'section', 'done']))
+    // lo que se pinta en vivo: nombre y colores, titular y cada sección
+    const peeks = out.map((o) => o.peek as Record<string, string> | undefined).filter(Boolean)
+    expect(peeks.some((p) => p!.nombre && /^#[0-9a-f]{6}$/.test(p!.c1!))).toBe(true)
+    expect(peeks.some((p) => p!.titulo)).toBe(true)
+    expect(peeks.filter((p) => p!.seccion).length).toBeGreaterThanOrEqual(2)
     const last = out.at(-1)!
     expect(last.ok).toBe(true)
     const link = findByAlias(t.deps.db, 'taqueria-los-compadres')!
