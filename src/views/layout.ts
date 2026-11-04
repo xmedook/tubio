@@ -6,7 +6,7 @@ import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 import { brandHead, wordmark } from './brand.ts'
 
-export const ASSET_VERSION = '54'
+export const ASSET_VERSION = '55'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -39,7 +39,7 @@ function tab(active: NavKey | undefined, key: NavKey, href: string, label: strin
 
 export function panelLayout(
   ctx: Ctx,
-  opts: { title: string; body: HtmlValue; active?: NavKey; path: string; head?: HtmlValue; wide?: boolean },
+  opts: { title: string; body: HtmlValue; active?: NavKey; path: string; head?: HtmlValue; wide?: boolean; noCreate?: boolean },
 ): SafeHtml {
   const { t, user } = ctx
   const path = opts.path
@@ -102,7 +102,7 @@ ${user && !ctx.member && !user.email_verified_at
 ${flashBox(ctx)}
 ${opts.body}
 </main>
-<details class="create fab-wrap">
+${opts.noCreate ? '' : html`<details class="create fab-wrap">
   <summary class="fab" aria-label="${t('nav.create')}">${icon('plus')}</summary>
   <div class="sheet" role="menu">
     <span class="sheet-grip" aria-hidden="true"></span>
@@ -117,7 +117,7 @@ ${opts.body}
     <a role="menuitem" href="/panel/links/new?kind=vcard"><span class="tipo-ic">${icon('card')}</span><span><b>${t('links.kind_vcard')}</b><small>${t('create.vcard')}</small></span></a>
     <a role="menuitem" href="/panel/links/new?kind=event"><span class="tipo-ic">${icon('event')}</span><span><b>${t('links.kind_event')}</b><small>${t('create.event')}</small></span></a>
   </div>
-</details>
+</details>`}
 <nav class="tabbar" aria-label="${t('nav.main')}">
   ${tab2(on('/panel'), '/panel', t('nav.links'), 'link')}
   ${tab2(on('/panel/stats'), '/panel/stats', t('nav.stats'), 'chart')}

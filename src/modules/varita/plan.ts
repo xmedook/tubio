@@ -34,7 +34,7 @@ const block = z.object({
 
 const section = z.object({
   ancla: z.string().describe('identificador corto en minúsculas sin acentos, p. ej. «servicios»'),
-  antetitulo: z.string(),
+  antetitulo: z.string().describe('2 o 3 palabras'),
   titulo: z.string(),
   subtitulo: z.string(),
   fondo: z.enum(SECTION_BGS),
@@ -53,7 +53,7 @@ export const planSchema = z.object({
     color_secundario: z.string().describe('hex #rrggbb para degradados junto al principal'),
     color_suave: z.string().describe('hex #rrggbb muy claro para fondos de sección'),
   }),
-  portada: z.object({ antetitulo: z.string(), titulo: z.string(), subtitulo: z.string() }),
+  portada: z.object({ antetitulo: z.string().describe('giro y ciudad, 5 palabras como máximo'), titulo: z.string().describe('promesa concreta, 8 palabras como máximo'), subtitulo: z.string() }),
   acciones: z.array(z.object({
     titulo: z.string(),
     subtitulo: z.string(),
@@ -96,7 +96,7 @@ export function normalizePlan(p: Plan): Plan {
     preguntas: b.preguntas.slice(0, MAX.preguntas).map((q) => ({ pregunta: cut(q.pregunta, 200), respuesta: cut(q.respuesta, 600) })).filter((q) => q.pregunta && q.respuesta),
     cifra: cut(b.cifra, 12),
   })
-  const usadas = new Set(['inicio', 'acciones', 'solicitud', 'ubicacion'])
+  const usadas = new Set(['inicio', 'portada', 'acciones', 'solicitud', 'ubicacion'])
   const secciones = p.secciones.slice(0, MAX.secciones).map((s, i) => {
     let ancla = slugify(s.ancla) || `seccion-${i + 1}`
     while (usadas.has(ancla)) ancla = `${ancla}-${i + 1}`
@@ -126,7 +126,7 @@ export function normalizePlan(p: Plan): Plan {
       color_secundario: hex(p.estilo.color_secundario, '#4b5563'),
       color_suave: hex(p.estilo.color_suave, '#f4f1ea'),
     },
-    portada: { antetitulo: cut(p.portada.antetitulo, 60), titulo: cut(p.portada.titulo, 120), subtitulo: cut(p.portada.subtitulo, 240) },
+    portada: { antetitulo: cut(p.portada.antetitulo, 44), titulo: cut(p.portada.titulo, 120), subtitulo: cut(p.portada.subtitulo, 240) },
     acciones,
     solicitud: { tipo: p.solicitud.tipo, antetitulo: cut(p.solicitud.antetitulo, 60), titulo: cut(p.solicitud.titulo, 120) },
     secciones,

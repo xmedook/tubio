@@ -34,6 +34,7 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     title: t('varita.title'),
     active: 'links',
     path: '/panel/varita',
+    noCreate: true,
     body: html`<section class="varita" data-varita data-csrf="${ctx.csrf}">
   <div class="varita-orb" aria-hidden="true"></div>
   <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>
@@ -69,6 +70,7 @@ function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
     title: t('varita.ready'),
     active: 'links',
     path: '/panel/varita/listo',
+    noCreate: true,
     body: html`<section class="varita-ready">
   <div class="varita-ready-txt">
     <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>

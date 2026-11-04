@@ -127,7 +127,7 @@ export function renderSiteBody(a: BodyArgs): { top: SafeHtml; main: SafeHtml; bo
       d.antetitulo || d.titulo || d.subtitulo
         ? html`<div class="ms-head">${d.antetitulo ? html`<p class="ms-k">${d.antetitulo}</p>` : ''}${d.titulo ? raw(`<${H} class="ms-h">`) : ''}${d.titulo}${d.titulo ? raw(`</${H}>`) : ''}${d.subtitulo ? html`<p class="ms-sub">${d.subtitulo}</p>` : ''}</div>`
         : ''
-    const cls = ['ms-sec', `alto-${d.alto}`, d.relleno === 'ninguno' ? 'rel-ninguno' : '', d.classic ? 'is-classic' : '', d.fondo !== 'ninguno' ? 'has-fondo' : '', d.fondo === 'imagen' && d.imagen ? 'has-veil' : ''].filter(Boolean).join(' ')
+    const cls = ['ms-sec', `alto-${d.alto}`, d.relleno === 'ninguno' ? 'rel-ninguno' : '', d.classic ? 'is-classic' : '', d.fondo !== 'ninguno' ? `has-fondo fondo-${d.fondo}` : '', d.ancla ? `anc-${d.ancla}` : '', d.fondo === 'imagen' && d.imagen ? 'has-veil' : ''].filter(Boolean).join(' ')
     return html`<section class="${cls}"${d.ancla ? html` id="${d.ancla}"` : ''} data-sec="${s.id}"><div class="ms-fx" id="s${s.id}"><div class="ms-in w-${d.ancho} al-${d.alinear}">${head}<div class="ms-blocks cols-${d.columnas}">${blocks.map((b) => a.renderBlock(b, n++))}</div></div></div></section>`
   })
 

@@ -90,7 +90,7 @@ export function buildSite(db: DB, linkId: number, plan: Plan, v: BuildVals, now:
     f === 'suave' ? { fondo: 'color', color: suave } : f === 'principal' ? { fondo: 'color', color: c1 } : f === 'degradado' ? { fondo: 'degradado', color: c1, color2: c2, angulo: 160 } : {}
 
   // portada
-  updateSection(db, first.id, readSectionData({ ancla: 'inicio', antetitulo: plan.portada.antetitulo, titulo: plan.portada.titulo || plan.nombre, subtitulo: plan.portada.subtitulo, fondo: 'degradado', color: c1, color2: c2, angulo: 160, alto: 'media', ancho: 'normal' }), true, now)
+  updateSection(db, first.id, readSectionData({ ancla: 'portada', antetitulo: plan.portada.antetitulo, titulo: plan.portada.titulo || plan.nombre, subtitulo: plan.portada.subtitulo, fondo: 'degradado', color: c1, color2: c2, angulo: 150, alto: 'auto', ancho: 'normal' }), true, now)
 
   // acciones: la principal primero; «llamar» marca el mismo número
   // sin número no hay WhatsApp ni llamada: esas acciones no se pintarían, así que la principal pasa a la siguiente
@@ -146,7 +146,8 @@ export function buildSite(db: DB, linkId: number, plan: Plan, v: BuildVals, now:
   if (plan.negocio.direccion) barra.push({ texto: plan.idioma === 'en' ? 'Directions' : 'Cómo llegar', tipo: 'ancla', destino: 'ubicacion', mensaje: '' })
   saveSiteConfig(db, linkId, readSite({
     whatsapp: wa,
-    cabecera: { activa: true, logo: v.logo ?? null, nombre: plan.nombre.slice(0, 40), nav: 'manual', nav_manual: nav, cta },
+    // el botón principal ya va en la barra fija: en la cabecera se repetiría
+    cabecera: { activa: true, logo: v.logo ?? null, nombre: plan.nombre.slice(0, 40), nav: 'manual', nav_manual: nav, cta: { texto: '', tipo: 'whatsapp', destino: '', mensaje: '' } },
     barra: { activa: true, acciones: barra.slice(0, 3) },
     pie: { activo: true, servicios: plan.pie, direccion: plan.negocio.direccion, texto: '' },
   }), now)
