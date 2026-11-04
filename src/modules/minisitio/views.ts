@@ -1,4 +1,5 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
+import type { Todo } from './todos.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import { icon } from '../../views/icons.ts'
 import { ASSET_VERSION, panelLayout } from '../../views/layout.ts'
@@ -39,7 +40,7 @@ function actionFields(ctx: Ctx, prefix: string, a: Action, errors: Errors, legen
 }
 
 // ---------------------------------------------------------------- pestaña «Sitio»
-export function sitePage(ctx: Ctx, link: Link, site: Site, cfg: SiteConfig, errors: Errors = {}): SafeHtml {
+export function sitePage(ctx: Ctx, link: Link, site: Site, cfg: SiteConfig, errors: Errors = {}, todos: Todo[] = []): SafeHtml {
   const { t } = ctx
   const c = cfg.cabecera
   const emptyAct: Action = { texto: '', tipo: 'enlace', destino: '', mensaje: '' }
@@ -53,7 +54,12 @@ export function sitePage(ctx: Ctx, link: Link, site: Site, cfg: SiteConfig, erro
 ${viewToggle(ctx)}
 <div class="editor" data-editor>
   <section class="editor-main">
-    <p class="muted">${t('ms.intro')}</p>
+    ${site.materialized ? '' : html`<p class="muted">${t('ms.intro')}</p>`}
+    ${todos.some((x) => !x.done) ? html`<section class="todos" aria-labelledby="todos-h">
+      <div class="todos-top"><h2 id="todos-h">${t('ms.todo_title')}</h2><span class="todos-n">${t('ms.todo_count', { n: todos.filter((x) => x.done).length, total: todos.length })}</span></div>
+      <div class="todos-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${todos.length}" aria-valuenow="${todos.filter((x) => x.done).length}"><i style="--p:${Math.round((100 * todos.filter((x) => x.done).length) / todos.length)}%"></i></div>
+      <ul>${todos.map((x) => html`<li class="${x.done ? 'done' : ''}">${x.done ? html`<span class="todo-ic" aria-hidden="true">✓</span><span>${t(`ms.todo_${x.key}`)}</span>` : html`<a href="${x.href}"><span class="todo-ic" aria-hidden="true"></span><span><b>${t(`ms.todo_${x.key}`)}</b><small>${t(`ms.todo_${x.key}_why`)}</small></span>${icon('back')}</a>`}</li>`)}</ul>
+    </section>` : ''}
 
     <h2>${t('ms.pages')}</h2>
     <ol class="blocks ms-pages">
@@ -82,9 +88,10 @@ ${viewToggle(ctx)}
     <h2>${t('ms.site_settings')}</h2>
     ${Object.keys(errors).length ? html`<p class="flash flash-error" role="alert">${t('err.form')}</p>` : ''}
     <form method="post" action="/panel/links/${link.id}/site?_csrf=${encodeURIComponent(ctx.csrf)}" enctype="multipart/form-data" novalidate>
+      <div id="whatsapp-field"></div>
       ${input({ ctx, name: 'whatsapp', label: t('ms.whatsapp'), value: cfg.whatsapp, inputmode: 'numeric', maxlength: 15, hint: t('ms.whatsapp_hint'), error: errors.whatsapp })}
 
-      <details class="opt"${c.activa ? html` open` : ''}><summary>${t('ms.header')}</summary><div class="opt-body">
+      <details class="opt" id="header-field"${c.activa ? html` open` : ''}><summary>${t('ms.header')}</summary><div class="opt-body">
         ${checkbox({ name: 'cab_activa', label: t('ms.header_on'), checked: c.activa })}
         ${input({ ctx, name: 'cab_nombre', label: t('ms.header_name'), value: c.nombre, maxlength: 40 })}
         ${imageOpt(ctx, 'cab_logo', t('ms.header_logo'), c.logo)}
@@ -112,7 +119,7 @@ ${viewToggle(ctx)}
         ${input({ ctx, name: 'fab_mensaje', label: t('ms.fab_msg'), value: cfg.flotante_wa.mensaje, maxlength: 200 })}
       </div></details>
 
-      <details class="opt"${cfg.pie.activo ? html` open` : ''}><summary>${t('ms.footer')}</summary><div class="opt-body">
+      <details class="opt" id="footer-field"${cfg.pie.activo ? html` open` : ''}><summary>${t('ms.footer')}</summary><div class="opt-body">
         ${checkbox({ name: 'pie_activo', label: t('ms.footer_on'), checked: cfg.pie.activo })}
         ${input({ ctx, name: 'pie_servicios', label: t('ms.footer_services'), value: cfg.pie.servicios, maxlength: 160 })}
         ${input({ ctx, name: 'pie_direccion', label: t('ms.footer_address'), value: cfg.pie.direccion, maxlength: 160 })}

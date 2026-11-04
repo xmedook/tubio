@@ -4,6 +4,36 @@ const form = root?.querySelector('[data-varita-form]')
 const desc = root?.querySelector('[data-varita-desc]')
 const steps = root?.querySelector('[data-varita-steps]')
 const err = root?.querySelector('[data-varita-err]')
+const live = root?.querySelector('[data-varita-live]')
+
+/** Pinta en el teléfono lo que ya se sabe del sitio (todo con textContent y colores validados en el servidor) */
+function peek(p) {
+  if (!live || !p) return
+  if (p.nombre) live.querySelector('[data-vm-name]').textContent = p.nombre
+  if (p.c1 && p.c2) {
+    live.style.setProperty('--vm-c1', p.c1)
+    live.style.setProperty('--vm-c2', p.c2)
+    root.style.setProperty('--vm-c1', p.c1)
+    root.style.setProperty('--vm-c2', p.c2)
+    live.classList.add('has-color')
+  }
+  if (p.titulo) {
+    const el = live.querySelector('[data-vm-title]')
+    el.textContent = ''
+    let i = 0
+    const tick = () => { if (i <= p.titulo.length) { el.textContent = p.titulo.slice(0, i++); setTimeout(tick, 22) } }
+    tick()
+    live.classList.add('has-title')
+  }
+  if (p.seccion) {
+    const sec = document.createElement('div')
+    sec.className = 'vm-sec'
+    const h = document.createElement('b')
+    h.textContent = p.seccion
+    sec.append(h, document.createElement('i'), document.createElement('i'))
+    live.querySelector('[data-vm-secs]').append(sec)
+  }
+}
 
 root?.addEventListener('click', (e) => {
   const chip = e.target instanceof Element ? e.target.closest('[data-varita-ex]') : null
@@ -34,12 +64,20 @@ form?.addEventListener('submit', async (e) => {
   root.classList.add('working')
   form.querySelector('button[type=submit]').disabled = true
   steps.hidden = false
-  steps.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  if (live) {
+    live.hidden = false
+    live.className = 'varita-live'
+    live.querySelector('[data-vm-name]').textContent = ''
+    live.querySelector('[data-vm-title]').textContent = ''
+    live.querySelector('[data-vm-secs]').replaceChildren()
+  }
+  (live ?? steps).scrollIntoView({ block: 'start', behavior: 'smooth' })
   stage('reading')
   const fd = new FormData(form)
   const fail = (msg) => {
     root.classList.remove('working')
     steps.hidden = true
+    if (live) live.hidden = true
     err.textContent = msg
     err.hidden = false
     err.scrollIntoView({ block: 'center', behavior: 'smooth' })
@@ -65,6 +103,7 @@ form?.addEventListener('submit', async (e) => {
         if (!line) continue
         const m = JSON.parse(line)
         if (m.s) stage(m.s, m.n)
+        if (m.peek) peek(m.peek)
         if (m.error) return fail(m.msg || m.error)
         if (m.ok && m.go) {
           stage('done')

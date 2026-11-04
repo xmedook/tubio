@@ -40,6 +40,11 @@ describe('varita: sitio con IA desde una descripción', () => {
     expect(r.statusCode).toBe(200)
     const out = lines(r.body)
     expect(out.map((o) => o.s).filter(Boolean)).toEqual(expect.arrayContaining(['reading', 'style', 'cover', 'section', 'done']))
+    // lo que se pinta en vivo: nombre y colores, titular y cada sección
+    const peeks = out.map((o) => o.peek as Record<string, string> | undefined).filter(Boolean)
+    expect(peeks.some((p) => p!.nombre && /^#[0-9a-f]{6}$/.test(p!.c1!))).toBe(true)
+    expect(peeks.some((p) => p!.titulo)).toBe(true)
+    expect(peeks.filter((p) => p!.seccion).length).toBeGreaterThanOrEqual(2)
     const last = out.at(-1)!
     expect(last.ok).toBe(true)
     const link = findByAlias(t.deps.db, 'taqueria-los-compadres')!
@@ -52,6 +57,11 @@ describe('varita: sitio con IA desde una descripción', () => {
     expect(pub.statusCode).toBe(200)
     expect(pub.body).toContain('Taquería Los Compadres')
     expect((await a.get(String(last.go))).statusCode).toBe(200)
+    // el editor dice qué falta: logo y foto (la IA no los pone); el WhatsApp ya está
+    const ed = (await a.get(`/panel/links/${link.id}/site`)).body
+    expect(ed).toContain('class="todos"')
+    expect(ed).toContain('Sube tu logo')
+    expect(ed).toMatch(/<li class="done">[^]*?Agrega tu WhatsApp/)
     // el mismo nombre otra vez: otra dirección, no choca
     const r2 = lines((await a.postJson('/panel/varita', { description: DESC })).body).at(-1)!
     expect(r2.ok).toBe(true)
@@ -115,5 +125,59 @@ describe('varita: sitio con IA desde una descripción', () => {
     expect(realBlock({ ...b, tipo: 'pasos' })?.type).toBe('steps')
     expect(realBlock({ ...b, tipo: 'cifra', cifra: '' })).toBeNull()
     expect(realBlock({ ...b, tipo: 'menu', items: [] })).toBeNull()
+  })
+})
+
+describe('varita en el editor: proponer, aplicar y deshacer cambios de texto', () => {
+  const env = { ...process.env }
+  beforeEach(() => {
+    process.env.TUBIO_AI_PROVIDER = 'mock'
+  })
+  afterEach(() => {
+    process.env = { ...env }
+  })
+
+  it('propone sólo textos, aplica la opción elegida y la deshace', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    setPlan(t, u.id, 'business')
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=bio')
+    await a.postMultipart('/panel/links?kind=bio', { alias: 'edita', title: 'E', is_enabled: '1' })
+    const id = findByAlias(t.deps.db, 'edita')!.id
+    await a.get(`/panel/links/${id}/blocks/new?type=heading`)
+    await a.postMultipart(`/panel/links/${id}/blocks?type=heading`, { text: 'Tacos de la casa', level: 'h2', is_enabled: '1' })
+    const ed = await a.get(`/panel/links/${id}/blocks`)
+    expect(ed.body).toContain('data-varita-edit')
+    expect(ed.body).toContain('data-vq="vendedor"')
+    expect((await a.postJson(`/panel/links/${id}/varita/propose`, { instruction: 'x' })).statusCode).toBe(422)
+    const p = await a.postJson(`/panel/links/${id}/varita/propose`, { quick: 'corto' })
+    expect(p.statusCode).toBe(200)
+    const prop = p.json() as { token: string; options: { cambios: { bloque: number; antes: string; nuevo: string }[] }[] }
+    const ch = prop.options[0]!.cambios[0]!
+    expect(ch.antes).toBe('Tacos de la casa')
+    // otra persona no puede aplicar la propuesta
+    await seedUser(t, 'otra@example.com')
+    const b = await loginAgent(t, 'otra@example.com')
+    await b.get('/panel')
+    expect((await b.postJson(`/panel/links/${id}/varita/apply`, { token: prop.token, option: 0 })).statusCode).toBe(404)
+    const ap = await a.postJson(`/panel/links/${id}/varita/apply`, { token: prop.token, option: 0 })
+    expect(ap.statusCode).toBe(200)
+    const pub = (await new Agent(t.app).get('/edita')).body
+    expect(pub).toContain(ch.nuevo)
+    expect(pub).not.toContain('Tacos de la casa')
+    // el mismo token no se usa dos veces
+    expect((await a.postJson(`/panel/links/${id}/varita/apply`, { token: prop.token, option: 0 })).statusCode).toBe(410)
+    expect((await a.postJson(`/panel/links/${id}/varita/undo`, { undo: (ap.json() as { undo: number }).undo })).statusCode).toBe(200)
+    expect((await new Agent(t.app).get('/edita')).body).toContain('Tacos de la casa')
+  })
+
+  it('no toca precios, enlaces ni teléfonos aunque estén en el bloque', async () => {
+    const { textFields } = await import('../src/modules/varita/edit.ts')
+    const f = textFields({ id: 1, link_id: 1, type: 'menu', data: { titulo: 'Carta', items: [{ nombre: 'Taco', descripcion: 'de pastor', precio: '$20', categoria: 'Tacos' }] } } as never)
+    const paths = f.map((x) => x.path)
+    expect(paths).toContain('titulo')
+    expect(paths).toContain('items.0.nombre')
+    expect(paths).not.toContain('items.0.precio')
   })
 })

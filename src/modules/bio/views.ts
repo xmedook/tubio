@@ -1,4 +1,5 @@
 import { html, type SafeHtml } from '../../lib/html.ts'
+import { aiConfig } from '../../lib/ai.ts'
 import { formatNumber, plural } from '../../lib/i18n.ts'
 import { imageUrl } from '../../lib/uploads.ts'
 import { icon } from '../../views/icons.ts'
@@ -69,12 +70,39 @@ function blockRow(ctx: Ctx, b: BlockRow, i: number, total: number, scheduled: (b
           <summary class="icon-btn" aria-label="${t('nav.more')}: ${t(`bio.type_${b.type}`)}">${icon('more')}</summary>
           <div class="menu-body">
             <a href="/panel/blocks/${b.id}">${t('common.edit')}</a>
+            ${aiOn() ? html`<div class="vq-menu" role="group" aria-label="${t('varita.title')}">${(['vendedor', 'corto', 'ingles', 'opciones'] as const).map((q) => html`<button type="button" data-vq="${q}" data-block="${b.id}">${icon('wand')} ${t(`varita.q_${q}`)}</button>`)}</div>` : ''}
             ${i > 0 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="up"><button type="submit">${t('bio.move_up')}</button></form>` : ''}
             ${i < total - 1 ? html`<form method="post" action="/panel/blocks/${b.id}/move">${csrfField(ctx)}<input type="hidden" name="dir" value="down"><button type="submit">${t('bio.move_down')}</button></form>` : ''}
             ${postButton(ctx, `/panel/blocks/${b.id}/delete`, t('common.delete'), { cls: 'danger', confirm: t('bio.delete_confirm') })}
           </div>
         </details>
       </li>`
+}
+
+const aiOn = () => aiConfig().provider !== 'off'
+
+/** Barra de la Varita en el editor: pedir cambios de texto en lenguaje natural o con un toque */
+function varitaBar(ctx: Ctx, link: Link, pageId?: number): SafeHtml {
+  const { t } = ctx
+  if (!aiOn()) return html``
+  return html`<section class="vbar" data-varita-edit data-url="/panel/links/${link.id}/varita" data-csrf="${ctx.csrf}"${pageId ? html` data-page="${pageId}"` : ''}>
+  <form class="vbar-form" data-vbar-form>
+    <span class="vbar-ic" aria-hidden="true">${icon('wand')}</span>
+    <label class="sr-only" for="vbar-q">${t('varita.bar_label')}</label>
+    <input id="vbar-q" name="instruction" maxlength="600" autocomplete="off" placeholder="${t('varita.bar_ph')}">
+    <button type="submit" class="btn btn-primary vbar-go" aria-label="${t('varita.bar_go')}"><span class="vbar-go-t">${t('varita.bar_go')}</span><span class="vbar-go-a" aria-hidden="true">→</span></button>
+  </form>
+  <div class="vbar-quick" role="group" aria-label="${t('varita.quick')}">${(['vendedor', 'corto', 'ingles', 'calido'] as const).map((q) => html`<button type="button" class="chip" data-vq="${q}">${t(`varita.q_${q}`)}</button>`)}</div>
+  <p class="vbar-status" role="status" aria-live="polite" data-vbar-status></p>
+  <dialog class="vdlg" data-vdlg aria-labelledby="vdlg-h"><form method="dialog" class="vdlg-in">
+    <div class="vdlg-top"><h2 id="vdlg-h">${icon('wand')} ${t('varita.proposal')}</h2><button class="icon-btn" value="close" aria-label="${t('common.close')}">✕</button></div>
+    <div data-vdlg-body></div>
+  </form></dialog>
+  <template data-vtpl-option><article class="vopt"><p class="vopt-sum"></p><ol class="vopt-list"></ol><button type="button" class="btn btn-primary vopt-go">${t('varita.apply')}</button></article></template>
+  <div class="vtoast" role="status" hidden data-vtoast><span>${t('varita.applied')}</span><button type="button" class="btn" data-vundo>${t('varita.undo')}</button></div>
+  <span hidden data-vmsg-none>${t('varita.no_changes')}</span><span hidden data-vmsg-wait>${t('varita.thinking')}</span><span hidden data-vmsg-fail>${t('ai.err_failed')}</span>
+</section>
+<script type="module" src="/_/static/js/varita-edit.js?v=${ASSET_VERSION}" nonce="${ctx.nonce}"></script>`
 }
 
 export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: string[] = [], maxBlocks = MAX_BLOCKS_PER_PAGE, sv?: SiteView): SafeHtml {
@@ -92,6 +120,7 @@ export function editorPage(ctx: Ctx, link: Link, blocks: BlockRow[], locked: str
 ${viewToggle(ctx)}
 <div class="editor" data-editor>
   <section class="editor-main">
+    ${varitaBar(ctx, link, sv?.page.id)}
     ${sv ? sectionsEditor(ctx, link, sv, scheduled, full, maxBlocks) : html``}
     ${sv ? '' : html`<details class="card add-block"${blocks.length === 0 ? html` open` : ''}>
       <summary class="btn btn-primary btn-block">${icon('plus')} ${t('bio.add_block')}</summary>

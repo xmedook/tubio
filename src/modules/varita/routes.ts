@@ -15,6 +15,9 @@ import { audit } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { buildSite, planDesign } from './build.ts'
 import { generatePlan, type Stage } from './generate.ts'
+import { proposeEdits, QUICK, setText, takeProposal, type Quick } from './edit.ts'
+import { getBlock, listBlocks, updateBlock } from '../bio/repo.ts'
+import { ownLinkOr404 } from '../links/routes.ts'
 import { slugify } from './plan.ts'
 
 /** Sitios generados por persona en 24 h (las personas admin no tienen tope) */
@@ -34,6 +37,7 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     title: t('varita.title'),
     active: 'links',
     path: '/panel/varita',
+    noCreate: true,
     body: html`<section class="varita" data-varita data-csrf="${ctx.csrf}">
   <div class="varita-orb" aria-hidden="true"></div>
   <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>
@@ -54,6 +58,13 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     ${opts.left !== null ? html`<p class="hint varita-left">${t('varita.left', { n: opts.left })}</p>` : ''}
     <p class="flash flash-error" role="alert" hidden data-varita-err data-generic="${t('ai.err_failed')}"></p>
   </form>
+  <div class="varita-live" hidden data-varita-live aria-hidden="true">
+    <div class="vm-phone">
+      <div class="vm-bar"><span class="vm-name" data-vm-name></span></div>
+      <div class="vm-hero" data-vm-hero><span class="vm-k"></span><span class="vm-t" data-vm-title></span><span class="vm-s"></span></div>
+      <div class="vm-secs" data-vm-secs></div>
+    </div>
+  </div>
   <ol class="varita-steps" hidden data-varita-steps aria-live="polite">
     ${(['reading', 'style', 'cover', 'section', 'page', 'done'] as Stage[]).map((s) => html`<li data-stage="${s}"><span class="dot" aria-hidden="true"></span><span>${t(`varita.st_${s}`)}</span><small data-n></small></li>`)}
   </ol>
@@ -69,6 +80,7 @@ function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
     title: t('varita.ready'),
     active: 'links',
     path: '/panel/varita/listo',
+    noCreate: true,
     body: html`<section class="varita-ready">
   <div class="varita-ready-txt">
     <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>
@@ -91,6 +103,92 @@ function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
 export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
   const { db } = deps
   const left = (u: User) => (u.role === 'admin' ? null : Math.max(0, dailyLimit() - usedToday(deps, u.id)))
+  const editsLeft = (u: User) => {
+    if (u.role === 'admin') return Infinity
+    const used = db.prepare("SELECT COUNT(*) FROM audit_log WHERE user_id = ? AND action = 'ai.propose' AND ts > ?").pluck().get(u.id, deps.now() - 86_400_000) as number
+    return Math.max(0, (Number(process.env.TUBIO_AI_EDITS_DAILY ?? 40) || 0) - used)
+  }
+  const jsonErr = (reply: import('fastify').FastifyReply, req: import('fastify').FastifyRequest, key: string, code: number) => reply.code(code).send({ error: key, msg: req.ctx.t(key) })
+
+  /** Varita en el editor: propone cambios de texto (para un bloque o para toda la página) */
+  app.post('/panel/links/:id/varita/propose', { preHandler: userGuard, config: { rateLimit: { max: 20, timeWindow: '5 minutes' } } }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const u = req.ctx.user as User
+    const body = (req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>
+    const quick = QUICK.includes(body.quick as Quick) ? (body.quick as Quick) : undefined
+    const instruction = typeof body.instruction === 'string' ? body.instruction.trim().slice(0, 600) : ''
+    if (!quick && instruction.length < 4) return jsonErr(reply, req, 'varita.err_ask', 422)
+    const cfg = aiConfig()
+    if (cfg.provider === 'off') return jsonErr(reply, req, 'ai.err_off', 503)
+    if (editsLeft(u) <= 0) return jsonErr(reply, req, 'varita.err_quota_edit', 429)
+    let blocks = listBlocks(db, link.id).filter((b) => b.is_enabled)
+    const only = Number(body.block)
+    if (only) blocks = blocks.filter((b) => b.id === only)
+    else if (Number(body.page)) {
+      // en un sitio: sólo los bloques de las secciones de esa página
+      const ids = new Set((db.prepare('SELECT s.id FROM ms_sections s WHERE s.page_id = ?').pluck().all(Number(body.page)) as number[]))
+      blocks = blocks.filter((b) => b.section_id && ids.has(b.section_id))
+    }
+    if (!blocks.length) return jsonErr(reply, req, 'varita.err_no_text', 422)
+    try {
+      const { proposal, usage } = await proposeEdits(cfg, blocks.slice(0, 40), { instruction, quick }, { userId: u.id, linkId: link.id, now: deps.now() })
+      audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.propose', target: `link:${link.id}`, meta: { model: usage.model, usd: Number(usage.usd.toFixed(4)), quick: quick ?? null } }, deps.now())
+      const label = (id: number) => { const b = blocks.find((x) => x.id === id); return b ? req.ctx.t(`bio.type_${b.type}`) : '' }
+      return { token: proposal.token, options: proposal.options.map((o) => ({ resumen: o.resumen, cambios: o.cambios.map((c) => ({ ...c, label: label(c.bloque) })) })) }
+    } catch (e) {
+      req.log.warn({ err: e instanceof Error ? e.message : String(e) }, 'varita: no se pudo proponer')
+      return jsonErr(reply, req, e instanceof AiError ? e.key : 'ai.err_failed', 502)
+    }
+  })
+
+  /** Aplica una opción de la propuesta; guarda el antes en la bitácora para poder deshacer */
+  app.post('/panel/links/:id/varita/apply', { preHandler: userGuard }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const u = req.ctx.user as User
+    const body = (req.body && typeof req.body === 'object' ? req.body : {}) as Record<string, unknown>
+    const p = takeProposal(String(body.token ?? ''), u.id, deps.now())
+    const opt = p && p.linkId === link.id ? p.options[Number(body.option) || 0] : undefined
+    if (!opt) return jsonErr(reply, req, 'varita.err_expired', 410)
+    const before: Record<string, unknown> = {}
+    const now = deps.now()
+    db.transaction(() => {
+      const byBlock = new Map<number, typeof opt.cambios>()
+      for (const c of opt.cambios) byBlock.set(c.bloque, [...(byBlock.get(c.bloque) ?? []), c])
+      for (const [id, cs] of byBlock) {
+        const b = getBlock(db, id)
+        if (!b || b.link_id !== link.id) continue
+        before[id] = b.data
+        let data = b.data
+        for (const c of cs) data = setText(data, c.ruta, c.nuevo)
+        updateBlock(db, id, { is_enabled: !!b.is_enabled, starts_at: b.starts_at, ends_at: b.ends_at, data, style: b.style }, now)
+      }
+    })()
+    audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.edit', target: `link:${link.id}`, meta: { before } }, now)
+    const undo = db.prepare("SELECT MAX(id) FROM audit_log WHERE user_id = ? AND action = 'ai.edit'").pluck().get(u.id) as number
+    return { ok: true, changed: Object.keys(before).length, undo }
+  })
+
+  /** Deshace un cambio de la Varita (sólo el último de esa persona en ese enlace, y sólo si el bloque sigue ahí) */
+  app.post('/panel/links/:id/varita/undo', { preHandler: userGuard }, async (req, reply) => {
+    const link = ownLinkOr404(deps, req, reply)
+    if (!link) return
+    const u = req.ctx.user as User
+    const id = Number((req.body as Record<string, unknown> | undefined)?.undo)
+    const row = db.prepare("SELECT meta FROM audit_log WHERE id = ? AND user_id = ? AND action = 'ai.edit' AND target = ?").pluck().get(id, u.id, `link:${link.id}`) as string | undefined
+    if (!row) return jsonErr(reply, req, 'varita.err_expired', 410)
+    const before = (JSON.parse(row) as { before?: Record<string, Record<string, unknown>> }).before ?? {}
+    const now = deps.now()
+    db.transaction(() => {
+      for (const [bid, data] of Object.entries(before)) {
+        const b = getBlock(db, Number(bid))
+        if (b && b.link_id === link.id) updateBlock(db, b.id, { is_enabled: !!b.is_enabled, starts_at: b.starts_at, ends_at: b.ends_at, data, style: b.style }, now)
+      }
+    })()
+    audit(db, { actorId: actorOf(req), userId: u.id, action: 'ai.undo', target: `link:${link.id}`, meta: { of: id } }, now)
+    return { ok: true }
+  })
 
   app.get('/panel/varita', { preHandler: userGuard }, async (req, reply) => {
     const u = req.ctx.user as User
@@ -133,7 +231,7 @@ export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
     res.writeHead(200, { 'content-type': 'application/x-ndjson; charset=utf-8', 'cache-control': 'no-store', 'x-accel-buffering': 'no' })
     const send = (o: object) => res.write(JSON.stringify(o) + '\n')
     try {
-      const { plan, usage } = await generatePlan(cfg, description, (s, n) => send(n ? { s, n } : { s }))
+      const { plan, usage } = await generatePlan(cfg, description, (s, n, peek) => send({ s, ...(n ? { n } : {}), ...(peek ? { peek } : {}) }))
       if (!alias) {
         const base = slugify(plan.nombre) || 'mi-negocio'
         alias = base

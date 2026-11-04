@@ -5,7 +5,20 @@ import { normalizePlan, planSchema, type Plan } from './plan.ts'
 
 /** Lo que va diciendo la Varita mientras trabaja (claves de i18n) */
 export type Stage = 'reading' | 'style' | 'cover' | 'section' | 'page' | 'done'
-export type Progress = (stage: Stage, n?: number) => void
+/** Lo que ya se sabe del sitio mientras llega (para pintarlo en vivo): sólo valores validados */
+export type Peek = { nombre?: string; c1?: string; c2?: string; titulo?: string; seccion?: string }
+export type Progress = (stage: Stage, n?: number, peek?: Peek) => void
+
+const grab = (text: string, key: string): string | undefined => {
+  const m = new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.){1,140})"`).exec(text)
+  if (!m) return undefined
+  try {
+    return JSON.parse(`"${m[1]}"`) as string
+  } catch {
+    return undefined
+  }
+}
+const hex = (v?: string) => (v && /^#[0-9a-f]{6}$/i.test(v) ? v : undefined)
 
 const SYSTEM = `Eres la Varita de túbio: diseñas minisitios de una página para negocios locales de México que venden por WhatsApp.
 Recibes la descripción que escribió el dueño del negocio. Devuelves el plan del sitio en el formato pedido.
@@ -29,9 +42,9 @@ export async function generatePlan(cfg: AiConfig, description: string, onProgres
   onProgress('reading')
   if (cfg.provider === 'mock') {
     const plan = normalizePlan(mockPlan(description))
-    onProgress('style')
-    onProgress('cover')
-    plan.secciones.forEach((_, i) => onProgress('section', i + 1))
+    onProgress('style', undefined, { nombre: plan.nombre, c1: plan.estilo.color_principal, c2: plan.estilo.color_secundario })
+    onProgress('cover', undefined, { titulo: plan.portada.titulo })
+    plan.secciones.forEach((s, i) => onProgress('section', i + 1, { seccion: s.titulo }))
     onProgress('done')
     return { plan, usage: { model: 'mock', input_tokens: 0, output_tokens: 0, usd: 0 } }
   }
@@ -52,10 +65,18 @@ export async function generatePlan(cfg: AiConfig, description: string, onProgres
       if (ev.type !== 'content_block_delta' || ev.delta.type !== 'text_delta') continue
       text += ev.delta.text
       // avance real: lo que ya llegó del JSON
-      if (!seen.style && text.includes('"estilo"')) (seen.style = true), onProgress('style')
-      if (!seen.cover && text.includes('"portada"')) (seen.cover = true), onProgress('cover')
+      if (!seen.style && text.includes('"color_suave"')) (seen.style = true), onProgress('style', undefined, { nombre: grab(text, 'nombre'), c1: hex(grab(text, 'color_principal')), c2: hex(grab(text, 'color_secundario')) })
+      if (!seen.cover && /"portada"[\s\S]*"subtitulo"/.test(text)) {
+        seen.cover = true
+        const pt = text.slice(text.indexOf('"portada"'))
+        onProgress('cover', undefined, { titulo: grab(pt, 'titulo') })
+      }
       const n = text.split('"bloque"').length - 1
-      if (text.includes('"secciones"') && !text.includes('"paginas"') && n > seen.sections) (seen.sections = n), onProgress('section', n)
+      if (text.includes('"secciones"') && !text.includes('"paginas"') && n > seen.sections) {
+        seen.sections = n
+        const all = [...text.slice(text.indexOf('"secciones"')).matchAll(/"titulo"\s*:\s*"((?:[^"\\]|\\.){1,120})"/g)]
+        onProgress('section', n, { seccion: all.length ? grab(`"titulo":"${all.at(-1)![1]}"`, 'titulo') : undefined })
+      }
       if (!seen.pages && text.includes('"paginas"')) (seen.pages = true), onProgress('page')
     }
     const msg = await stream.finalMessage()
