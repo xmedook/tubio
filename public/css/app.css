@@ -970,3 +970,4 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .ready-todos a > span:last-child { display: grid; gap: 2px; }
 .ready-todos small { color: var(--muted); font-size: var(--t-xs); }
 .ready-todos .todo-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); }
+.page-head .sub a, .page-head .sub .btn-link { display: inline-flex; align-items: center; min-height: 44px; }
