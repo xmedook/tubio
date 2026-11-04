@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify'
+import { siteTodos, type Todo } from '../minisitio/todos.ts'
+import { loadSite } from '../minisitio/repo.ts'
 import type { AppDeps } from '../../app.ts'
 import { aiConfig, AiError } from '../../lib/ai.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
@@ -39,14 +41,20 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     path: '/panel/varita',
     noCreate: true,
     body: html`<section class="varita" data-varita data-csrf="${ctx.csrf}">
-  <div class="varita-orb" aria-hidden="true"></div>
+  <div class="varita-bg" aria-hidden="true"><div class="varita-orb"></div></div>
   <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>
   <h1 class="varita-h">${t('varita.title')}</h1>
   <p class="lead">${t('varita.lead')}</p>
   ${opts.enabled ? '' : html`<p class="flash flash-error" role="alert">${t('ai.err_off')}</p>`}
   <form class="varita-form" data-varita-form novalidate>
     <label class="sr-only" for="v-desc">${t('varita.desc_label')}</label>
-    <textarea id="v-desc" name="description" rows="6" maxlength="${DESC_MAX}" required placeholder="${t('varita.placeholder')}" data-varita-desc></textarea>
+    <div class="varita-ta">
+      <textarea id="v-desc" name="description" rows="6" maxlength="${DESC_MAX}" required placeholder="${t('varita.placeholder')}" data-varita-desc></textarea>
+      <button type="button" class="varita-mic" data-varita-mic hidden aria-pressed="false" aria-label="${t('varita.mic')}" title="${t('varita.mic')}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+    <ul class="varita-hints" aria-label="${t('varita.hints')}">
+      ${(['que', 'donde', 'horario', 'precios', 'wa'] as const).map((k) => html`<li data-hint="${k}"><span aria-hidden="true"></span>${t(`varita.h_${k}`)}</li>`)}
+    </ul>
     <div class="varita-ex" role="group" aria-label="${t('varita.examples')}">
       ${EXAMPLES.map((k) => html`<button type="button" class="chip" data-varita-ex="${t(k)}">${t(`${k}_label`)}</button>`)}
     </div>
@@ -73,7 +81,7 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
   })
 }
 
-function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
+function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string; todos: Todo[] }) {
   const { t } = ctx
   const share = `https://wa.me/?text=${encodeURIComponent(opts.url)}`
   return panelLayout(ctx, {
@@ -93,6 +101,7 @@ function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
       <a class="btn btn-lg" href="${share}" target="_blank" rel="noopener">${icon('chat')} ${t('start.share_wa')}</a>
       <a class="btn btn-lg" href="/panel/varita">${icon('wand')} ${t('varita.again')}</a>
     </div>
+    ${opts.todos.some((x) => !x.done) ? html`<section class="ready-todos" aria-labelledby="rt-h"><h2 id="rt-h">${t('varita.next')}</h2><ul>${opts.todos.filter((x) => !x.done).map((x) => html`<li><a href="${x.href.startsWith('#') ? `/panel/links/${opts.id}/site${x.href}` : x.href}"><span class="todo-ic" aria-hidden="true"></span><span><b>${t(`ms.todo_${x.key}`)}</b><small>${t(`ms.todo_${x.key}_why`)}</small></span></a></li>`)}</ul></section>` : ''}
     <p class="hint">${t('varita.ready_hint')}</p>
   </div>
   <div class="varita-phone" aria-label="${t('varita.preview')}"><iframe src="/${opts.alias}?_preview=1" title="${t('varita.preview')}" loading="eager"></iframe></div>
@@ -199,7 +208,7 @@ export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
     const u = req.ctx.user as User
     const link = getOwnLink(db, Number((req.params as { id: string }).id), u.id)
     if (!link) return reply.callNotFound()
-    return sendHtml(reply, readyPage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), alias: link.alias }))
+    return sendHtml(reply, readyPage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), alias: link.alias, todos: siteTodos(db, link.id, loadSite(db, link.id)) }))
   })
 
   /**

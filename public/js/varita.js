@@ -117,3 +117,48 @@ form?.addEventListener('submit', async (e) => {
     fail(err.dataset.generic || '…')
   }
 })
+
+// Lo que ayuda: se marca conforme la persona lo menciona
+const HINTS = {
+  que: (s) => s.trim().split(/\s+/).length >= 8,
+  donde: (s) => /\b(en|colonia|col\.|av\.|avenida|calle|centro|zona)\s+[A-ZÁÉÍÓÚÑ0-9]/.test(s) || /\b(cdmx|guadalajara|monterrey|zapopan|puebla|quer[eé]taro|m[eé]rida|tijuana|le[oó]n)\b/i.test(s),
+  horario: (s) => /\b(\d{1,2}\s*(am|pm|hrs?|h)\b|\d{1,2}:\d{2}|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo|diario|24 ?h)/i.test(s),
+  precios: (s) => /\$\s?\d|\d+\s?(pesos|mxn)\b/i.test(s),
+  wa: (s) => /\d[\d\s-]{9,}/.test(s) || !!document.querySelector('#v-wa')?.value.replace(/\D/g, '').match(/^\d{10,}$/),
+}
+const hintBox = root?.querySelector('.varita-hints')
+function hints() {
+  if (!hintBox || !desc) return
+  const s = desc.value
+  for (const li of hintBox.querySelectorAll('[data-hint]')) li.classList.toggle('on', !!HINTS[li.dataset.hint]?.(s))
+}
+desc?.addEventListener('input', hints)
+document.querySelector('#v-wa')?.addEventListener('input', hints)
+root?.addEventListener('click', (e) => { if (e.target instanceof Element && e.target.closest('[data-varita-ex]')) setTimeout(hints) })
+hints()
+
+// Dictado (Web Speech API, si el navegador la tiene)
+const Rec = window.SpeechRecognition || window.webkitSpeechRecognition
+const mic = root?.querySelector('[data-varita-mic]')
+if (Rec && mic && desc) {
+  mic.hidden = false
+  let rec = null
+  mic.addEventListener('click', () => {
+    if (rec) return rec.stop()
+    rec = new Rec()
+    rec.lang = document.documentElement.lang?.startsWith('en') ? 'en-US' : 'es-MX'
+    rec.interimResults = true
+    rec.continuous = true
+    const base = desc.value ? desc.value.replace(/\s*$/, ' ') : ''
+    rec.onresult = (ev) => {
+      let txt = ''
+      for (const r of ev.results) txt += r[0].transcript
+      desc.value = (base + txt).slice(0, 2000)
+      hints()
+    }
+    rec.onend = () => { rec = null; mic.setAttribute('aria-pressed', 'false'); mic.classList.remove('rec') }
+    mic.setAttribute('aria-pressed', 'true')
+    mic.classList.add('rec')
+    rec.start()
+  })
+}

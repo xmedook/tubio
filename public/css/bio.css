@@ -328,3 +328,10 @@ mark.hl { background: var(--btn-bg); color: var(--btn-text); padding: 0 .18em; b
 .tgs { display: flex; gap: 8px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
 .tg { display: inline-flex; align-items: center; font: 600 12px/1 var(--font, system-ui); letter-spacing: .06em; text-transform: uppercase; padding: 7px 10px; border-radius: 3px; color: #10120d; background: #d6f23a; }
 .tg-rosa { background: #ffa8d8; } .tg-verde { background: #79e6a0; } .tg-azul { background: #8fd0ff; }
+
+/* Pie legal y botón de compartir: mínimo 14 px y 44 px para el dedo */
+.made { font-size: .875rem; }
+.made a, .made b { font-size: inherit; }
+.report { font-size: .875rem; line-height: 1.2; }
+.made a, .report a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+.share-fab { width: 44px; height: 44px; }

@@ -34,7 +34,8 @@ Reglas de estructura:
 - Restaurantes y cafeterías: el menú va en una página aparte «menu» si tiene más de 6 platillos; si no, en una sección.
 - «cifra» sólo con un número real dado por el dueño. «pasos» para explicar cómo se pide o cómo es una cita.
 - Elige colores con carácter, propios del giro y de la marca que se intuya (no grises genéricos, no morado por omisión). El principal debe ser oscuro.
-- Elige fuentes con intención: títulos con personalidad (p. ej. playfair, instrument, bigshoulders, familjen) y texto muy legible (inter, figtree, schibsted, system).`
+- Elige fuentes con intención: títulos con personalidad (p. ej. playfair, instrument, bigshoulders, familjen, lora) y texto muy legible que combine con ellos (inter, schibsted, figtree, montserrat, system); no uses siempre la misma.
+- La estructura depende del negocio, no de una plantilla: usa «confianza» cuando la descripción da diferenciadores reales (urgencias 24 h, primera clase gratis, cotización sin costo), «lista» para lo que incluye un servicio, «cifra» sólo con un número dado. No pongas siempre servicios → texto → pasos → preguntas; empieza por lo que más le importa al cliente de ese giro.`
 
 /** Genera el plan. Con proveedor «mock» no llama a nadie (pruebas y trabajo sin llave). */
 export async function generatePlan(cfg: AiConfig, description: string, onProgress: Progress = () => {}): Promise<{ plan: Plan; usage: AiUsage }> {

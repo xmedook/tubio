@@ -12,7 +12,11 @@ const pass = process.env.TUBIO_A11Y_PASS
 const bio = process.env.TUBIO_A11Y_BIO ?? 'demo'
 
 const PUBLIC = ['/', '/restaurantes', '/salud', '/armamos-por-ti', '/ejemplo-restaurante', '/ejemplo-salud', '/ejemplo-fitness', '/login', '/register', '/forgot', '/help', '/help/primeros-pasos', '/help/contact', '/directory', '/blog', '/terms', '/security', `/${bio}`, '/no-existe-esta-pagina']
-const PANEL = ['/panel', '/panel/links', '/panel/links/new?kind=short', '/panel/links/new?kind=bio', '/panel/qr', '/panel/qr/new?kind=url', '/panel/stats', '/panel/account', '/panel/plan', '/panel/referrals']
+/** rutas extra separadas por coma (p. ej. sitios armados con la Varita): TUBIO_AUDIT_EXTRA=/v-taqueria,/panel/links/24/blocks */
+const EXTRA = (process.env.TUBIO_AUDIT_EXTRA ?? '').split(',').map((x) => x.trim()).filter(Boolean)
+PUBLIC.push(...EXTRA.filter((x) => !x.startsWith('/panel')))
+const PANEL = ['/panel', '/panel/links', '/panel/links/new?kind=short', '/panel/links/new?kind=bio', '/panel/qr', '/panel/qr/new?kind=url', '/panel/stats', '/panel/account', '/panel/plan', '/panel/referrals', '/panel/varita']
+PANEL.push(...EXTRA.filter((x) => x.startsWith('/panel')))
 
 async function audit(page: Page, path: string, theme: string): Promise<number> {
   await page.goto(base + path, { waitUntil: 'networkidle' })

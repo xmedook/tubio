@@ -800,7 +800,7 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 
 /* ── Varita: sitio completo con IA desde una descripción ─────────────────────────── */
 .varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; }
-.varita-orb { position: absolute; z-index: -1; inset: -60px -40px auto auto; width: 320px; height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
+.varita-orb { position: absolute; z-index: -1; inset: -60px 0 auto auto; width: min(320px, 70vw); height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
   background: conic-gradient(from 0deg, #d7f25c, #7fd6c2, #f3b7d4, #ffd36e, #d7f25c); animation: v-spin 14s linear infinite; pointer-events: none; }
 .varita-k { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-on-soft); font-weight: 700; font-size: var(--t-xs); }
 .varita-k svg { width: 16px; height: 16px; }
@@ -888,7 +888,7 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .todos li > a > span:nth-child(2) { flex: 1; display: grid; gap: 2px; }
 .todos li small { color: var(--muted); font-size: var(--t-xs); }
 .todos li > a > svg { width: 18px; height: 18px; transform: rotate(180deg); color: var(--muted); }
-.todos .todo-ic { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; font-size: 13px; font-weight: 800; }
+.todos .todo-ic { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text); display: grid; place-items: center; font-size: 14px; font-weight: 800; }
 .todos li.done { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
 .todos li.done .todo-ic { border-color: var(--ok); background: var(--ok); color: #fff; text-decoration: none; }
 .todos-n { white-space: nowrap; }
@@ -939,3 +939,35 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .vtoast span { overflow: hidden; text-overflow: ellipsis; }
 .vopt { position: relative; }
 .vopt-go { position: sticky; bottom: 0; box-shadow: 0 -10px 14px var(--surface); }
+/* Tarjeta de entrada a la Varita (inicio del panel y «Crea tu página») */
+.vcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; margin: 12px 0 18px; padding: 16px 18px; border: 2px solid var(--text); border-radius: 18px; color: var(--text); text-decoration: none;
+  background: radial-gradient(120% 140% at 100% 0%, #e9f7a6 0%, transparent 55%), radial-gradient(90% 120% at 0% 100%, #d9f1ea 0%, transparent 60%), var(--surface); box-shadow: 5px 5px 0 var(--accent-soft); transition: transform .15s, box-shadow .15s; }
+.vcard:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--accent-soft); }
+.vcard-ic { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: #d7f25c; }
+.vcard-ic svg { width: 26px; height: 26px; }
+.vcard-b { flex: 1; display: grid; gap: 2px; }
+.vcard-b b { font-family: var(--f-display); font-size: var(--t-md); letter-spacing: -.01em; }
+.vcard-b small { color: var(--muted); font-size: var(--t-sm); }
+.vcard-go { font-size: 22px; font-weight: 700; }
+.varita-ta { position: relative; }
+.varita-mic { position: absolute; right: 14px; bottom: 14px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--text); background: var(--surface); color: var(--text); cursor: pointer; }
+.varita-mic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.varita-mic.rec { background: #e5484d; border-color: #e5484d; color: #fff; animation: v-pulse 1.2s ease-in-out infinite; }
+.varita-hints { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; color: var(--muted); font-size: var(--t-sm); }
+.varita-hints li { display: inline-flex; align-items: center; gap: 6px; transition: color .2s; }
+.varita-hints li span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; font-size: 10px; transition: background .2s, border-color .2s; }
+.varita-hints li.on { color: var(--text); font-weight: 600; }
+.varita-hints li.on span { background: var(--ok); border-color: var(--ok); }
+.varita-hints li.on span::after { content: "✓"; color: #fff; font-weight: 800; }
+/* el círculo de color vive en su propia capa recortada: nunca agranda la página */
+.varita-bg { position: absolute; z-index: -1; inset: -40px 0 0 0; overflow: hidden; pointer-events: none; }
+.varita-bg .varita-orb { inset: 0 -60px auto auto; width: 320px; }
+.ready-todos { margin: 18px 0 6px; padding: 14px 16px 4px; border: 2px solid var(--text); border-radius: 16px; background: var(--surface); }
+.ready-todos h2 { margin: 0 0 4px; font-family: var(--f-display); font-size: var(--t-md); }
+.ready-todos ul { list-style: none; margin: 0; padding: 0; }
+.ready-todos li + li { border-top: 1px solid var(--border); }
+.ready-todos a { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 0; color: var(--text); text-decoration: none; }
+.ready-todos a > span:last-child { display: grid; gap: 2px; }
+.ready-todos small { color: var(--muted); font-size: var(--t-xs); }
+.ready-todos .todo-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); }
+.page-head .sub a, .page-head .sub .btn-link { display: inline-flex; align-items: center; min-height: 44px; }

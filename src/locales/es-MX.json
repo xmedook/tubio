@@ -2497,5 +2497,15 @@
   "varita.err_quota_edit": "Ya usaste los cambios con IA de hoy. Vuelve mañana.",
   "varita.err_no_text": "Aquí no hay textos que la Varita pueda cambiar.",
   "varita.err_expired": "Esa propuesta ya no está disponible. Pide otra.",
-  "common.close": "Cerrar"
+  "common.close": "Cerrar",
+  "varita.card_t": "Arma tu sitio con IA",
+  "varita.card_s": "Cuéntanos de tu negocio en una frase y la Varita arma todo en un minuto.",
+  "varita.mic": "Dictar con la voz",
+  "varita.hints": "Lo que ayuda a que tu sitio salga mejor",
+  "varita.h_que": "Qué vendes",
+  "varita.h_donde": "Dónde estás",
+  "varita.h_horario": "Horario",
+  "varita.h_precios": "Precios",
+  "varita.h_wa": "WhatsApp",
+  "varita.next": "Para dejarlo listo"
 }
