@@ -46,7 +46,13 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
   ${opts.enabled ? '' : html`<p class="flash flash-error" role="alert">${t('ai.err_off')}</p>`}
   <form class="varita-form" data-varita-form novalidate>
     <label class="sr-only" for="v-desc">${t('varita.desc_label')}</label>
-    <textarea id="v-desc" name="description" rows="6" maxlength="${DESC_MAX}" required placeholder="${t('varita.placeholder')}" data-varita-desc></textarea>
+    <div class="varita-ta">
+      <textarea id="v-desc" name="description" rows="6" maxlength="${DESC_MAX}" required placeholder="${t('varita.placeholder')}" data-varita-desc></textarea>
+      <button type="button" class="varita-mic" data-varita-mic hidden aria-pressed="false" aria-label="${t('varita.mic')}" title="${t('varita.mic')}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+    </div>
+    <ul class="varita-hints" aria-label="${t('varita.hints')}">
+      ${(['que', 'donde', 'horario', 'precios', 'wa'] as const).map((k) => html`<li data-hint="${k}"><span aria-hidden="true"></span>${t(`varita.h_${k}`)}</li>`)}
+    </ul>
     <div class="varita-ex" role="group" aria-label="${t('varita.examples')}">
       ${EXAMPLES.map((k) => html`<button type="button" class="chip" data-varita-ex="${t(k)}">${t(`${k}_label`)}</button>`)}
     </div>

@@ -799,8 +799,8 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 @media (min-width: 900px) { .card-more { display: none; } } /* en escritorio todo eso ya está en la barra lateral */
 
 /* ── Varita: sitio completo con IA desde una descripción ─────────────────────────── */
-.varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; overflow-x: clip; }
-.varita-orb { position: absolute; z-index: -1; inset: -60px -40px auto auto; width: 320px; height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
+.varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; }
+.varita-orb { position: absolute; z-index: -1; inset: -60px 0 auto auto; width: min(320px, 70vw); height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
   background: conic-gradient(from 0deg, #d7f25c, #7fd6c2, #f3b7d4, #ffd36e, #d7f25c); animation: v-spin 14s linear infinite; pointer-events: none; }
 .varita-k { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-on-soft); font-weight: 700; font-size: var(--t-xs); }
 .varita-k svg { width: 16px; height: 16px; }
@@ -949,3 +949,13 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .vcard-b b { font-family: var(--f-display); font-size: var(--t-md); letter-spacing: -.01em; }
 .vcard-b small { color: var(--muted); font-size: var(--t-sm); }
 .vcard-go { font-size: 22px; font-weight: 700; }
+.varita-ta { position: relative; }
+.varita-mic { position: absolute; right: 14px; bottom: 14px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--text); background: var(--surface); color: var(--text); cursor: pointer; }
+.varita-mic svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.varita-mic.rec { background: #e5484d; border-color: #e5484d; color: #fff; animation: v-pulse 1.2s ease-in-out infinite; }
+.varita-hints { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; color: var(--muted); font-size: var(--t-sm); }
+.varita-hints li { display: inline-flex; align-items: center; gap: 6px; transition: color .2s; }
+.varita-hints li span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; font-size: 10px; transition: background .2s, border-color .2s; }
+.varita-hints li.on { color: var(--text); font-weight: 600; }
+.varita-hints li.on span { background: var(--ok); border-color: var(--ok); }
+.varita-hints li.on span::after { content: "✓"; color: #fff; font-weight: 800; }
