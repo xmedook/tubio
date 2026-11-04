@@ -181,3 +181,14 @@ describe('varita en el editor: proponer, aplicar y deshacer cambios de texto', (
     expect(paths).not.toContain('items.0.precio')
   })
 })
+
+describe('varita: degradados sin colores lodosos', () => {
+  it('si los tonos están lejos el degradado queda en un solo tono, con contraste AA', () => {
+    const base = mockPlan(DESC)
+    const p = normalizePlan({ ...base, estilo: { ...base.estilo, color_principal: '#12325c', color_secundario: '#f08a24' } })
+    const c = palette(p)
+    expect(contrast(c.c2, '#ffffff')).toBeGreaterThanOrEqual(4.5)
+    // el secundario ya no es naranja: su canal rojo no domina
+    expect(parseInt(c.c2.slice(1, 3), 16)).toBeLessThan(parseInt(c.c2.slice(5, 7), 16))
+  })
+})

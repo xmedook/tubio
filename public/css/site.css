@@ -349,3 +349,6 @@ body.has-fab.has-dock .ms-foot { padding-bottom: calc(10rem + env(safe-area-inse
   .anc-portada .ms-fx::before { content: ""; position: absolute; z-index: -1; pointer-events: none; right: max(4vw, calc(50% - 560px)); top: 50%; width: min(38vw, 460px); aspect-ratio: 1; transform: translateY(-50%);
     border-radius: 50%; border: 2px solid rgb(255 255 255 / 22%); box-shadow: 0 0 0 40px rgb(255 255 255 / 5%), 0 0 0 90px rgb(255 255 255 / 3%), inset 0 0 120px rgb(255 255 255 / 12%); }
 }
+/* Panel con botón principal: el último secundario que queda solo ocupa toda la fila */
+.apanel.d-principal .act.principal + .act:not(.principal):last-child,
+.apanel.d-principal .act:not(.principal):nth-of-type(2n):last-child { grid-column: 1 / -1; }

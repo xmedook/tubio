@@ -29,11 +29,23 @@ export function readableOn(hex: string, ink: '#ffffff' | '#111111'): string {
   return c
 }
 
-/** Colores finales del plan: principal y secundario oscuros (texto blanco), suave claro (texto oscuro) */
+const hue = (hex: string): number => {
+  const [r, g, b] = toRgb(hex).map((v) => v / 255) as Rgb
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
+  if (!d) return 0
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4
+  return (h * 60 + 360) % 360
+}
+
+/** Colores finales del plan: principal y secundario oscuros (texto blanco), suave claro (texto oscuro).
+ *  Si los dos tonos están muy lejos (azul y naranja), el degradado pasaría por un gris lodoso: se hace monocromo. */
 export function palette(p: Plan): { c1: string; c2: string; suave: string } {
+  const c1 = readableOn(p.estilo.color_principal, '#ffffff')
+  const dh = Math.abs(hue(c1) - hue(p.estilo.color_secundario))
+  const far = Math.min(dh, 360 - dh) > 70
   return {
-    c1: readableOn(p.estilo.color_principal, '#ffffff'),
-    c2: readableOn(p.estilo.color_secundario, '#ffffff'),
+    c1,
+    c2: readableOn(far ? mix(c1, [255, 255, 255], 0.22) : p.estilo.color_secundario, '#ffffff'),
     suave: readableOn(p.estilo.color_suave, '#111111'),
   }
 }
