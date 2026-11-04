@@ -6,7 +6,7 @@ import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 import { brandHead, wordmark } from './brand.ts'
 
-export const ASSET_VERSION = '52'
+export const ASSET_VERSION = '54'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>
@@ -107,6 +107,7 @@ ${opts.body}
   <div class="sheet" role="menu">
     <span class="sheet-grip" aria-hidden="true"></span>
     <p class="sheet-title">${t('nav.create')}</p>
+    <a role="menuitem" class="sheet-magic" href="/panel/varita"><span class="tipo-ic">${icon('wand')}</span><span><b>${t('varita.title')}</b><small>${t('create.varita')}</small></span></a>
     <a role="menuitem" href="/panel/links/new?kind=bio"><span class="tipo-ic">${icon('bio')}</span><span><b>${t('links.kind_bio')}</b><small>${t('create.bio')}</small></span></a>
     <a role="menuitem" href="/panel/templates"><span class="tipo-ic">${icon('image')}</span><span><b>${t('tpl.start_with')}</b><small>${t('create.tpl')}</small></span></a>
     <a role="menuitem" href="/panel/links/new?kind=short"><span class="tipo-ic">${icon('short')}</span><span><b>${t('links.kind_short')}</b><small>${t('create.short')}</small></span></a>

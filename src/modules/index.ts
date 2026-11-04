@@ -30,6 +30,7 @@ import { registerTemplates } from './templates/routes.ts'
 import { registerInbox } from './inbox/routes.ts'
 import { registerRedeem } from './plans/redeem.ts'
 import { registerStart } from './templates/start.ts'
+import { registerVarita } from './varita/routes.ts'
 import { registerTeam } from './team/routes.ts'
 
 /** Orden importa: el resolvedor público /:alias va al final. */
@@ -45,6 +46,7 @@ export function registerModules(app: FastifyInstance, deps: AppDeps): void {
   registerInbox(app, deps)
   registerRedeem(app, deps)
   registerStart(app, deps)
+  registerVarita(app, deps)
   registerAuth(app, deps)
   registerGoogle(app, deps)
   registerAccount(app, deps)
