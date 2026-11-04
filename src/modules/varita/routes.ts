@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify'
+import { siteTodos, type Todo } from '../minisitio/todos.ts'
+import { loadSite } from '../minisitio/repo.ts'
 import type { AppDeps } from '../../app.ts'
 import { aiConfig, AiError } from '../../lib/ai.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
@@ -79,7 +81,7 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
   })
 }
 
-function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
+function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string; todos: Todo[] }) {
   const { t } = ctx
   const share = `https://wa.me/?text=${encodeURIComponent(opts.url)}`
   return panelLayout(ctx, {
@@ -99,6 +101,7 @@ function readyPage(ctx: Ctx, opts: { id: number; url: string; alias: string }) {
       <a class="btn btn-lg" href="${share}" target="_blank" rel="noopener">${icon('chat')} ${t('start.share_wa')}</a>
       <a class="btn btn-lg" href="/panel/varita">${icon('wand')} ${t('varita.again')}</a>
     </div>
+    ${opts.todos.some((x) => !x.done) ? html`<section class="ready-todos" aria-labelledby="rt-h"><h2 id="rt-h">${t('varita.next')}</h2><ul>${opts.todos.filter((x) => !x.done).map((x) => html`<li><a href="${x.href.startsWith('#') ? `/panel/links/${opts.id}/site${x.href}` : x.href}"><span class="todo-ic" aria-hidden="true"></span><span><b>${t(`ms.todo_${x.key}`)}</b><small>${t(`ms.todo_${x.key}_why`)}</small></span></a></li>`)}</ul></section>` : ''}
     <p class="hint">${t('varita.ready_hint')}</p>
   </div>
   <div class="varita-phone" aria-label="${t('varita.preview')}"><iframe src="/${opts.alias}?_preview=1" title="${t('varita.preview')}" loading="eager"></iframe></div>
@@ -205,7 +208,7 @@ export function registerVarita(app: FastifyInstance, deps: AppDeps): void {
     const u = req.ctx.user as User
     const link = getOwnLink(db, Number((req.params as { id: string }).id), u.id)
     if (!link) return reply.callNotFound()
-    return sendHtml(reply, readyPage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), alias: link.alias }))
+    return sendHtml(reply, readyPage(req.ctx, { id: link.id, url: linkUrl(deps.config.baseUrl, link), alias: link.alias, todos: siteTodos(db, link.id, loadSite(db, link.id)) }))
   })
 
   /**

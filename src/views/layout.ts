@@ -6,7 +6,7 @@ import { csrfField, flashBox } from './ui.ts'
 import { icon } from './icons.ts'
 import { brandHead, wordmark } from './brand.ts'
 
-export const ASSET_VERSION = '68'
+export const ASSET_VERSION = '69'
 
 function head(ctx: Ctx, title: string, extra: HtmlValue = ''): SafeHtml {
   return html`<head>

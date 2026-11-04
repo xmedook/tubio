@@ -962,3 +962,11 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 /* el círculo de color vive en su propia capa recortada: nunca agranda la página */
 .varita-bg { position: absolute; z-index: -1; inset: -40px 0 0 0; overflow: hidden; pointer-events: none; }
 .varita-bg .varita-orb { inset: 0 -60px auto auto; width: 320px; }
+.ready-todos { margin: 18px 0 6px; padding: 14px 16px 4px; border: 2px solid var(--text); border-radius: 16px; background: var(--surface); }
+.ready-todos h2 { margin: 0 0 4px; font-family: var(--f-display); font-size: var(--t-md); }
+.ready-todos ul { list-style: none; margin: 0; padding: 0; }
+.ready-todos li + li { border-top: 1px solid var(--border); }
+.ready-todos a { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 0; color: var(--text); text-decoration: none; }
+.ready-todos a > span:last-child { display: grid; gap: 2px; }
+.ready-todos small { color: var(--muted); font-size: var(--t-xs); }
+.ready-todos .todo-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); }
