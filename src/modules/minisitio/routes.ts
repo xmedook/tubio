@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { siteTodos } from './todos.ts'
 import type { AppDeps } from '../../app.ts'
 import { readMultipart, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
 import { checkTarget } from '../../lib/urls.ts'
@@ -178,7 +179,7 @@ export function registerMinisitio(app: FastifyInstance, deps: AppDeps): void {
     const link = bioLink(req, reply)
     if (!link) return
     const site = loadSite(db, link.id)
-    return sendHtml(reply, sitePage(req.ctx, link, site, site.config))
+    return sendHtml(reply, sitePage(req.ctx, link, site, site.config, {}, siteTodos(db, link.id, site)))
   })
 
   app.post('/panel/links/:id/site', { preHandler: userGuard }, async (req, reply) => {

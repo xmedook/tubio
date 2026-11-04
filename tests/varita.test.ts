@@ -57,6 +57,11 @@ describe('varita: sitio con IA desde una descripción', () => {
     expect(pub.statusCode).toBe(200)
     expect(pub.body).toContain('Taquería Los Compadres')
     expect((await a.get(String(last.go))).statusCode).toBe(200)
+    // el editor dice qué falta: logo y foto (la IA no los pone); el WhatsApp ya está
+    const ed = (await a.get(`/panel/links/${link.id}/site`)).body
+    expect(ed).toContain('class="todos"')
+    expect(ed).toContain('Sube tu logo')
+    expect(ed).toMatch(/<li class="done">[^]*?Agrega tu WhatsApp/)
     // el mismo nombre otra vez: otra dirección, no choca
     const r2 = lines((await a.postJson('/panel/varita', { description: DESC })).body).at(-1)!
     expect(r2.ok).toBe(true)
