@@ -148,7 +148,7 @@ export function buildSite(db: DB, linkId: number, plan: Plan, v: BuildVals, now:
     whatsapp: wa,
     // el botón principal ya va en la barra fija: en la cabecera se repetiría
     cabecera: { activa: true, logo: v.logo ?? null, nombre: plan.nombre.slice(0, 40), nav: 'manual', nav_manual: nav, cta: { texto: '', tipo: 'whatsapp', destino: '', mensaje: '' } },
-    barra: { activa: true, acciones: barra.slice(0, 3) },
+    barra: { activa: true, escritorio: true, acciones: barra.slice(0, 3) },
     pie: { activo: true, servicios: plan.pie, direccion: plan.negocio.direccion, texto: '' },
   }), now)
   return { sections, pages }
