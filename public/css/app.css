@@ -837,3 +837,7 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 @media (min-width: 900px) { .varita-ready { grid-template-columns: 1fr 380px; } }
 .fab-wrap .sheet a.sheet-magic .tipo-ic { background: #d7f25c; color: #10120d; }
 @media (prefers-reduced-motion: reduce) { .varita-orb, .varita-steps li.now .dot, .varita-phone { animation: none; } }
+@media (max-width: 899px) {
+  .varita-ready .varita-phone { order: -1; width: min(300px, 82vw); }
+  .varita-ready .start-url { font-size: 18px; }
+}
