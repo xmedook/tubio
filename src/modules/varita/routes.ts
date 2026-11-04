@@ -39,7 +39,7 @@ function varitaPage(ctx: Ctx, opts: { left: number | null; enabled: boolean }) {
     path: '/panel/varita',
     noCreate: true,
     body: html`<section class="varita" data-varita data-csrf="${ctx.csrf}">
-  <div class="varita-orb" aria-hidden="true"></div>
+  <div class="varita-bg" aria-hidden="true"><div class="varita-orb"></div></div>
   <p class="varita-k">${icon('wand')} ${t('varita.kicker')}</p>
   <h1 class="varita-h">${t('varita.title')}</h1>
   <p class="lead">${t('varita.lead')}</p>

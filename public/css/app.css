@@ -959,3 +959,6 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .varita-hints li.on { color: var(--text); font-weight: 600; }
 .varita-hints li.on span { background: var(--ok); border-color: var(--ok); }
 .varita-hints li.on span::after { content: "✓"; color: #fff; font-weight: 800; }
+/* el círculo de color vive en su propia capa recortada: nunca agranda la página */
+.varita-bg { position: absolute; z-index: -1; inset: -40px 0 0 0; overflow: hidden; pointer-events: none; }
+.varita-bg .varita-orb { inset: 0 -60px auto auto; width: 320px; }
