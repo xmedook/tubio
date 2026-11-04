@@ -40,7 +40,7 @@ export class Agent {
     this.app = app
   }
 
-  private cookieHeader(): string {
+  cookieHeader(): string {
     return [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ')
   }
 

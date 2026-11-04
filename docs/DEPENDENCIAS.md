@@ -28,6 +28,7 @@ Sólo licencias compatibles con AGPL-3.0-or-later. Revisar al añadir cualquier 
 | maxmind | MIT | leer base geo MMDB |
 | nodemailer | MIT-0 | correo SMTP |
 | sortablejs | MIT | ordenar bloques arrastrando (servido localmente) |
+| @anthropic-ai/sdk | Apache-2.0 | cliente oficial de la API de Claude para la Varita (sitios con IA); sólo corre si hay TUBIO_AI_KEY |
 | @fontsource-variable/{inter,montserrat,space-grotesk,playfair-display,lora,caveat,jetbrains-mono,familjen-grotesk,schibsted-grotesk}, @fontsource/{poppins,chivo,instrument-serif}, @fontsource-variable/{figtree,big-shoulders-display} | fuentes OFL-1.1 (paquete MIT) | fuentes web de páginas bio, servidas desde /_/fonts/ |
 | fast-xml-parser | MIT | leer feeds RSS/Atom (bloques RSS y YouTube) |
 | pdfkit (+ png-js, fontkit…) | MIT | recibos en PDF |

@@ -797,3 +797,43 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .more-list li { border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: none; box-shadow: none; padding: 0; min-height: 0; display: block; }
 .more-list li:last-child { border-bottom: 0; }
 @media (min-width: 900px) { .card-more { display: none; } } /* en escritorio todo eso ya está en la barra lateral */
+
+/* ── Varita: sitio completo con IA desde una descripción ─────────────────────────── */
+.varita { position: relative; max-width: 720px; margin: 8px auto 0; padding: 8px 0 32px; isolation: isolate; }
+.varita-orb { position: absolute; z-index: -1; inset: -60px -40px auto auto; width: 320px; height: 320px; border-radius: 50%; filter: blur(48px); opacity: .55;
+  background: conic-gradient(from 0deg, #d7f25c, #7fd6c2, #f3b7d4, #ffd36e, #d7f25c); animation: v-spin 14s linear infinite; pointer-events: none; }
+.varita-k { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 6px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-on-soft); font-weight: 700; font-size: var(--t-xs); }
+.varita-k svg { width: 16px; height: 16px; }
+.varita-h { font-family: var(--f-display); font-size: clamp(34px, 8vw, 52px); line-height: 1; letter-spacing: -.03em; margin: 4px 0 10px; }
+.varita .lead { max-width: 56ch; }
+.varita-form { display: grid; gap: 14px; margin-top: 18px; }
+.varita-form textarea { width: 100%; min-height: 168px; padding: 16px 18px; border: 2px solid var(--text); border-radius: 18px; background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px); font: 400 var(--t-md)/1.5 var(--font); color: var(--text); resize: vertical; box-shadow: 6px 6px 0 var(--text); transition: box-shadow .2s, transform .2s; }
+.varita-form textarea:focus { outline: none; transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--text); }
+.varita-ex { display: flex; flex-wrap: wrap; gap: 8px; }
+.varita-ex .chip { min-height: 44px; cursor: pointer; }
+.varita-go { justify-self: start; min-height: 56px; padding-inline: 26px; font-size: var(--t-md); border-radius: 999px; gap: 10px; }
+.varita-go svg { width: 22px; height: 22px; }
+.varita-left { margin: 0; }
+.varita.working .varita-form { opacity: .45; pointer-events: none; }
+.varita.working .varita-orb { animation-duration: 3s; opacity: .8; }
+.varita-steps { list-style: none; margin: 22px 0 0; padding: 18px 20px; border: 2px solid var(--text); border-radius: 18px; background: var(--surface); display: grid; gap: 12px; box-shadow: 6px 6px 0 var(--accent-soft); }
+.varita-steps li { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: var(--t-base); transition: color .2s; }
+.varita-steps .dot { flex: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); }
+.varita-steps li.now { color: var(--text); font-weight: 700; }
+.varita-steps li.now .dot { border-color: var(--text); background: #d7f25c; animation: v-pulse 1s ease-in-out infinite; }
+.varita-steps li.done { color: var(--text); }
+.varita-steps li.done .dot { border-color: var(--ok); background: var(--ok); }
+.varita-steps small { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+@keyframes v-spin { to { transform: rotate(1turn); } }
+@keyframes v-pulse { 50% { transform: scale(1.35); } }
+
+.varita-ready { display: grid; gap: 28px; align-items: start; }
+.varita-ready h1 { font-family: var(--f-display); font-size: clamp(32px, 7vw, 48px); letter-spacing: -.03em; line-height: 1.02; margin: 4px 0 8px; }
+.varita-phone { justify-self: center; width: min(360px, 100%); aspect-ratio: 9 / 18.5; border: 10px solid var(--text); border-radius: 42px; overflow: hidden; background: var(--surface);
+  box-shadow: 12px 12px 0 var(--accent-soft); animation: v-rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.varita-phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+@keyframes v-rise { from { opacity: 0; transform: translateY(24px) rotate(-2deg); } }
+@media (min-width: 900px) { .varita-ready { grid-template-columns: 1fr 380px; } }
+.fab-wrap .sheet a.sheet-magic .tipo-ic { background: #d7f25c; color: #10120d; }
+@media (prefers-reduced-motion: reduce) { .varita-orb, .varita-steps li.now .dot, .varita-phone { animation: none; } }
