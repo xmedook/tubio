@@ -192,3 +192,73 @@ describe('varita: degradados sin colores lodosos', () => {
     expect(parseInt(c.c2.slice(1, 3), 16)).toBeLessThan(parseInt(c.c2.slice(5, 7), 16))
   })
 })
+
+describe('varita agente: estructura y estilo con vista previa, validación y deshacer', () => {
+  const env = { ...process.env }
+  beforeEach(() => {
+    process.env.TUBIO_AI_PROVIDER = 'mock'
+  })
+  afterEach(() => {
+    process.env = { ...env }
+  })
+
+  it('CSS saneado: sólo lista blanca, sin url, position, z-index ni escapes', async () => {
+    const { sanitizeCss } = await import('../src/lib/safe-css.ts')
+    expect(sanitizeCss('border-radius: 24px; position: fixed; z-index: 9; background: url(https://x.mx/a.png); color: #fff')).toBe('border-radius:24px;color:#fff')
+    expect(sanitizeCss('color: red}</style><script>alert(1)</script>')).toBe('color:red')
+    expect(sanitizeCss('color: red</style>')).toBe('')
+    expect(sanitizeCss('background: linear-gradient(90deg, #111, #333); box-shadow: 4px 4px 0 #000')).toBe('background:linear-gradient(90deg, #111, #333);box-shadow:4px 4px 0 #000')
+    expect(sanitizeCss('display: contents; font-family: "x"')).toBe('')
+  })
+
+  it('agrega un bloque con su CSS, se ve en la página y se deshace completo', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    setPlan(t, u.id, 'business')
+    const a = await loginAgent(t)
+    await a.get('/panel/varita')
+    const g = lines((await a.postJson('/panel/varita', { description: DESC })).body).at(-1)!
+    const id = Number(String(g.go).split('/').pop())
+    const alias = findByAlias(t.deps.db, 'taqueria-los-compadres')!.alias
+    await a.get(`/panel/links/${id}/blocks`)
+    const before = (await new Agent(t.app).get(`/${alias}`)).body
+    const r = await a.postJson(`/panel/links/${id}/varita/agent`, { instruction: 'Aviso: abrimos el lunes festivo' })
+    expect(r.statusCode).toBe(200)
+    const prop = r.json() as { token: string; steps: { op: string; ok: boolean; detalle?: string }[] }
+    expect(prop.steps[0]).toMatchObject({ op: 'agregar_bloque', ok: true })
+    expect(prop.steps[0]!.detalle).toContain('border-radius:24px')
+    expect(prop.steps[0]!.detalle).not.toContain('fixed')
+    // otra persona no puede aplicarla
+    await seedUser(t, 'otra@example.com')
+    const b = await loginAgent(t, 'otra@example.com')
+    await b.get('/panel')
+    expect((await b.postJson(`/panel/links/${id}/varita/agent/apply`, { token: prop.token })).statusCode).toBe(404)
+    const ap = await a.postJson(`/panel/links/${id}/varita/agent/apply`, { token: prop.token })
+    expect(ap.statusCode).toBe(200)
+    const after = (await new Agent(t.app).get(`/${alias}`)).body
+    expect(after).toContain('Aviso: abrimos el lunes festivo')
+    expect(after).toMatch(/#b\d+ > \*\{border-radius:24px;background:#fde68a;padding:12px\}/)
+    expect(after).not.toContain('position:fixed')
+    const undo = (ap.json() as { undo: number }).undo
+    expect((await b.postJson(`/panel/links/${id}/varita/agent/undo`, { undo })).statusCode).toBe(404)
+    expect((await a.postJson(`/panel/links/${id}/varita/agent/undo`, { undo })).statusCode).toBe(200)
+    const restored = (await new Agent(t.app).get(`/${alias}`)).body
+    expect(restored).not.toContain('Aviso: abrimos el lunes festivo')
+    expect(restored.replace(/nonce="[^"]+"/g, '').length).toBe(before.replace(/nonce="[^"]+"/g, '').length)
+  })
+
+  it('editar un bloque a mano conserva su CSS', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    setPlan(t, u.id, 'business')
+    const a = await loginAgent(t)
+    await a.get('/panel/links/new?kind=bio')
+    await a.postMultipart('/panel/links?kind=bio', { alias: 'css', title: 'C', is_enabled: '1' })
+    const id = findByAlias(t.deps.db, 'css')!.id
+    await a.get(`/panel/links/${id}/blocks/new?type=heading`)
+    await a.postMultipart(`/panel/links/${id}/blocks?type=heading`, { text: 'Hola', level: 'h2', is_enabled: '1', style_css: 'letter-spacing: 2px; position: absolute' })
+    const page = (await new Agent(t.app).get('/css')).body
+    expect(page).toMatch(/> \*\{letter-spacing:2px\}/)
+    expect(page).not.toContain('position:absolute')
+  })
+})

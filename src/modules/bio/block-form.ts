@@ -1,4 +1,5 @@
 import type { AppDeps } from '../../app.ts'
+import { sanitizeCss } from '../../lib/safe-css.ts'
 import { html, type SafeHtml } from '../../lib/html.ts'
 import { deleteStoredFile, imageUrl, storeFile, storeImage, UploadError, type MultipartData } from '../../lib/uploads.ts'
 import { BUTTON_SCHEMES, checkTarget, isBlockedHost, WEB_SCHEMES } from '../../lib/urls.ts'
@@ -45,6 +46,7 @@ export function valuesFromBlock(def: BlockDef, b: BlockRow | undefined, tz: stri
   v.style_align = b?.style.align ?? 'inherit'
   v.style_frame = b?.style.frame ?? 'none'
   v.style_tilt = String(b?.style.tilt ?? 0)
+  v.style_css = b?.style.css ?? ''
   return v
 }
 
@@ -162,6 +164,7 @@ export function blockFields(ctx: Ctx, def: BlockDef, v: BlockValues, e: Errors, 
   </div>
   ${select({ ctx, name: 'style_frame', label: t('bio.f.frame'), value: v.style_frame, options: ['none', 'hard'].map((a) => ({ value: a, label: t(`bio.frame.${a}`) })) })}
   ${select({ ctx, name: 'style_tilt', label: t('bio.f.tilt'), value: v.style_tilt, options: ['-2', '-1', '0', '1', '2'].map((a) => ({ value: a, label: a === '0' ? t('bio.tilt.none') : `${a}°` })) })}
+  ${textarea({ ctx, name: 'style_css', label: t('bio.f.css'), value: v.style_css, rows: 3, maxlength: 2000, hint: t('bio.f.css_hint') })}
   ${select({ ctx, name: 'style_align', label: t('bio.f.align'), value: v.style_align, options: ['inherit', 'left', 'center', 'right'].map((a) => ({ value: a, label: t(`bio.align.${a}`) })) })}
 </div></details>`
 }
@@ -377,6 +380,9 @@ export async function parseBlockForm(
   if (f('style_frame') === 'hard') style.frame = 'hard'
   const tilt = Number(f('style_tilt'))
   if ([-2, -1, 1, 2].includes(tilt)) style.tilt = tilt
+  const css = sanitizeCss(f('style_css'))
+  if (css) style.css = css
+  values.style_css = css
   values.style_frame = style.frame ?? 'none'
   values.style_tilt = String(style.tilt ?? 0)
   values.style_text_color = style.text_color ?? ''

@@ -40,7 +40,7 @@ export type BlockRow = {
   updated_at: number
 }
 
-export type BlockStyle = { text_color?: string | null; bg_color?: string | null; border_color?: string | null; align?: 'inherit' | 'left' | 'center' | 'right'; frame?: 'hard'; tilt?: number }
+export type BlockStyle = { text_color?: string | null; bg_color?: string | null; border_color?: string | null; align?: 'inherit' | 'left' | 'center' | 'right'; frame?: 'hard'; tilt?: number; /** CSS propio del bloque, ya saneado (lib/safe-css) */ css?: string }
 
 export type FieldSpec =
   | { name: string; kind: 'text'; label: string; max: number; required?: boolean; placeholder?: string }

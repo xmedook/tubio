@@ -971,3 +971,21 @@ svg.ic { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: ro
 .ready-todos small { color: var(--muted); font-size: var(--t-xs); }
 .ready-todos .todo-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); }
 .page-head .sub a, .page-head .sub .btn-link { display: inline-flex; align-items: center; min-height: 44px; }
+.vsteps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.vs { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2, #f4f4ef); border-left: 4px solid #b6d41f; }
+.vs b { font-size: var(--t-sm); }
+.vs small { color: var(--muted); font-size: var(--t-xs); overflow-wrap: anywhere; }
+.vs del { color: var(--muted); }
+.vs ins { text-decoration: none; background: #eef8c4; border-radius: 6px; padding: 2px 6px; }
+.vs-quitar_bloque, .vs-quitar_seccion { border-left-color: #e5484d; }
+.vs-falta_archivo { border-left-color: #f5a524; background: #fff6e0; }
+.vs-fail { border-left-color: var(--border); opacity: .7; }
+.vs-err { color: #a8200f !important; }
+.vagent .vopt-go { position: sticky; bottom: 0; width: 100%; justify-content: center; margin-top: 4px; box-shadow: 0 -12px 16px var(--surface); }
+.vtoast [data-vupload] { background: #fff; color: #10120d; border-color: #fff; }
+.vtoast [data-vupload][hidden] { display: none; }
+@media (max-width: 640px) {
+  .vtoast { flex-wrap: wrap; white-space: normal; width: calc(100vw - 32px); }
+  .vtoast span { flex: 1 0 100%; }
+  .vtoast .btn { flex: 1; justify-content: center; }
+}
