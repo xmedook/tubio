@@ -58,7 +58,7 @@ export type FieldSpec =
   | { name: string; kind: 'images'; label: string; max: number; maxDim?: number }
   /** fecha y hora en la zona del usuario; epoch ms */
   | { name: string; kind: 'datetime'; label: string; required?: boolean }
-  | { name: string; kind: 'number'; label: string; min: number; max: number; required?: boolean; step?: number }
+  | { name: string; kind: 'number'; label: string; min: number; max: number; required?: boolean; step?: number; /** control deslizante; `default` si el bloque aún no lo guardó */ slider?: { default: number } }
   /** archivo cualquiera para descargar; { file_id, name, size } */
   | { name: string; kind: 'file'; label: string; required?: boolean; /** sólo estos tipos MIME */ mimes?: string[]; /** tope en bytes */ maxBytes?: number }
   /** a qué destinos de aviso del usuario se manda lo recogido */
@@ -212,6 +212,7 @@ export const BLOCKS: BlockDef[] = [
       { name: 'alt', kind: 'text', label: 'bio.f.alt', max: 200 },
       { name: 'caption', kind: 'text', label: 'bio.f.caption', max: 200 },
       { name: 'url', kind: 'url', label: 'bio.f.url_optional', schemes: 'button', placeholder: 'https://' },
+      { name: 'width', kind: 'number', label: 'bio.f.img_width', min: 1, max: 110, step: 1, slider: { default: 100 } },
     ],
     render: (_rc, b) => {
       const img = html`<img src="${imageUrl(s(b.data.image)) ?? ''}" alt="${s(b.data.alt)}" loading="lazy" decoding="async">`

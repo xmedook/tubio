@@ -78,6 +78,10 @@ export function pageCss(d: Design, blocks: BlockRow[]): string {
       const c = sanitizeCss(st.css)
       if (c) css += `#b${b.id} > *{${c}}`
     }
+    if (b.type === 'image') {
+      const w = Math.round(Number(b.data.width))
+      if (w >= 1 && w <= 110 && w !== 100) css += `#b${b.id} .figure{width:${w}%;margin-inline:auto}`
+    }
     if (b.type === 'html') css += `#b${b.id} .embed{height:${Math.min(1200, Math.max(60, Number(b.data.height) || 300))}px}`
   }
   return css

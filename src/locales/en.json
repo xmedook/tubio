@@ -957,6 +957,7 @@
   "bio.f.html_code": "HTML code",
   "bio.f.html_hint": "Shown isolated in a frame: it can use CSS and JavaScript but has no access to the page or your visitors' data.",
   "bio.f.height": "Height (px)",
+  "bio.f.img_width": "Image width (%)",
   "err.plan_bio_pages": "Your plan doesn't allow more bio pages. Change plans to create another.",
   "err.plan_links": "You reached the maximum links of your plan.",
   "err.plan_blocks": "Your plan allows up to {n} blocks per page.",
