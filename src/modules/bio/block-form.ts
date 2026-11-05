@@ -116,7 +116,8 @@ function fieldHtml(ctx: Ctx, f: FieldSpec, v: BlockValues, e: Errors, type: stri
     case 'datetime':
       return input({ ctx, name: f.name, type: 'datetime-local', label, value: v[f.name], error: e[f.name], required: f.required, hint: t('bio.f.tz_hint', { tz: ctx.user?.timezone ?? '' }) })
     case 'number':
-      return input({ ctx, name: f.name, type: f.slider ? 'range' : 'number', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })
+      if (f.slider) return html`<div class="live-range" data-live-width="${f.name}">${input({ ctx, name: f.name, type: 'range', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })}<output class="live-range-val" for="${f.name}">${v[f.name]}%</output></div>`
+      return input({ ctx, name: f.name, type: 'number', label, value: v[f.name], error: e[f.name], required: f.required, min: f.min, max: f.max, step: f.step ?? 1 })
     case 'file':
       return html`${v[f.name] ? html`<p>${t('links.current_file')}: <strong>${v[f.name]}</strong></p>` : ''}${input({ ctx, name: f.name, type: 'file', label: v[f.name] ? t('links.replace_file') : label, error: e[f.name], required: f.required && !v[f.name], accept: f.mimes?.join(',') })}`
     case 'targets': {

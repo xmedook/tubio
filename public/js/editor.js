@@ -88,3 +88,26 @@ for (const form of document.querySelectorAll('form[data-toggle]')) {
     }
   })
 }
+
+// Slider de ancho (bloque Imagen): la vista previa cambia mientras se mueve, sin guardar.
+// La página de la vista previa es del mismo origen; sin bloque guardado (alta nueva) solo se actualiza el número.
+for (const box of document.querySelectorAll('[data-live-width]')) {
+  const range = box.querySelector('input[type="range"]')
+  const out = box.querySelector('output')
+  if (!(range instanceof HTMLInputElement)) continue
+  const id = /\/panel\/blocks\/(\d+)/.exec(range.form?.getAttribute('action') ?? '')?.[1]
+  const apply = () => {
+    if (out) out.textContent = `${range.value}%`
+    if (!id || !(frame instanceof HTMLIFrameElement)) return
+    try {
+      const fig = frame.contentDocument?.querySelector(`#b${id} .figure`)
+      if (fig instanceof HTMLElement) {
+        fig.style.width = `${range.value}%`
+        fig.style.marginInline = 'auto'
+      }
+    } catch {
+      /* vista previa no accesible: se verá al guardar */
+    }
+  }
+  range.addEventListener('input', apply)
+}
