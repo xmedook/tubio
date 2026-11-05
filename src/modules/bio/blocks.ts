@@ -212,7 +212,7 @@ export const BLOCKS: BlockDef[] = [
       { name: 'alt', kind: 'text', label: 'bio.f.alt', max: 200 },
       { name: 'caption', kind: 'text', label: 'bio.f.caption', max: 200 },
       { name: 'url', kind: 'url', label: 'bio.f.url_optional', schemes: 'button', placeholder: 'https://' },
-      { name: 'width', kind: 'number', label: 'bio.f.img_width', min: 1, max: 110, step: 1, slider: { default: 100 } },
+      { name: 'width', kind: 'number', label: 'bio.f.img_width', min: 20, max: 100, step: 1, slider: { default: 100 } },
     ],
     render: (_rc, b) => {
       const img = html`<img src="${imageUrl(s(b.data.image)) ?? ''}" alt="${s(b.data.alt)}" loading="lazy" decoding="async">`
