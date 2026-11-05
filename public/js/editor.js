@@ -101,7 +101,7 @@ for (const box of document.querySelectorAll('[data-live-width]')) {
     if (!id || !(frame instanceof HTMLIFrameElement)) return
     try {
       const fig = frame.contentDocument?.querySelector(`#b${id} .figure`)
-      if (fig instanceof HTMLElement) {
+      if (fig) { // no instanceof: es de otro documento (otra realm)
         fig.style.width = `${range.value}%`
         fig.style.marginInline = 'auto'
       }
