@@ -14,6 +14,8 @@ export type Limits = {
   custom_domains: number
   capture_targets: string[]
   custom_code: boolean
+  /** bloque HTML propio (aparte de custom_code: iframes y sitios siguen atados a custom_code) */
+  html_block: boolean
   team_members: number
   api: boolean
 }
@@ -34,7 +36,7 @@ export type Plan = {
 
 const FALLBACK: Limits = {
   bio_pages: 1, links: 25, blocks_per_page: 30, qr: 10, stats_days: 30, storage_mb: 50, remove_branding: false,
-  marketing: false, custom_domains: 0, capture_targets: ['email'], custom_code: false, team_members: 0, api: false,
+  marketing: false, custom_domains: 0, capture_targets: ['email'], custom_code: false, html_block: false, team_members: 0, api: false,
 }
 
 type Raw = Omit<Plan, 'limits'> & { limits: string }
@@ -45,7 +47,8 @@ function hydrate(r: Raw): Plan {
   } catch {
     /* se queda con lo de respaldo */
   }
-  return { ...r, limits: { ...FALLBACK, ...limits } }
+  // sin html_block explícito en el plan, sigue a custom_code (comportamiento de siempre)
+  return { ...r, limits: { ...FALLBACK, html_block: !!limits.custom_code, ...limits } }
 }
 
 export function listPlans(db: DB, onlyPublic = false): Plan[] {
@@ -68,7 +71,7 @@ export function getPlan(db: DB, id: number): Plan | undefined {
  */
 export function planOf(db: DB, user: Pick<User, 'role'> & { plan_id?: number | null; plan_expires_at?: number | null }, now: number): Plan {
   const free = getPlanBySlug(db, 'free') ?? ({ id: 0, slug: 'free', name: 'Gratis', price_month: null, price_year: null, price_lifetime: null, currency: 'MXN', trial_days: 0, limits: FALLBACK, is_public: 1, sort: 0 } as Plan)
-  if (user.role === 'admin') return { ...free, slug: 'admin', name: 'Admin', limits: { ...FALLBACK, bio_pages: -1, links: -1, blocks_per_page: 100, qr: -1, stats_days: 3650, storage_mb: 100_000, remove_branding: true, marketing: true, custom_domains: 100, capture_targets: ['email', 'webhook', 'slack', 'discord', 'telegram'], custom_code: true, team_members: 100, api: true } }
+  if (user.role === 'admin') return { ...free, slug: 'admin', name: 'Admin', limits: { ...FALLBACK, bio_pages: -1, links: -1, blocks_per_page: 100, qr: -1, stats_days: 3650, storage_mb: 100_000, remove_branding: true, marketing: true, custom_domains: 100, capture_targets: ['email', 'webhook', 'slack', 'discord', 'telegram'], custom_code: true, html_block: true, team_members: 100, api: true } }
   if (user.plan_id && (!user.plan_expires_at || user.plan_expires_at > now)) return getPlan(db, user.plan_id) ?? free
   return free
 }
@@ -95,7 +98,7 @@ export function usageOf(db: DB, userId: number): Usage {
 }
 
 /** Bloques que exigen función de plan */
-export const PLAN_GATED_BLOCKS: Record<string, keyof Limits> = { html: 'custom_code', iframe: 'custom_code' }
+export const PLAN_GATED_BLOCKS: Record<string, keyof Limits> = { html: 'html_block', iframe: 'custom_code' }
 
 /** Límites vigentes del dueño por id (al servir: el plan pudo vencer después de crear el contenido) */
 export function ownerLimits(db: DB, userId: number, now: number): Limits | null {

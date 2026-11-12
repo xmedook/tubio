@@ -13,7 +13,7 @@ import { renderBioPage } from '../bio/render.ts'
 import { themeById, readDesign } from '../bio/design.ts'
 import { aliasTaken, createLink, type Link } from '../links/repo.ts'
 import { ownLinkOr404 } from '../links/routes.ts'
-import { dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
+import { blockTypeAllowed, dailyCapHit, limitsOf, usageOf, withinLimit } from '../plans/limits.ts'
 import { audit } from '../settings/repo.ts'
 import type { User } from '../users/repo.ts'
 import { createTemplate, getUsableTemplate, listTemplates, previewBlocks, snapshotBlocks, type Template } from './repo.ts'
@@ -80,7 +80,7 @@ export function registerTemplates(app: FastifyInstance, deps: AppDeps): void {
       const link = createLink(db, user.id, { kind: 'bio', alias, title: values.title || tp.name, target_url: null, redirect_code: 302, data: { ...tp.design, seo_title: values.title || '' }, is_enabled: true, starts_at: null, ends_at: null, expired_url: null, click_limit: null, limit_url: null, is_sensitive: false, utm: {}, forward_query: false, public_stats: false, project_id: null }, now)
       // los bloques que el plan no incluye (código propio) no se copian
       for (const b of tp.blocks) {
-        if ((b.type === 'html' || b.type === 'iframe') && !lim.custom_code) continue
+        if (!blockTypeAllowed(lim, b.type)) continue
         createBlock(db, link.id, { type: b.type, is_enabled: !!b.is_enabled, starts_at: null, ends_at: null, data: b.data, style: b.style }, now)
       }
       db.prepare('UPDATE templates SET uses = uses + 1 WHERE id = ?').run(tp.id)
