@@ -428,7 +428,7 @@ ${error ? html`<p class="flash flash-error" role="alert">${t(error)}</p>` : ''}
         path: `${OB}/vivo`,
         body: html`<div class="ob-confetti" aria-hidden="true">${Array.from({ length: 24 }, (_, i) => html`<i style="--i:${i}"></i>`)}</div>
 <h1>${t('ob.live_h')}</h1><p class="muted">${t('ob.live_sub')}</p>
-<div class="ob-live"><div class="ob-frame"><iframe src="${url}" title="${link.title || link.alias}" loading="lazy" tabindex="-1"></iframe></div>
+<div class="ob-live"><div class="ob-frame"><iframe src="/${link.alias}?_preview=1" title="${link.title || link.alias}" loading="lazy" tabindex="-1"></iframe></div>
   <div class="ob-live-act"><p class="start-url"><a href="${url}" target="_blank" rel="noopener">${url.replace(/^https?:\/\//, '')}</a></p>
     <button type="button" class="btn" data-copy="${url}" data-copied="${t('links.copied')}">${icon('copy')} ${t('links.copy')}</button>
     <a class="btn" href="${share}" target="_blank" rel="noopener">${icon('chat')} ${t('start.share_wa')}</a>
