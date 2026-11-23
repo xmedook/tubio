@@ -28,7 +28,8 @@ ${claim ? html`<div class="al ${claim.error ? 'crit' : 'ok'}" role="status">${ic
   ${errors._form ? html`<div class="al crit" role="alert">${ic('alert')}<div>${t(errors._form)}</div></div>` : ''}
   ${fld({ ctx, name: 'name', label: t('s3.name'), value: values.name, error: errors.name, placeholder: t('s3.name_ph'), autocomplete: 'name', maxlength: 80 })}
   ${fld({ ctx, name: 'email', type: 'email', label: t('s3.email'), value: values.email, error: errors.email, placeholder: t('s3.email_ph'), autocomplete: 'email' })}
-  ${fld({ ctx, name: 'password', type: 'password', label: t('s3.pass'), hint: t('s3.pass_hint'), error: errors.password, autocomplete: 'new-password' })}
+  ${errors.password ? html`<div class="al crit" role="alert">${ic('alert')}<div>${t(errors.password)}</div></div>` : ''}
+  <p class="p sm">${t('s3.reg_nopass')}</p>
   <div class="fld${errors.accept ? ' err' : ''}"><label class="opt" for="f-accept"><input id="f-accept" type="checkbox" name="accept" value="1"${values.accept ? html` checked` : ''} required${errors.accept ? html` aria-invalid="true" aria-describedby="f-accept-e"` : ''}><span><b>${raw(t('auth.accept_terms_html'))}</b></span></label>${errors.accept ? html`<p class="msg-e" id="f-accept-e">${ic('alert')}<span>${t(errors.accept)}</span></p>` : ''}</div>
   ${powField(ctx, pow)}
   <button class="btn btn-b" type="submit">${t('s3.reg_btn')} ${arrow()}</button>
@@ -53,7 +54,15 @@ export function loginPage(ctx: Ctx, values: V = {}, errors: Errors = {}, next = 
     sub: t('s3.login_sub'),
     body: html`${googleButton(ctx, next)}
 ${errors._form ? html`<div class="al crit" role="alert">${ic('alert')}<div><b>${t('s3.login_err')}</b> ${t(errors._form)}</div></div>` : ''}
-<form class="form" method="post" action="/login" novalidate>
+<form class="form" method="post" action="/login/link" novalidate>
+  ${csrfField(ctx)}
+  <input type="hidden" name="next" value="${next}">
+  ${fld({ ctx, name: 'email', type: 'email', label: t('s3.email'), value: values.email, error: errors.linkEmail, placeholder: t('s3.email_ph'), autocomplete: 'username' })}
+  <button class="btn btn-b" type="submit">${t('s3.magic_btn')} ${arrow()}</button>
+</form>
+<details class="more"${errors._form || errors.password ? html` open` : ''}>
+  <summary>${t('s3.magic_pass')}</summary>
+  <form class="form" method="post" action="/login" novalidate>
   ${csrfField(ctx)}
   <input type="hidden" name="next" value="${next}">
   ${fld({ ctx, name: 'email', type: 'email', label: t('s3.email'), value: values.email, error: errors.email, placeholder: t('s3.email_ph'), autocomplete: 'username' })}
@@ -61,6 +70,7 @@ ${errors._form ? html`<div class="al crit" role="alert">${ic('alert')}<div><b>${
   <p style="text-align:right"><a href="/forgot" style="display:inline-flex;min-height:44px;align-items:center">${t('s3.forgot_q')}</a></p>
   <button class="btn btn-b" type="submit">${t('s3.login_btn')} ${arrow()}</button>
 </form>
+</details>
 <p class="p sm">${t('s3.no_acct')} <a href="/register"><b>${t('s3.no_acct_l')}</b></a></p>`,
   })
 }
@@ -116,6 +126,36 @@ export function resetPage(ctx: Ctx, token: string, errors: Errors = {}) {
   ${fld({ ctx, name: 'password', type: 'password', label: t('s3.rst_pass'), hint: t('s3.rst_pass_hint'), error: errors.password, autocomplete: 'new-password' })}
   ${fld({ ctx, name: 'password2', type: 'password', label: t('s3.rst_pass2'), error: errors.password2, autocomplete: 'new-password' })}
   <button class="btn btn-b" type="submit">${t('s3.rst_btn')} ${arrow()}</button>
+</form>`,
+  })
+}
+
+/** Tras pedir la liga: misma respuesta exista o no la cuenta. */
+export function linkSentPage(ctx: Ctx, email: string) {
+  const { t } = ctx
+  return authSite(ctx, {
+    title: t('auth.magic_title'),
+    path: '/login',
+    h1: html`${t('s3.sent_h')} <span class="hl-verde">${t('s3.sent_hl')}</span>`,
+    sub: t('s3.mlink_sub'),
+    body: html`<div class="al ok" role="status">${ic('mail')}<div><b>${t('s3.sent_to')} ${email}.</b> ${t('s3.sent_spam')}</div></div>
+<a class="btn btn-s btn-b" href="/login">${t('s3.sent_other')}</a>
+<p class="p sm">${t('s3.no_acct')} <a href="/register"><b>${t('s3.no_acct_l')}</b></a></p>`,
+  })
+}
+
+/** La liga solo se consume con un POST: los escáneres de correo que abren enlaces no pueden gastarla. */
+export function linkConfirmPage(ctx: Ctx, token: string, next = '') {
+  const { t } = ctx
+  return authSite(ctx, {
+    title: t('auth.magic_title'),
+    path: '/login',
+    h1: html`${t('s3.mc_h')} <span class="hl-lima">${t('s3.mc_hl')}</span>`,
+    sub: t('s3.mc_sub'),
+    body: html`<form class="form" method="post" action="/login/link/${token}" novalidate>
+  ${csrfField(ctx)}
+  <input type="hidden" name="next" value="${next}">
+  <button class="btn btn-b" type="submit">${t('s3.mc_btn')} ${arrow()}</button>
 </form>`,
   })
 }

@@ -2,7 +2,7 @@ import { claimFounder } from '../plans/founders.ts'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import type { AppDeps } from '../../app.ts'
-import { hashPassword, verifyPassword } from '../../lib/crypto.ts'
+import { hashPassword, randomToken, verifyPassword } from '../../lib/crypto.ts'
 import { translator, type Locale } from '../../lib/i18n.ts'
 import { matchTotp } from '../../lib/totp.ts'
 import { messagePage } from '../../views/layout.ts'
@@ -13,7 +13,7 @@ import { audit, getSetting } from '../settings/repo.ts'
 import { createUser, findUserByEmail, findUserById, updateUser, type User } from '../users/repo.ts'
 import { createSession, destroySession, destroyUserSessions, SESSION_COOKIE, SESSION_TTL_MS } from './sessions.ts'
 import { consumeAuthToken, createAuthToken, peekAuthToken } from './tokens.ts'
-import { forgotPage, loginPage, registerPage, resetPage, twoFactorPage, type Claim } from './views.ts'
+import { forgotPage, linkConfirmPage, linkSentPage, loginPage, registerPage, resetPage, twoFactorPage, type Claim } from './views.ts'
 import { aliasError, normalizeAlias } from '../../lib/alias.ts'
 import { aliasTaken } from '../links/repo.ts'
 import { isGiro } from '../minisitio/giros.ts'
@@ -24,7 +24,8 @@ const emailSchema = z.string().trim().max(254, 'err.email').pipe(z.email('err.em
 const registerSchema = z.object({
   name: z.string().trim().max(80, 'err.too_long').default(''),
   email: emailSchema,
-  password: passwordSchema,
+  // sin contraseña (23-nov-2026): se acepta si la mandan (API, formularios viejos), pero el formulario ya no la pide
+  password: z.preprocess((v) => (v === '' || v === null ? undefined : v), passwordSchema.optional()),
 })
 const loginSchema = z.object({ email: z.string().trim().min(1, 'err.required'), password: z.string().min(1, 'err.required') })
 
@@ -100,7 +101,8 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     const user = createUser(db, {
       email: r.data.email,
       name: r.data.name,
-      passwordHash: await hashPassword(r.data.password),
+      // sin contraseña: relleno aleatorio que nadie conoce; entra con liga por correo o Google y puede poner una desde «Olvidé mi contraseña»
+      passwordHash: await hashPassword(r.data.password ?? randomToken()),
       locale: req.ctx.locale,
     }, deps.now())
     const ref = req.cookies.tb_ref ? req.unsignCookie(req.cookies.tb_ref) : null
@@ -141,6 +143,58 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     }
     startSession(req, reply, deps, user.id)
     audit(db, { actorId: user.id, userId: user.id, action: 'user.login' }, deps.now())
+    return reply.redirect(next || '/panel', 303)
+  })
+
+  /** Acceso sin contraseña: pide una liga de un solo uso (15 min). La respuesta es la misma exista o no la cuenta. */
+  app.post('/login/link', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (req, reply) => {
+    const next = safeNext(field(req.body, 'next'), '')
+    const email = field(req.body, 'email')
+    const r = parseForm(z.object({ email: emailSchema }), req.body)
+    if (!r.ok) return sendHtml(reply, loginPage(req.ctx, { email }, { linkEmail: r.errors.email ?? 'err.email' }, next), 422)
+    const user = findUserByEmail(db, r.data.email)
+    if (user && user.status === 'active') {
+      const token = createAuthToken(db, user.id, 'magic_login', deps.now())
+      const t = translator(user.locale as Locale)
+      await deps.mailer.send({
+        to: user.email,
+        subject: t('mail.magic_subject'),
+        text: t('mail.magic_body', { link: `${deps.config.baseUrl}/login/link/${token}${next ? '?next=' + encodeURIComponent(next) : ''}` }),
+        button: t('mail.magic_button'),
+      })
+      audit(db, { actorId: user.id, userId: user.id, action: 'user.magic_link_sent' }, deps.now())
+    }
+    return sendHtml(reply, linkSentPage(req.ctx, r.data.email))
+  })
+
+  app.get('/login/link/:token', async (req, reply) => {
+    const { token } = req.params as { token: string }
+    const next = safeNext((req.query as { next?: string }).next, '')
+    if (!peekAuthToken(db, token, 'magic_login', deps.now())) {
+      const { t } = req.ctx
+      return sendHtml(reply, messagePage(req.ctx, { title: t('auth.magic_title'), message: t('auth.magic_invalid') }), 400)
+    }
+    return sendHtml(reply, linkConfirmPage(req.ctx, token, next))
+  })
+
+  app.post('/login/link/:token', { config: AUTH_LIMIT }, async (req, reply) => {
+    const { token } = req.params as { token: string }
+    const next = safeNext(field(req.body, 'next'), '')
+    const { t } = req.ctx
+    const now = deps.now()
+    const userId = consumeAuthToken(db, token, 'magic_login', now)
+    const user = userId ? findUserById(db, userId) : null
+    if (!user) return sendHtml(reply, messagePage(req.ctx, { title: t('auth.magic_title'), message: t('auth.magic_invalid') }), 400)
+    if (user.status !== 'active') return sendHtml(reply, messagePage(req.ctx, { title: t('auth.magic_title'), message: t('err.account_suspended') }), 403)
+    // abrir la liga demuestra que el buzón es suyo: queda verificado
+    if (!user.email_verified_at) updateUser(db, user.id, { email_verified_at: now }, now)
+    claimFounder(deps, user.id)
+    if (user.totp_enabled_at && user.totp_secret) {
+      startSession(req, reply, deps, user.id, true)
+      return reply.redirect('/login/2fa' + (next ? '?next=' + encodeURIComponent(next) : ''), 303)
+    }
+    startSession(req, reply, deps, user.id)
+    audit(db, { actorId: user.id, userId: user.id, action: 'user.login', meta: { magicLink: true } }, now)
     return reply.redirect(next || '/panel', 303)
   })
 

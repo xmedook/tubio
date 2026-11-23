@@ -2530,5 +2530,18 @@
   "varita.upload": "Upload your file",
   "ms.section": "Section",
   "varita.err_empty_section": "Not created: it would be empty.",
-  "varita.need": "I need something from you"
+  "varita.need": "I need something from you",
+  "s3.reg_nopass": "No password: we email you a link to sign in whenever you want.",
+  "s3.magic_btn": "Email me a sign-in link",
+  "s3.magic_pass": "I'd rather use a password",
+  "s3.mlink_sub": "If there is an account with that email, we sent you a sign-in link. It expires in 15 minutes and works once.",
+  "s3.mc_h": "Sign in to",
+  "s3.mc_hl": "túbio",
+  "s3.mc_sub": "Confirm to sign in to your account.",
+  "s3.mc_btn": "Sign in to my account",
+  "auth.magic_title": "Sign in to túbio",
+  "auth.magic_invalid": "This link no longer works: it expires after 15 minutes or was already used. Request another from the sign-in page.",
+  "mail.magic_subject": "Your link to sign in to túbio",
+  "mail.magic_body": "Hi:\n\nTo sign in to your account open this link (it expires in 15 minutes and works once):\n\n{link}\n\nIf you didn't ask for it, ignore this message: nobody signs in without opening the link.",
+  "mail.magic_button": "Sign in to túbio"
 }

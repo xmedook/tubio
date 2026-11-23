@@ -1,11 +1,12 @@
 import type { DB } from '../../db/index.ts'
 import { randomToken, sha256 } from '../../lib/crypto.ts'
 
-export type TokenKind = 'verify_email' | 'reset_password'
+export type TokenKind = 'verify_email' | 'reset_password' | 'magic_login'
 
 export const TOKEN_TTL: Record<TokenKind, number> = {
   verify_email: 7 * 24 * 3600 * 1000,
   reset_password: 3600 * 1000,
+  magic_login: 15 * 60 * 1000,
 }
 
 export function createAuthToken(db: DB, userId: number, kind: TokenKind, now = Date.now()): string {

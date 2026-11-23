@@ -180,3 +180,88 @@ describe('idioma', () => {
     expect((await a.get('/login')).body).toContain('lang="es-MX"')
   })
 })
+
+describe('acceso sin contraseña (liga por correo)', () => {
+  it('el registro ya no pide contraseña y la cuenta entra con una liga', async () => {
+    const t = await makeApp()
+    const a = new Agent(t.app)
+    const form = await a.get('/register')
+    expect(form.body).not.toContain('name="password"')
+    const res = await a.post('/register', { accept: '1', name: 'Ana', email: 'ana@example.com' })
+    expect(res.statusCode).toBe(303)
+    expect((await a.get('/panel')).statusCode).toBe(200)
+    // otra persona/navegador entra con la liga
+    t.mailer.sent.length = 0
+    const b = new Agent(t.app)
+    await b.get('/login')
+    const ask = await b.post('/login/link', { email: 'ana@example.com' })
+    expect(ask.statusCode).toBe(200)
+    expect(t.mailer.sent).toHaveLength(1)
+    const link = /\/login\/link\/[\w-]+/.exec(t.mailer.sent[0]!.text)![0]
+    const page = await b.get(link)
+    expect(page.statusCode).toBe(200)
+    expect(page.body).toContain('Entrar a mi cuenta')
+    // abrir la liga (un escáner de correo, por ejemplo) NO la gasta
+    expect((await b.get(link)).statusCode).toBe(200)
+    const go = await b.post(link, {})
+    expect(go.statusCode).toBe(303)
+    expect(go.headers.location).toBe('/panel')
+    expect((await b.get('/panel')).statusCode).toBe(200)
+    // una liga solo sirve una vez
+    const c = new Agent(t.app)
+    await c.get('/login')
+    expect((await c.post(link, {})).statusCode).toBe(400)
+    expect((await c.get(link)).statusCode).toBe(400)
+  })
+
+  it('misma respuesta si el correo no existe y no manda nada', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    t.mailer.sent.length = 0
+    const a = new Agent(t.app)
+    await a.get('/login')
+    const known = await a.post('/login/link', { email: 'ana@example.com' })
+    const unknown = await a.post('/login/link', { email: 'nadie@example.com' })
+    expect(known.statusCode).toBe(200)
+    expect(unknown.statusCode).toBe(200)
+    expect(unknown.body).toContain('Si hay una cuenta con ese correo')
+    expect(t.mailer.sent).toHaveLength(1)
+  })
+
+  it('un correo mal escrito se rechaza y una cuenta suspendida no recibe liga', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    updateUser(t.deps.db, u.id, { status: 'suspended' }, Date.now())
+    t.mailer.sent.length = 0
+    const a = new Agent(t.app)
+    await a.get('/login')
+    expect((await a.post('/login/link', { email: 'no-es-correo' })).statusCode).toBe(422)
+    await a.post('/login/link', { email: 'ana@example.com' })
+    expect(t.mailer.sent).toHaveLength(0)
+  })
+
+  it('con 2FA activo la liga también pide el código', async () => {
+    const t = await makeApp()
+    const u = await seedUser(t)
+    const secret = generateSecret()
+    updateUser(t.deps.db, u.id, { totp_secret: secret, totp_enabled_at: Date.now() }, Date.now())
+    t.mailer.sent.length = 0
+    const a = new Agent(t.app)
+    await a.get('/login')
+    await a.post('/login/link', { email: 'ana@example.com' })
+    const link = /\/login\/link\/[\w-]+/.exec(t.mailer.sent[0]!.text)![0]
+    const go = await a.post(link, {})
+    expect(go.statusCode).toBe(303)
+    expect(go.headers.location).toContain('/login/2fa')
+    expect((await a.get('/panel')).statusCode).not.toBe(200)
+  })
+
+  it('la contraseña sigue funcionando para cuentas que ya la tienen', async () => {
+    const t = await makeApp()
+    await seedUser(t)
+    const a = new Agent(t.app)
+    await a.get('/login')
+    const res = await a.post('/login', { email: 'ana@example.com', password: 'contrasena-segura' })
+    expect(res.statusCode).toBe(303)
+  })
+})

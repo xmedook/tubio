@@ -2530,5 +2530,18 @@
   "varita.upload": "Sube tu archivo",
   "ms.section": "Sección",
   "varita.err_empty_section": "No la creé: se quedaría vacía.",
-  "varita.need": "Necesito algo tuyo"
+  "varita.need": "Necesito algo tuyo",
+  "s3.reg_nopass": "Sin contraseña: te mandamos una liga a tu correo para entrar cuando quieras.",
+  "s3.magic_btn": "Mándame una liga para entrar",
+  "s3.magic_pass": "Prefiero entrar con contraseña",
+  "s3.mlink_sub": "Si hay una cuenta con ese correo, te mandamos una liga para entrar. Vence en 15 minutos y solo sirve una vez.",
+  "s3.mc_h": "Entra a",
+  "s3.mc_hl": "túbio",
+  "s3.mc_sub": "Confirma para entrar a tu cuenta.",
+  "s3.mc_btn": "Entrar a mi cuenta",
+  "auth.magic_title": "Entrar a túbio",
+  "auth.magic_invalid": "Esta liga ya no sirve: vence a los 15 minutos o ya se usó. Pide otra desde la pantalla de acceso.",
+  "mail.magic_subject": "Tu liga para entrar a túbio",
+  "mail.magic_body": "Hola:\n\nPara entrar a tu cuenta abre este enlace (vence en 15 minutos y solo sirve una vez):\n\n{link}\n\nSi no lo pediste, ignora este mensaje: nadie entra sin abrir la liga.",
+  "mail.magic_button": "Entrar a túbio"
 }
