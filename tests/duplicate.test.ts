@@ -67,7 +67,7 @@ describe('reclama tu alias', () => {
     expect(free.body).toContain('name="claim" value="cafe-norte"')
     expect((await v.get('/register?alias=panel')).body).toContain('class="al crit" role="status"')
     const r = await v.post('/register', { email: 'cafe@example.com', password: 'contrasena-segura', accept: '1', claim: 'cafe-norte' })
-    expect(r.headers.location).toBe('/panel/start?alias=cafe-norte')
+    expect(r.headers.location).toBe('/panel/onboarding?alias=cafe-norte')
     expect((await v.get(String(r.headers.location))).body).toContain('value="cafe-norte"')
     expect((await v.get('/panel/links/new?kind=bio&alias=cafe-norte')).body).toContain('value="cafe-norte"')
   })

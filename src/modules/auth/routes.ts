@@ -113,8 +113,10 @@ export function registerAuth(app: FastifyInstance, deps: AppDeps): void {
     startSession(req, reply, deps, user.id)
     setFlash(reply, deps, { type: 'ok', key: 'auth.welcome' })
     // reclamó un alias en la portada: directo a crear su página con él
-    const q = [claimOk ? `alias=${encodeURIComponent(claimOk.alias)}` : '', values.giro ? `giro=${values.giro}` : ''].filter(Boolean).join('&')
-    return reply.redirect(q ? `/panel/start?${q}` : '/panel/start', 303)
+    const aliasQ = claimOk ? `alias=${encodeURIComponent(claimOk.alias)}` : ''
+    // con giro (llegó desde la página de un giro) sigue el asistente de sitio; en los demás casos, el onboarding guiado (23-nov-2026)
+    if (values.giro) return reply.redirect(`/panel/start?${[aliasQ, `giro=${values.giro}`].filter(Boolean).join('&')}`, 303)
+    return reply.redirect(aliasQ ? `/panel/onboarding?${aliasQ}` : '/panel/onboarding', 303)
   })
 
   app.get('/login', async (req, reply) => {

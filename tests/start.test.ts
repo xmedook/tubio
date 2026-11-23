@@ -9,8 +9,10 @@ describe('primer uso', () => {
     const v = new Agent(t.app)
     await v.get('/register?alias=cafe-luna')
     const r = await v.post('/register', { email: 'luna@example.com', password: 'contrasena-segura', accept: '1', claim: 'cafe-luna' })
-    expect(r.headers.location).toBe('/panel/start?alias=cafe-luna')
-    const start = await v.get(String(r.headers.location))
+    expect(r.headers.location).toBe('/panel/onboarding?alias=cafe-luna')
+    expect((await v.get(String(r.headers.location))).body).toContain('value="cafe-luna"')
+    // el asistente clásico de sitio (lo que sigue al elegir «Negocio») conserva el alias
+    const start = await v.get('/panel/start?alias=cafe-luna')
     expect(start.body).toContain('value="cafe-luna"')
     const tpl = t.deps.db.prepare("SELECT id FROM templates WHERE slug = 'restaurante'").pluck().get() as number
     const bad = await v.postMultipart('/panel/start', { tpl: String(tpl), alias: 'cafe-luna', name: '', whatsapp: '12' })
